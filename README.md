@@ -13,7 +13,7 @@ A Moodle activity for practising workplace soft skills. Each scene is one pictur
 
 ## Install
 
-1. Upload `mod_aisoftskills_v1.0.0.zip` in *Site administration > Plugins > Install plugins*, or unzip it into `mod/aisoftskills` (`public/mod/aisoftskills` on Moodle 5.1 and later).
+1. Upload `mod_aisoftskills_v1.0.1.zip` in *Site administration > Plugins > Install plugins*, or unzip it into `mod/aisoftskills` (`public/mod/aisoftskills` on Moodle 5.1 and later).
 2. Complete the upgrade.
 
 ## Teachers

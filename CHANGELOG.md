@@ -2,6 +2,14 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.0.1] - 2026-09-28
+
+Release-pipeline test build.
+
+### Changed
+
+- Version 2026092801, release 1.0.1. No functional changes from 1.0.0 (version 2026092800).
+
 ## [v1.0.0] - 2026-09-28
 
 First release.
