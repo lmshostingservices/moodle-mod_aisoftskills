@@ -2,6 +2,14 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.0.3] - 2026-09-28
+
+### Added
+
+- Administrator-only activation page with free access verification, live release/credit-price review and explicit POST confirmation before one-time site unlock.
+- Durable pending marker and verification-first recovery for uncertain unlock responses; show unlimited/low balances, Marketplace restorations and server conflict messages without claiming a new debit for prior purchases.
+- Activation uses the existing complete LMS Labs credential pair. Scene drafting (3 credits), image generation (5 credits), request keys, pending/410 handling and teacher review are unchanged.
+
 ## [v1.0.2] - 2026-09-28
 
 ### Added
