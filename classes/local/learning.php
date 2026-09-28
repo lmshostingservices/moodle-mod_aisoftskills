@@ -512,6 +512,8 @@ class learning {
             $DB->delete_records_select('aisoftskills_attempt', "id $insql", $params);
         }
         $DB->delete_records('aisoftskills_ailog', ['aisoftskillsid' => $aid, 'userid' => $userid]);
+        $DB->delete_records('aisoftskills_draft', ['aisoftskillsid' => $aid, 'userid' => $userid]);
+        $DB->delete_records('aisoftskills_imagejob', ['aisoftskillsid' => $aid, 'userid' => $userid]);
     }
 
     /**

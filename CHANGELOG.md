@@ -2,6 +2,19 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.0.2] - 2026-09-28
+
+### Added
+
+- Separate teacher-only scene/script text drafting with the approved LMS Labs scene-draft endpoint. A validated successful draft costs 3 credits; image generation remains a separate 5-credit operation. The dialogue/script is not silently imported into the branching two-choice lesson format.
+- Persist each text request's key and body on Moodle before contacting LMS Labs. Show explicit pending, retry, expiration and errors; manually resuming uses the same key and body. Save the original completed draft and a teacher-editable copy in Moodle.
+- Persist image-generation intent, key, site and exact prompt/style before each paid call. Checking an uncertain image request keeps its key; a completed 410 never promises image-byte replay. New teacher intent explicitly confirms the separate 5-credit charge.
+
+### Fixed
+
+- Moodle 4.4/4.5 Code Checker coverage warnings via method-level PHPUnit annotations.
+- Mustache lint failures caused by meter roles on generic elements; label numeric graphics in templates and the player AMD module instead.
+
 ## [v1.0.1] - 2026-09-28
 
 Release-pipeline test build.

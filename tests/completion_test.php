@@ -33,6 +33,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 final class completion_test extends \advanced_testcase {
     /**
      * The activity is complete once an attempt with every scene is finished.
+     * @covers \mod_aisoftskills\completion\custom_completion
      */
     public function test_all_scenes(): void {
         global $DB;

@@ -38,9 +38,12 @@ interface provider {
      *
      * @param string $prompt English picture description
      * @param string $style illustration or photo
+     * @param string|null $requestkey Persisted idempotency key (null only for legacy direct provider calls)
+     * @param string|null $requestbody Persisted exact JSON payload for deliberate replay
      * @return array bytes (PNG, JPEG or WebP), charged (credits), balance (int|null), requestid, model
      */
-    public function generate_image(string $prompt, string $style = 'illustration'): array;
+    public function generate_image(string $prompt, string $style = 'illustration',
+        ?string $requestkey = null, ?string $requestbody = null): array;
 
     /**
      * Remaining balance, for information only (it can change before any charge).

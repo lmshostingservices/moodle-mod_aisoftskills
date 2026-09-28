@@ -43,7 +43,7 @@
         {{#kpis}}
         <li class="ss-finalkpi">
             <span class="ss-finalkpi-name">{{name}}</span>
-            <span class="ss-finalkpi-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{value}}" aria-label="{{name}}"><span style="width: {{value}}%;"></span></span>
+            <span class="ss-finalkpi-bar" role="img" aria-label="{{name}}: {{value}} / 100 (0–100)"><span style="width: {{value}}%;"></span></span>
             <span class="ss-finalkpi-value">{{value}}</span>
             <span class="ss-delta {{#up}}is-up{{/up}}{{^up}}is-down{{/up}}">{{change}}</span>
         </li>

@@ -22,8 +22,8 @@
     Example context (json):
     {"kpi": "morale", "name": "Morale", "value": 62, "start": 50}
 }}
-<div class="ss-kpichip" data-kpi="{{kpi}}" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{value}}" aria-label="{{name}}">
-    <span class="ss-kpichip-name">{{name}}</span>
+<div class="ss-kpichip" data-kpi="{{kpi}}" role="img" aria-labelledby="ss-kpi-{{kpi}}-name ss-kpi-{{kpi}}-value ss-kpi-{{kpi}}-range">
+    <span class="ss-kpichip-name" id="ss-kpi-{{kpi}}-name">{{name}}</span>
     <span class="ss-kpichip-bar"><span style="width: {{value}}%;"></span></span>
-    <span class="ss-kpichip-value">{{value}}</span>
+    <span class="ss-kpichip-value" id="ss-kpi-{{kpi}}-value">{{value}}</span><span id="ss-kpi-{{kpi}}-range" class="visually-hidden sr-only">0–100</span>
 </div>

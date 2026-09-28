@@ -41,7 +41,8 @@ class provider implements
     \core_privacy\local\request\core_userlist_provider,
     \core_privacy\local\request\plugin\provider {
     /** @var string[] Tables holding learner data, each with aisoftskillsid and userid. */
-    protected const USER_TABLES = ['aisoftskills_attempt', 'aisoftskills_ailog'];
+    protected const USER_TABLES = ['aisoftskills_attempt', 'aisoftskills_ailog',
+        'aisoftskills_draft', 'aisoftskills_imagejob'];
 
     /**
      * Describes stored and transferred personal data.
@@ -75,6 +76,37 @@ class provider implements
             'status' => 'privacy:metadata:ailog:status',
             'timecreated' => 'privacy:metadata:ailog:timecreated',
         ], 'privacy:metadata:ailog');
+        $collection->add_database_table('aisoftskills_draft', [
+            'userid' => 'privacy:metadata:draft:userid',
+            'requestkey' => 'privacy:metadata:draft:requestkey',
+            'intentkey' => 'privacy:metadata:draft:intentkey',
+            'siteid' => 'privacy:metadata:draft:siteid',
+            'requestbody' => 'privacy:metadata:draft:requestbody',
+            'bodyhash' => 'privacy:metadata:draft:bodyhash',
+            'responsebody' => 'privacy:metadata:draft:responsebody',
+            'editedbody' => 'privacy:metadata:draft:editedbody',
+            'requestid' => 'privacy:metadata:draft:requestid',
+            'errorcode' => 'privacy:metadata:draft:errorcode',
+            'state' => 'privacy:metadata:draft:state',
+            'timecreated' => 'privacy:metadata:draft:timecreated',
+            'timemodified' => 'privacy:metadata:draft:timemodified',
+        ], 'privacy:metadata:draft');
+        $collection->add_database_table('aisoftskills_imagejob', [
+            'userid' => 'privacy:metadata:imagejob:userid',
+            'sceneid' => 'privacy:metadata:imagejob:sceneid',
+            'intentkey' => 'privacy:metadata:imagejob:intentkey',
+            'requestkey' => 'privacy:metadata:imagejob:requestkey',
+            'siteid' => 'privacy:metadata:imagejob:siteid',
+            'requestbody' => 'privacy:metadata:imagejob:requestbody',
+            'requestid' => 'privacy:metadata:imagejob:requestid',
+            'errorcode' => 'privacy:metadata:imagejob:errorcode',
+            'state' => 'privacy:metadata:imagejob:state',
+            'timecreated' => 'privacy:metadata:imagejob:timecreated',
+            'timemodified' => 'privacy:metadata:imagejob:timemodified',
+        ], 'privacy:metadata:imagejob');
+        $collection->add_external_location_link('lmslabs_text_draft', [
+            'brief' => 'privacy:metadata:draft:requestbody',
+        ], 'privacy:metadata:textdraft');
         $collection->add_external_location_link('lmslabs', [
             'prompt' => 'privacy:metadata:lmslabs:prompt',
             'siteid' => 'privacy:metadata:lmslabs:siteid',
@@ -188,12 +220,36 @@ class provider implements
                 $ailog[] = (object)['action' => $row->action, 'status' => $row->status,
                     'time' => transform::datetime($row->timecreated)];
             }
-            if (!$attempts && !$ailog) {
+            $drafts = [];
+            foreach ($DB->get_records('aisoftskills_draft',
+                ['aisoftskillsid' => $aid, 'userid' => $userid], 'id') as $row) {
+                $drafts[] = (object)[
+                    'brief' => json_decode((string)$row->requestbody, true)['brief'] ?? '',
+                    'original' => $row->state === 'complete' ? json_decode((string)$row->responsebody, true) : null,
+                    'edited' => $row->editedbody,
+                    'state' => $row->state,
+                    'time' => transform::datetime($row->timecreated),
+                ];
+            }
+            $imagejobs = [];
+            foreach ($DB->get_records('aisoftskills_imagejob',
+                ['aisoftskillsid' => $aid, 'userid' => $userid], 'id') as $row) {
+                $imagejobs[] = (object)[
+                    'sceneid' => (int)$row->sceneid,
+                    'promptandstyle' => json_decode((string)$row->requestbody, true),
+                    'state' => $row->state,
+                    'reference' => $row->requestid,
+                    'time' => transform::datetime($row->timecreated),
+                ];
+            }
+            if (!$attempts && !$ailog && !$drafts && !$imagejobs) {
                 continue;
             }
             $contextdata = helper::get_context_data($context, $user);
             $contextdata->attempts = $attempts;
             $contextdata->aigeneration = $ailog;
+            $contextdata->textdrafts = $drafts;
+            $contextdata->imagejobs = $imagejobs;
             writer::with_context($context)->export_data([], $contextdata);
             helper::export_context_files($context, $user);
         }
@@ -213,6 +269,8 @@ class provider implements
         if ($cm) {
             learning::delete_all_user_data((int)$cm->instance);
             $DB->delete_records('aisoftskills_ailog', ['aisoftskillsid' => $cm->instance]);
+            $DB->delete_records('aisoftskills_draft', ['aisoftskillsid' => $cm->instance]);
+            $DB->delete_records('aisoftskills_imagejob', ['aisoftskillsid' => $cm->instance]);
         }
     }
 

@@ -65,10 +65,16 @@
                 <details class="ss-imagehelp">
                     <summary>{{#str}} imagehelp, mod_aisoftskills {{/str}}</summary>
                     {{#canai}}
-                    <button type="button" class="ss-btn ss-btn-primary ss-btn-sm w-100" data-action="genimage" data-scene="{{id}}">
+                    {{#imagepending}}<p class="ss-mini" role="status">{{#str}} imageintent_pending, mod_aisoftskills {{/str}} {{imageref}} {{imageerror}}</p>{{/imagepending}}
+                    {{#imagesaving}}<p class="ss-mini" role="status">{{#str}} imageintent_saving, mod_aisoftskills {{/str}} {{imageref}}</p>{{/imagesaving}}
+                    {{#imagewarning}}<p class="ss-mini" role="status">{{#str}} imageintent_lost, mod_aisoftskills {{/str}} {{imageref}} {{imageerror}}</p>{{/imagewarning}}
+                    {{#imageclosed}}<p class="ss-mini" role="status">{{#str}} imageintent_closed, mod_aisoftskills {{/str}} {{imageref}} {{imageerror}}</p>{{/imageclosed}}
+                    {{^imagesaving}}
+                    <button type="button" class="ss-btn ss-btn-primary ss-btn-sm w-100" data-action="genimage" data-scene="{{id}}" data-intent="{{imageintent}}" data-pending="{{#imagepending}}1{{/imagepending}}{{^imagepending}}0{{/imagepending}}">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
-                        <span>{{#str}} generateimage, mod_aisoftskills, {{imagecredits}} {{/str}}</span>
+                        <span>{{#imagepending}}{{#str}} imageintent_resume, mod_aisoftskills {{/str}}{{/imagepending}}{{^imagepending}}{{#str}} generateimage, mod_aisoftskills, {{imagecredits}} {{/str}}{{/imagepending}}</span>
                     </button>
+                    {{/imagesaving}}
                     {{/canai}}
                     <p class="ss-mini">{{#str}} imageprompt_help, mod_aisoftskills {{/str}}</p>
                     <button type="button" class="ss-btn ss-btn-ghost ss-btn-sm ss-copy" data-target="#ss-prompt-{{id}}" data-done="{{#str}} copied, mod_aisoftskills {{/str}}">

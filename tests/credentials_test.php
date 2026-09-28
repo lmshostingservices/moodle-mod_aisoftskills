@@ -60,6 +60,7 @@ final class credentials_test extends \advanced_testcase {
 
     /**
      * Central only, local only, and both (central wins).
+     * @covers \mod_aisoftskills\local\credentials
      */
     public function test_complete_pairs(): void {
         $this->resetAfterTest();
@@ -79,6 +80,7 @@ final class credentials_test extends \advanced_testcase {
 
     /**
      * An incomplete pair is never used and never mixed with the other source.
+     * @covers \mod_aisoftskills\local\credentials
      */
     public function test_incomplete_pairs_never_mixed(): void {
         $this->resetAfterTest();
@@ -107,6 +109,7 @@ final class credentials_test extends \advanced_testcase {
 
     /**
      * Without the test hook the real lookup runs: Central Config is optional, and its absence is handled.
+     * @covers \mod_aisoftskills\local\credentials
      */
     public function test_central_config_not_installed(): void {
         $this->resetAfterTest();
@@ -122,6 +125,7 @@ final class credentials_test extends \advanced_testcase {
 
     /**
      * The LMS Labs balance check uses the resolved pair: central credentials, key in the header only.
+     * @covers \mod_aisoftskills\local\credentials
      */
     public function test_balance_uses_central_pair(): void {
         $this->resetAfterTest();

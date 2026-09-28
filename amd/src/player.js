@@ -246,10 +246,7 @@ class Player {
             chip = document.createElement('div');
             chip.className = 'ss-kpichip';
             chip.dataset.kpi = kpi;
-            chip.setAttribute('role', 'meter');
-            chip.setAttribute('aria-valuemin', '0');
-            chip.setAttribute('aria-valuemax', '100');
-            chip.setAttribute('aria-label', name);
+            chip.setAttribute('role', 'img');
             const label = document.createElement('span');
             label.className = 'ss-kpichip-name';
             label.textContent = name;
@@ -261,7 +258,7 @@ class Player {
             chip.append(label, bar, val);
             strip.appendChild(chip);
         }
-        chip.setAttribute('aria-valuenow', String(value));
+        chip.setAttribute('aria-label', `${name}: ${value} / 100 (0–100)`);
         chip.querySelector('.ss-kpichip-bar span').style.width = `${value}%`;
         chip.querySelector('.ss-kpichip-value').textContent = String(value);
         if (!REDUCED) {

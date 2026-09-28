@@ -41,6 +41,47 @@
     </dl>
     {{#existing}}<p class="ss-note">{{#str}} builder_existing, mod_aisoftskills, {{existing}} {{/str}}</p>{{/existing}}
 
+    {{#showdraft}}
+    <div class="ss-panel">
+        <h3>{{#str}} textdraft_title, mod_aisoftskills {{/str}}</h3>
+        <p>{{#str}} textdraft_explanation, mod_aisoftskills {{/str}}</p>
+        {{#candraft}}
+        <form method="post" action="{{draftactionurl}}">
+            <input type="hidden" name="sesskey" value="{{draftsesskey}}">
+            <input type="hidden" name="draftaction" value="new">
+            <input type="hidden" name="intent" value="{{draftintent}}">
+            <label for="ss-textbrief">{{#str}} textdraft_brief, mod_aisoftskills {{/str}}</label>
+            <textarea id="ss-textbrief" name="brief" class="ss-textarea" rows="4" maxlength="2000" required></textarea>
+            <button type="submit" class="ss-btn ss-btn-primary">{{#str}} textdraft_submit, mod_aisoftskills {{/str}}</button>
+        </form>
+        {{/candraft}}
+        {{^candraft}}<p>{{#str}} lmslabscredentialsmissing, mod_aisoftskills {{/str}}</p>{{/candraft}}
+        {{#draftid}}
+            <p role="status">{{draftstatus}} {{#draftreference}}{{#str}} textdraft_reference, mod_aisoftskills {{/str}} {{draftreference}}{{/draftreference}} {{drafterror}}</p>
+            {{#draftpending}}
+            <form method="post" action="{{draftactionurl}}">
+                <input type="hidden" name="sesskey" value="{{draftsesskey}}">
+                <input type="hidden" name="draftaction" value="resume">
+                <input type="hidden" name="draftid" value="{{draftid}}">
+                <button type="submit" class="ss-btn ss-btn-ghost">{{#str}} textdraft_resume, mod_aisoftskills {{/str}}</button>
+            </form>
+            {{/draftpending}}
+            {{#draftcomplete}}
+            <label for="ss-textoriginal">{{#str}} textdraft_original, mod_aisoftskills {{/str}}</label>
+            <textarea id="ss-textoriginal" class="ss-textarea" rows="8" readonly>{{draftoriginal}}</textarea>
+            <form method="post" action="{{draftactionurl}}">
+                <input type="hidden" name="sesskey" value="{{draftsesskey}}">
+                <input type="hidden" name="draftaction" value="save">
+                <input type="hidden" name="draftid" value="{{draftid}}">
+                <label for="ss-textresult">{{#str}} textdraft_result, mod_aisoftskills {{/str}}</label>
+                <textarea id="ss-textresult" name="editedbody" class="ss-textarea" rows="12" maxlength="32000" required>{{draftedited}}</textarea>
+                <button type="submit" class="ss-btn ss-btn-ghost">{{#str}} textdraft_save, mod_aisoftskills {{/str}}</button>
+            </form>
+            {{/draftcomplete}}
+        {{/draftid}}
+        {{#draftlinks}}<a href="{{url}}">{{title}}</a> · {{/draftlinks}}
+    </div>
+    {{/showdraft}}
     <div class="ss-panel ss-buildpath">
         <h4><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>{{#str}} build_manual_title, mod_aisoftskills {{/str}}</h4>
         <ol class="ss-aihelper-steps">

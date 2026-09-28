@@ -75,6 +75,7 @@ final class backup_test extends \advanced_testcase {
 
     /**
      * Content, pictures, attempts and choices survive, with every id remapped.
+     * @coversNothing
      */
     public function test_course_backup_with_users(): void {
         global $DB;
@@ -123,6 +124,7 @@ final class backup_test extends \advanced_testcase {
 
     /**
      * Duplicating an activity copies the content but not learner data.
+     * @coversNothing
      */
     public function test_duplicate(): void {
         global $DB, $CFG;

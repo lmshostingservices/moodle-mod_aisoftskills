@@ -91,6 +91,9 @@ final class services_test extends \advanced_testcase {
 
     /**
      * A learner plays a whole attempt through the services.
+     * @covers \mod_aisoftskills\external\start_attempt
+     * @covers \mod_aisoftskills\external\choose_option
+     * @covers \mod_aisoftskills\external\finish_attempt
      */
     public function test_play(): void {
         $data = $this->call('student', 'start_attempt', [(int)$this->cm->id]);
@@ -111,6 +114,8 @@ final class services_test extends \advanced_testcase {
 
     /**
      * Nobody else can play or finish a learner's attempt, and outsiders and teachers cannot start one.
+     * @covers \mod_aisoftskills\external\start_attempt
+     * @covers \mod_aisoftskills\external\choose_option
      */
     public function test_permissions(): void {
         $data = $this->call('student', 'start_attempt', [(int)$this->cm->id]);
@@ -134,6 +139,8 @@ final class services_test extends \advanced_testcase {
 
     /**
      * Teachers import drafts; learners and non-editing teachers cannot; pictures by AI are not available.
+     * @covers \mod_aisoftskills\external\import_lesson
+     * @covers \mod_aisoftskills\external\generate_image
      */
     public function test_teacher_services(): void {
         $draft = json_encode(['scenes' => [['title' => 'New', 'options' => [['text' => 'A', 'best' => true],
@@ -157,6 +164,7 @@ final class services_test extends \advanced_testcase {
 
     /**
      * A teacher creates a scene picture through LMS Labs: it is stored, and the charge and balance are reported.
+     * @covers \mod_aisoftskills\external\generate_image
      */
     public function test_generate_image_success(): void {
         global $DB;

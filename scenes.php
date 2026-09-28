@@ -138,6 +138,7 @@ $total = count($scenes);
 $sesskey = sesskey();
 foreach ($scenes as $s) {
     $i++;
+    $imagejob = \mod_aisoftskills\local\ai\image_job::latest((int)$s->id, (int)$USER->id);
     [$url] = manager::get_scene_image($context, (int)$s->id);
     $list = array_values(array_filter($options[$s->id], fn($o) => trim((string)$o->text) !== ''));
     $hasbest = count(array_filter($list, fn($o) => (int)$o->best === 1)) === 1;
@@ -155,6 +156,13 @@ foreach ($scenes as $s) {
         'imageprompt' => lesson::image_prompt($instance, $s),
         'canai' => $canai,
         'imagecredits' => \mod_aisoftskills\local\ai\lmslabs::IMAGE_CREDITS,
+        'imageintent' => \core\uuid::generate(),
+        'imagepending' => $imagejob && $imagejob->state === 'pending',
+        'imagesaving' => $imagejob && $imagejob->state === 'saving',
+        'imagewarning' => $imagejob && $imagejob->state === 'lost',
+        'imageclosed' => $imagejob && $imagejob->state === 'error',
+        'imageref' => $imagejob ? (string)$imagejob->requestid : '',
+        'imageerror' => $imagejob ? (string)$imagejob->errorcode : '',
         'editurl' => (new moodle_url('/mod/aisoftskills/editor.php', ['id' => $cm->id, 'sceneid' => $s->id]))->out(false),
         'upurl' => $i > 1 ? (new moodle_url($baseurl, ['action' => 'up', 'sceneid' => $s->id, 'sesskey' => $sesskey]))
             ->out(false) : null,

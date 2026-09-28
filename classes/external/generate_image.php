@@ -20,6 +20,7 @@ use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
 use mod_aisoftskills\local\ai\factory;
+use mod_aisoftskills\local\ai\image_job;
 use mod_aisoftskills\local\lesson;
 use mod_aisoftskills\local\manager;
 use moodle_exception;
@@ -40,6 +41,8 @@ class generate_image extends base {
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
             'sceneid' => new external_value(PARAM_INT, 'Scene id'),
+            'intent' => new external_value(PARAM_ALPHANUMEXT, 'Intent nonce for one deliberate image request',
+                VALUE_DEFAULT, ''),
         ]);
     }
 
@@ -47,24 +50,51 @@ class generate_image extends base {
      * Generates.
      *
      * @param int $sceneid
+     * @param string $intent
      * @return array
      */
-    public static function execute(int $sceneid): array {
+    public static function execute(int $sceneid, string $intent = ''): array {
         global $USER;
-        $params = self::validate_parameters(self::execute_parameters(), ['sceneid' => $sceneid]);
+        $params = self::validate_parameters(self::execute_parameters(), ['sceneid' => $sceneid, 'intent' => $intent]);
         [, , $instance, $context, $scene] = self::load_scene($params['sceneid'], 'useai');
         $provider = factory::get();
         if (!$provider->can_generate()) {
             throw new moodle_exception('ainotavailable', 'mod_aisoftskills');
         }
-        lesson::check_ai_rate((int)$USER->id);
+        // No browser-supplied backend key. Existing uncertain work wins over a new form intent.
+        $nonce = $params['intent'] !== '' ? $params['intent'] : \core\uuid::generate();
+        $job = image_job::begin($instance, $scene, (int)$USER->id, $nonce);
+        if ($job->state === 'complete') {
+            [$existingurl] = manager::get_scene_image($context, (int)$scene->id);
+            if (!$existingurl) {
+                throw new moodle_exception('imageintent_lost', 'mod_aisoftskills');
+            }
+            return ['url' => (string)$existingurl, 'charged' => 0, 'balance' => -1,
+                'requestid' => (string)$job->requestid, 'replayed' => true];
+        }
+        if ($job->state !== 'pending') {
+            throw new moodle_exception($job->state === 'saving' ? 'imageintent_uncertain' :
+                ($job->state === 'lost' ? 'imageintent_lost' : 'imageintent_closed'),
+                'mod_aisoftskills');
+        }
         try {
-            $result = $provider->generate_image(lesson::image_prompt($instance, $scene), (string)$instance->imagestyle);
-            manager::save_scene_image_bytes($context, $scene, $result['bytes']);
+            $result = image_job::send($job, $provider);
+            if ($result === null) {
+                throw new moodle_exception('imageintent_uncertain', 'mod_aisoftskills');
+            }
         } catch (\Throwable $e) {
             lesson::log_ai((int)$instance->id, (int)$USER->id, 'image', 'error');
             throw $e;
         }
+        try {
+            manager::save_scene_image_bytes($context, $scene, $result['bytes']);
+        } catch (\Throwable $e) {
+            // Image bytes are NOT cached or replayable remotely. Keep the reference for support, not a new call.
+            image_job::finish($job, false);
+            lesson::log_ai((int)$instance->id, (int)$USER->id, 'image', 'error');
+            throw new moodle_exception('imageintent_lost', 'mod_aisoftskills');
+        }
+        image_job::finish($job, true);
         lesson::log_ai((int)$instance->id, (int)$USER->id, 'image', 'ok');
         [$url] = manager::get_scene_image($context, (int)$scene->id);
         return [
@@ -72,6 +102,7 @@ class generate_image extends base {
             'charged' => (int)$result['charged'],
             'balance' => $result['balance'] === null ? -1 : (int)$result['balance'],
             'requestid' => (string)$result['requestid'],
+            'replayed' => false,
         ];
     }
 
@@ -86,6 +117,7 @@ class generate_image extends base {
             'charged' => new external_value(PARAM_INT, 'LMS Labs credits charged'),
             'balance' => new external_value(PARAM_INT, 'LMS Labs credits left (-1 when unknown or unlimited)'),
             'requestid' => new external_value(PARAM_ALPHANUMEXT, 'LMS Labs request id'),
+            'replayed' => new external_value(PARAM_BOOL, 'Previously completed intent; no additional charge'),
         ]);
     }
 }

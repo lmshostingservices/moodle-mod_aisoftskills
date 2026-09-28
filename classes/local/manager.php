@@ -351,6 +351,13 @@ class manager {
      */
     public static function delete_scene(\context $context, stdClass $scene): void {
         global $DB;
+        if ($DB->record_exists_select('aisoftskills_imagejob',
+            'sceneid = :sceneid AND (state = :pending OR state = :saving)',
+            ['sceneid' => $scene->id, 'pending' => 'pending', 'saving' => 'saving'])) {
+            // An unconfirmed charge must retain its scene, persisted body and billing key.
+            throw new moodle_exception('imageintent_deleteblocked', 'mod_aisoftskills');
+        }
+        $DB->delete_records('aisoftskills_imagejob', ['sceneid' => $scene->id]);
         $DB->delete_records('aisoftskills_choice', ['sceneid' => $scene->id]);
         $DB->delete_records('aisoftskills_option', ['sceneid' => $scene->id]);
         $DB->delete_records('aisoftskills_scene', ['id' => $scene->id]);

@@ -78,10 +78,13 @@ class lmslabs implements provider {
      *
      * @param string $prompt English picture description (at most MAX_PROMPT code points)
      * @param string $style illustration or photo
+     * @param string|null $requestkey Durable Moodle key for manual recovery
+     * @param string|null $requestbody Durable exact body; do not rebuild a changed prompt on recovery
      * @return array bytes (PNG), charged, balance, requestid, model
      * @throws moodle_exception on any failure, with the LMS Labs request id when there is one
      */
-    public function generate_image(string $prompt, string $style = 'illustration'): array {
+    public function generate_image(string $prompt, string $style = 'illustration',
+        ?string $requestkey = null, ?string $requestbody = null): array {
         global $CFG;
         $credentials = \mod_aisoftskills\local\credentials::find();
         if ($credentials === null || !get_config('mod_aisoftskills', 'aiimages')) {
@@ -99,9 +102,10 @@ class lmslabs implements provider {
             'X-Site-ID: ' . $credentials['siteid'],
             'X-API-Key: ' . $credentials['apikey'],
             // A new key for every intentional request: a replay can never be charged twice.
-            'Idempotency-Key: ' . \core\uuid::generate(),
+            'Idempotency-Key: ' . ($requestkey ?? \core\uuid::generate()),
         ];
-        $body = json_encode(['prompt' => $prompt, 'style' => $style], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $body = $requestbody ?? json_encode(['prompt' => $prompt, 'style' => $style],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (self::$posttransport) {
             [$status, $responseheaders, $response] = (self::$posttransport)($url, $headers, $body);
         } else {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/aisoftskills/db" VERSION="20260927" COMMENT="XMLDB file for mod_aisoftskills"
+<XMLDB PATH="mod/aisoftskills/db" VERSION="20260928" COMMENT="XMLDB file for mod_aisoftskills"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -113,6 +113,63 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="attemptscene" UNIQUE="true" FIELDS="attemptid, sceneid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="aisoftskills_imagejob" COMMENT="Teacher image request identity and billing recovery, no image bytes">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="aisoftskillsid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sceneid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="intentkey" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="requestkey" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="siteid" TYPE="char" LENGTH="512" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="requestbody" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="requestid" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="errorcode" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="state" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="aisoftskillsid" TYPE="foreign" FIELDS="aisoftskillsid" REFTABLE="aisoftskills" REFFIELDS="id"/>
+        <KEY NAME="sceneid" TYPE="foreign" FIELDS="sceneid" REFTABLE="aisoftskills_scene" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userintent" UNIQUE="true" FIELDS="userid, intentkey"/>
+        <INDEX NAME="requestkey" UNIQUE="true" FIELDS="requestkey"/>
+        <INDEX NAME="scenerecent" UNIQUE="false" FIELDS="sceneid, userid, id"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="aisoftskills_draft" COMMENT="Teacher text draft requests and recovery state">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="aisoftskillsid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="requestkey" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="intentkey" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="siteid" TYPE="char" LENGTH="512" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="requestbody" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="bodyhash" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="responsebody" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="editedbody" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="requestid" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="errorcode" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="state" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="aisoftskillsid" TYPE="foreign" FIELDS="aisoftskillsid" REFTABLE="aisoftskills" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="useractivity" UNIQUE="false" FIELDS="aisoftskillsid, userid, timecreated"/>
+        <INDEX NAME="requestkey" UNIQUE="true" FIELDS="requestkey"/>
+        <INDEX NAME="userintent" UNIQUE="true" FIELDS="userid, intentkey"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="aisoftskills_ailog" COMMENT="AI requests made by teachers (for rate limiting)">

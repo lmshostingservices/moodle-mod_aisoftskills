@@ -38,18 +38,23 @@ export const init = async(selector) => {
         return;
     }
     initCopy('.ss-copy');
-    const S = await loadStrings(['generating', 'imagecreated', 'imagecreatedbalance']);
+    const S = await loadStrings(['generating', 'imagecreated', 'imagecreatedbalance',
+        'imageintent_confirm', 'imageintent_replayed']);
     root.querySelectorAll('[data-action="genimage"]').forEach((btn) => {
         btn.addEventListener('click', async() => {
+            if (btn.dataset.pending !== '1' && !window.confirm(S.imageintent_confirm)) {
+                return;
+            }
             const label = btn.querySelector('span');
             const original = label.textContent;
             btn.disabled = true;
             label.textContent = S.generating;
             try {
-                // One paid request per click; a failure is shown, never retried automatically.
+                // The server persists the key/body before sending; pending checks reuse the same operation.
                 const res = await Ajax.call([{methodname: 'mod_aisoftskills_generate_image',
-                    args: {sceneid: parseInt(btn.dataset.scene, 10)}}], true, true, false, 180000)[0];
-                const message = res.balance >= 0 ? fmt(S.imagecreatedbalance, {charged: res.charged, balance: res.balance})
+                    args: {sceneid: parseInt(btn.dataset.scene, 10), intent: btn.dataset.intent}}], true, true, false, 180000)[0];
+                const message = res.replayed ? S.imageintent_replayed : res.balance >= 0 ?
+                    fmt(S.imagecreatedbalance, {charged: res.charged, balance: res.balance})
                     : fmt(S.imagecreated, res.charged);
                 await addToast(message, {type: 'success'});
                 window.setTimeout(() => window.location.reload(), 2500);
@@ -57,6 +62,8 @@ export const init = async(selector) => {
                 btn.disabled = false;
                 label.textContent = original;
                 Notification.exception(err);
+                // Refresh the durable state: pending remains resumable, 410 explicitly needs a new intent.
+                window.setTimeout(() => window.location.reload(), 3000);
             }
         });
     });

@@ -41,6 +41,7 @@ final class lmslabs_test extends \advanced_testcase {
 
     /**
      * Pictures need the site switch and a complete credential pair.
+     * @covers \mod_aisoftskills\local\ai\lmslabs
      */
     public function test_generation_switch(): void {
         $this->resetAfterTest();
@@ -62,6 +63,7 @@ final class lmslabs_test extends \advanced_testcase {
 
     /**
      * A picture request: header-only credentials, a fresh idempotency key, exactly prompt and style, PNG back.
+     * @covers \mod_aisoftskills\local\ai\lmslabs
      */
     public function test_generate_image_success(): void {
         $this->resetAfterTest();
@@ -97,6 +99,7 @@ final class lmslabs_test extends \advanced_testcase {
 
     /**
      * Errors map to clear messages with the LMS Labs reference, are never retried, and a 200 that is not a PNG fails.
+     * @covers \mod_aisoftskills\local\ai\lmslabs
      */
     public function test_generate_image_errors(): void {
         $this->resetAfterTest();
@@ -141,6 +144,7 @@ final class lmslabs_test extends \advanced_testcase {
 
     /**
      * The balance is read with the key in the X-API-Key header, never the URL.
+     * @covers \mod_aisoftskills\local\ai\lmslabs
      */
     public function test_balance(): void {
         $this->resetAfterTest();

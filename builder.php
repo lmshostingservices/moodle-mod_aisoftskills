@@ -25,6 +25,7 @@
 require(__DIR__ . '/../../config.php');
 
 use mod_aisoftskills\local\ai\factory;
+use mod_aisoftskills\local\ai\text_draft;
 use mod_aisoftskills\local\catalogue;
 use mod_aisoftskills\local\lesson;
 use mod_aisoftskills\local\manager;
@@ -85,9 +86,52 @@ $str = fn($k, $a = null) => get_string($k, 'mod_aisoftskills', $a);
 $choices = lesson::choices($instance);
 
 if ($step === 'build') {
+    $draftaction = optional_param('draftaction', '', PARAM_ALPHA);
+    if ($draftaction !== '') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            throw new moodle_exception('invalidparameter');
+        }
+        require_sesskey();
+        require_capability('mod/aisoftskills:useai', $context);
+        if ($draftaction === 'new') {
+            $row = text_draft::create((int)$instance->id, (int)$USER->id,
+                required_param('intent', PARAM_ALPHANUMEXT), required_param('brief', PARAM_TEXT));
+            $row = text_draft::send($row);
+        } else if ($draftaction === 'resume' || $draftaction === 'save') {
+            $row = $DB->get_record('aisoftskills_draft', [
+                'id' => required_param('draftid', PARAM_INT),
+                'aisoftskillsid' => $instance->id,
+                'userid' => $USER->id,
+            ], '*', MUST_EXIST);
+            if ($draftaction === 'resume') {
+                $row = text_draft::send($row);
+            } else {
+                text_draft::save_edit($row, required_param('editedbody', PARAM_TEXT));
+            }
+        } else {
+            throw new moodle_exception('invalidparameter');
+        }
+        redirect(new moodle_url($baseurl, ['step' => 'build', 'draftid' => $row->id]));
+    }
     $provider = factory::get();
     $balance = $provider->balance();
     $names = array_merge(array_map(fn($k) => catalogue::skill_name($k), $choices['keys']), $choices['custom']);
+    $draftid = optional_param('draftid', 0, PARAM_INT);
+    $lastdraft = $draftid ? $DB->get_record('aisoftskills_draft', [
+        'id' => $draftid, 'aisoftskillsid' => $instance->id, 'userid' => $USER->id,
+    ], '*', MUST_EXIST) : false;
+    $drafts = $DB->get_records('aisoftskills_draft',
+        ['aisoftskillsid' => $instance->id, 'userid' => $USER->id], 'id DESC', '*', 0, 20);
+    if (!$lastdraft) {
+        $lastdraft = reset($drafts);
+    }
+    $draftlinks = [];
+    foreach ($drafts as $draftrow) {
+        $draftlinks[] = [
+            'url' => (new moodle_url($baseurl, ['step' => 'build', 'draftid' => $draftrow->id]))->out(false),
+            'title' => userdate($draftrow->timecreated) . ' — ' . $str('textdraft_state_' . $draftrow->state),
+        ];
+    }
     $templatedata = [
         'cmid' => (int)$cm->id,
         'backurl' => $baseurl->out(false),
@@ -104,6 +148,21 @@ if ($step === 'build') {
             : $str('balance_credits', $balance['credits'])),
         'prompt' => lesson::prompt($instance),
         'existing' => count(manager::get_scenes($instance->id)),
+        'showdraft' => has_capability('mod/aisoftskills:useai', $context),
+        'candraft' => \mod_aisoftskills\local\credentials::find() !== null,
+        'draftactionurl' => (new moodle_url($baseurl, ['step' => 'build']))->out(false),
+        'draftsesskey' => sesskey(),
+        'draftintent' => \core\uuid::generate(),
+        'draftid' => $lastdraft ? (int)$lastdraft->id : 0,
+        'draftpending' => $lastdraft && $lastdraft->state === 'pending',
+        'draftcomplete' => $lastdraft && $lastdraft->state === 'complete',
+        'draftstatus' => $lastdraft ? $str('textdraft_state_' . $lastdraft->state) : '',
+        'draftreference' => $lastdraft ? (string)$lastdraft->requestid : '',
+        'drafterror' => $lastdraft ? (string)$lastdraft->errorcode : '',
+        'draftedited' => $lastdraft && $lastdraft->state === 'complete' ? (string)$lastdraft->editedbody : '',
+        'draftoriginal' => $lastdraft && $lastdraft->state === 'complete' ?
+            json_encode(json_decode((string)$lastdraft->responsebody, true), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '',
+        'draftlinks' => $draftlinks,
     ];
     $PAGE->requires->js_call_amd('mod_aisoftskills/builder', 'initBuild', ['#ss-build']);
     echo $OUTPUT->header();
