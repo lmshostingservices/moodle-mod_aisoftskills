@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/aisoftskills/db" VERSION="20260927" COMMENT="XMLDB file for mod_aisoftskills"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="aisoftskills" COMMENT="AI Soft Skills activities">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="industry" TYPE="char" LENGTH="100" NOTNULL="true" DEFAULT="office" SEQUENCE="false" COMMENT="Industry key from the catalogue, or custom"/>
+        <FIELD NAME="customindustry" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Industry name when industry is custom"/>
+        <FIELD NAME="level" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="supervisor" SEQUENCE="false" COMMENT="worker, supervisor, manager or leader"/>
+        <FIELD NAME="contentlang" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="en" SEQUENCE="false" COMMENT="Language the scenes are written in"/>
+        <FIELD NAME="skills" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Builder choices as JSON: skill keys, custom skills, scene count"/>
+        <FIELD NAME="imagestyle" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="illustration" SEQUENCE="false"/>
+        <FIELD NAME="allowretry" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="After a poor choice the learner may try again (only the first choice is marked)"/>
+        <FIELD NAME="shuffleoptions" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="sounds" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="grade" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="100" SEQUENCE="false" DECIMALS="5"/>
+        <FIELD NAME="grademethod" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 highest, 2 average, 3 first, 4 last"/>
+        <FIELD NAME="maxattempts" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="0 means unlimited"/>
+        <FIELD NAME="completionallscenes" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="course" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="aisoftskills_scene" COMMENT="One workplace moment shown on one picture, with two possible responses">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="aisoftskillsid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="skill" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The soft skill practised"/>
+        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="context" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What is happening"/>
+        <FIELD NAME="speaker" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Who responds, such as the team leader"/>
+        <FIELD NAME="question" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The prompt to the learner, such as What do you say?"/>
+        <FIELD NAME="imageprompt" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="English picture description for image generation"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="aisoftskillsid" TYPE="foreign" FIELDS="aisoftskillsid" REFTABLE="aisoftskills" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="order" UNIQUE="false" FIELDS="aisoftskillsid, sortorder"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="aisoftskills_option" COMMENT="A response the learner can choose in a scene (two per scene)">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="sceneid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="text" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="What the person says or does"/>
+        <FIELD NAME="best" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 for the better response"/>
+        <FIELD NAME="kpi" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="morale" SEQUENCE="false" COMMENT="Workplace indicator the choice moves"/>
+        <FIELD NAME="kpidelta" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Change to the indicator, -50 to 50"/>
+        <FIELD NAME="consequence" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What happens next"/>
+        <FIELD NAME="reason" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Why the response works or does not"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="sceneid" TYPE="foreign" FIELDS="sceneid" REFTABLE="aisoftskills_scene" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="aisoftskills_attempt" COMMENT="Learner attempts">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="aisoftskillsid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="attempt" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="state" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="inprogress" SEQUENCE="false" COMMENT="inprogress or finished"/>
+        <FIELD NAME="sceneorder" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Scene ids in the order shown, and option order, as JSON"/>
+        <FIELD NAME="score" TYPE="number" LENGTH="10" NOTNULL="false" SEQUENCE="false" DECIMALS="2" COMMENT="Percentage of scenes where the first choice was the better response"/>
+        <FIELD NAME="kpis" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Indicator values at the end, as JSON"/>
+        <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timefinish" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="aisoftskillsid" TYPE="foreign" FIELDS="aisoftskillsid" REFTABLE="aisoftskills" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="useractivity" UNIQUE="false" FIELDS="aisoftskillsid, userid, state"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="aisoftskills_choice" COMMENT="What a learner chose in each scene of an attempt">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sceneid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="optionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The first response chosen (this is what is marked)"/>
+        <FIELD NAME="best" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the first choice was the better response"/>
+        <FIELD NAME="tries" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="resolved" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 once the better response has been chosen"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="attemptid" TYPE="foreign" FIELDS="attemptid" REFTABLE="aisoftskills_attempt" REFFIELDS="id"/>
+        <KEY NAME="sceneid" TYPE="foreign" FIELDS="sceneid" REFTABLE="aisoftskills_scene" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="attemptscene" UNIQUE="true" FIELDS="attemptid, sceneid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="aisoftskills_ailog" COMMENT="AI requests made by teachers (for rate limiting)">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="aisoftskillsid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="action" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="aisoftskillsid" TYPE="foreign" FIELDS="aisoftskillsid" REFTABLE="aisoftskills" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="usertime" UNIQUE="false" FIELDS="userid, timecreated"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

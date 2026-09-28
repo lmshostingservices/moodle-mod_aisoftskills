@@ -1,0 +1,103 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_aisoftskills/scenes
+
+    Scene manager: one card per scene, in playing order.
+
+    Example context (json):
+    {
+        "hasscenes": true, "count": 1, "viewurl": "#", "builderurl": "#", "addform": "<form></form>", "industry": "Retail",
+        "cards": [{"id": 1, "number": 1, "title": "Behind on the target", "skill": "Motivation", "image": "", "noimage": true,
+            "responses": 2, "responsesok": true, "ready": false, "imageprompt": "A team huddle", "canai": false, "imagecredits": 5,
+            "editurl": "#", "replaceurl": "#", "deleteurl": "#"}]
+    }
+}}
+<div id="ss-scenes" class="ss-slides">
+    <div class="ss-ed-toolbar">
+        <h2 class="h3 mb-0 ss-grow">{{#str}} managescenes, mod_aisoftskills {{/str}} <span class="ss-counter-pill">{{count}}</span></h2>
+        <a class="ss-btn ss-btn-ghost" href="{{builderurl}}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+            {{#str}} buildlesson, mod_aisoftskills {{/str}}
+        </a>
+        <a class="ss-btn ss-btn-ghost" href="{{viewurl}}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            {{#str}} previewstudent, mod_aisoftskills {{/str}}
+        </a>
+    </div>
+    {{^hasscenes}}<p class="ss-note">{{#str}} noscenesyet, mod_aisoftskills {{/str}}</p>{{/hasscenes}}
+    <div class="ss-slides-grid">
+        {{#cards}}
+        <div class="ss-slidecard" data-scene="{{id}}">
+            <a class="ss-slidecard-thumb" href="{{editurl}}">
+                {{#image}}<img src="{{image}}" alt="" loading="lazy">{{/image}}
+                {{#noimage}}<span class="ss-slidecard-noimage">{{#str}} noimageyet, mod_aisoftskills {{/str}}</span>{{/noimage}}
+                <span class="ss-slidecard-no">{{#str}} scenex, mod_aisoftskills, {{number}} {{/str}}</span>
+            </a>
+            <div class="ss-slidecard-body">
+                {{#skill}}<span class="ss-slidecard-skill" dir="auto">{{skill}}</span>{{/skill}}
+                <h4 class="ss-slidecard-title" dir="auto">{{title}}</h4>
+                <div class="ss-slidecard-meta {{^ready}}is-warn{{/ready}}">
+                    {{#ready}}{{#str}} sceneready, mod_aisoftskills {{/str}}{{/ready}}
+                    {{^ready}}{{#noimage}}{{#str}} sceneneedsimage, mod_aisoftskills {{/str}}{{/noimage}}{{^responsesok}}{{#str}} sceneneedsresponses, mod_aisoftskills {{/str}}{{/responsesok}}{{/ready}}
+                </div>
+                <div class="ss-slidecard-actions">
+                    <a class="ss-btn ss-btn-primary ss-btn-sm" href="{{editurl}}">{{#str}} editscene, mod_aisoftskills {{/str}}</a>
+                    {{#upurl}}<a class="ss-iconbtn" href="{{upurl}}" title="{{#str}} moveleft, mod_aisoftskills {{/str}}" aria-label="{{#str}} moveleft, mod_aisoftskills {{/str}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>{{/upurl}}
+                    {{#downurl}}<a class="ss-iconbtn" href="{{downurl}}" title="{{#str}} moveright, mod_aisoftskills {{/str}}" aria-label="{{#str}} moveright, mod_aisoftskills {{/str}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>{{/downurl}}
+                    <a class="ss-iconbtn" href="{{replaceurl}}" title="{{#str}} uploadimage, mod_aisoftskills {{/str}}" aria-label="{{#str}} uploadimage, mod_aisoftskills {{/str}}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 15l3-3 2 2 3-3"/></svg></a>
+                    <a class="ss-iconbtn" href="{{deleteurl}}" title="{{#str}} delete {{/str}}" aria-label="{{#str}} delete {{/str}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></a>
+                </div>
+                <details class="ss-imagehelp">
+                    <summary>{{#str}} imagehelp, mod_aisoftskills {{/str}}</summary>
+                    {{#canai}}
+                    <button type="button" class="ss-btn ss-btn-primary ss-btn-sm w-100" data-action="genimage" data-scene="{{id}}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+                        <span>{{#str}} generateimage, mod_aisoftskills, {{imagecredits}} {{/str}}</span>
+                    </button>
+                    {{/canai}}
+                    <p class="ss-mini">{{#str}} imageprompt_help, mod_aisoftskills {{/str}}</p>
+                    <button type="button" class="ss-btn ss-btn-ghost ss-btn-sm ss-copy" data-target="#ss-prompt-{{id}}" data-done="{{#str}} copied, mod_aisoftskills {{/str}}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>
+                        <span>{{#str}} copyimageprompt, mod_aisoftskills {{/str}}</span>
+                    </button>
+                    <textarea id="ss-prompt-{{id}}" class="ss-textarea ss-prompt-text" readonly rows="6" aria-label="{{#str}} copyimageprompt, mod_aisoftskills {{/str}}">{{imageprompt}}</textarea>
+                </details>
+            </div>
+        </div>
+        {{/cards}}
+    </div>
+
+    <div class="ss-panel">
+        <h4><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>{{#str}} addscenes, mod_aisoftskills {{/str}}</h4>
+        <p class="ss-mini">{{#str}} addscenes_help, mod_aisoftskills {{/str}}</p>
+        <div class="ss-tips">
+            <div class="ss-tips-head">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 9h18M8 5v4"/></svg>
+                <strong>{{#str}} imagetips_title, mod_aisoftskills {{/str}}</strong>
+            </div>
+            <ul>
+                <li>{{#str}} imagetip_size, mod_aisoftskills {{/str}}</li>
+                <li>{{#str}} imagetip_people, mod_aisoftskills {{/str}}</li>
+                <li>{{#str}} imagetip_notext, mod_aisoftskills {{/str}}</li>
+                <li>{{#str}} imagetip_moment, mod_aisoftskills {{/str}}</li>
+                <li>{{#str}} imagetip_workplace, mod_aisoftskills, {{industry}} {{/str}}</li>
+            </ul>
+        </div>
+        {{{addform}}}
+    </div>
+</div>

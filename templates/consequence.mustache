@@ -1,0 +1,71 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_aisoftskills/consequence
+
+    What happened after the learner's choice: a workplace indicator gauge that moves, the consequence and why.
+
+    Example context (json):
+    {
+        "best": true, "headline": "Great choice!", "kpiname": "Motivation", "before": 50, "after": 70,
+        "deltatext": "+20", "up": true, "consequence": "The team relaxes and asks for the two things they need.",
+        "reason": "Offering help shows trust and removes blockers.", "better": "", "betterreason": "",
+        "canretry": false, "last": false
+    }
+}}
+<div class="ss-dialog-backdrop" data-region="consequence">
+    <div class="ss-dialog ss-consequence {{#best}}is-best{{/best}}{{^best}}is-poor{{/best}}" role="dialog" aria-modal="true" aria-labelledby="ss-consequence-title">
+        <div class="ss-consequence-head">
+            <span class="ss-consequence-icon" aria-hidden="true">
+                {{#best}}<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{{/best}}
+                {{^best}}<svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>{{/best}}
+            </span>
+            <h3 id="ss-consequence-title" class="ss-consequence-title">{{headline}}</h3>
+        </div>
+        <div class="ss-consequence-body">
+            <div class="ss-gauge" data-region="gauge" data-before="{{before}}" data-after="{{after}}" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{after}}" aria-label="{{kpiname}}">
+                <svg viewBox="0 0 200 120" aria-hidden="true">
+                    <path class="ss-gauge-track" d="M20 110 A80 80 0 0 1 180 110"/>
+                    <path class="ss-gauge-fill" d="M20 110 A80 80 0 0 1 180 110" pathLength="100"/>
+                    <line class="ss-gauge-needle" x1="100" y1="110" x2="100" y2="42"/>
+                    <circle class="ss-gauge-hub" cx="100" cy="110" r="7"/>
+                </svg>
+                <div class="ss-gauge-read"><strong data-region="gaugevalue">{{before}}</strong><span>{{kpiname}}</span></div>
+                <span class="ss-delta {{#up}}is-up{{/up}}{{^up}}is-down{{/up}}">{{deltatext}} {{kpiname}}</span>
+            </div>
+            <div class="ss-consequence-text">
+                {{#consequence}}<p class="ss-consequence-what" dir="auto">{{consequence}}</p>{{/consequence}}
+                {{#reason}}<p class="ss-consequence-why" dir="auto"><strong>{{#str}} why, mod_aisoftskills {{/str}}</strong> {{reason}}</p>{{/reason}}
+                {{#better}}
+                <div class="ss-better">
+                    <p class="ss-better-label">{{#str}} betterresponse, mod_aisoftskills {{/str}}</p>
+                    <p class="ss-better-text" dir="auto">{{better}}</p>
+                    {{#betterreason}}<p class="ss-consequence-why" dir="auto">{{betterreason}}</p>{{/betterreason}}
+                </div>
+                {{/better}}
+            </div>
+        </div>
+        <div class="ss-consequence-actions">
+            {{#canretry}}<button type="button" class="ss-btn ss-btn-primary" data-action="retry">{{#str}} tryagain, mod_aisoftskills {{/str}}</button>{{/canretry}}
+            {{^canretry}}
+            <button type="button" class="ss-btn ss-btn-primary" data-action="continue">
+                {{#last}}{{#str}} seeresults, mod_aisoftskills {{/str}}{{/last}}{{^last}}{{#str}} nextscene, mod_aisoftskills {{/str}}{{/last}}
+            </button>
+            {{/canretry}}
+        </div>
+    </div>
+</div>

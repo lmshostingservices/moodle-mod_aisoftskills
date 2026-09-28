@@ -1,0 +1,51 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_aisoftskills/player_shell
+
+    The scene player frame: level badge, progress, workplace indicators, the scene stage and the next button.
+
+    Example context (json):
+    {
+        "levelname": "Manager", "level": "manager", "total": 8,
+        "dots": [{"number": 1}], "kpis": [{"kpi": "morale", "name": "Morale", "value": 50, "start": 50}]
+    }
+}}
+<div class="ss-shell">
+    <header class="ss-bar">
+        <button type="button" class="ss-iconbtn" data-action="home" title="{{#str}} backtohome, mod_aisoftskills {{/str}}" aria-label="{{#str}} backtohome, mod_aisoftskills {{/str}}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="ss-levelbadge ss-levelbadge-{{level}}">{{levelname}}</span>
+        <ol class="ss-dots" data-region="dots" aria-label="{{#str}} progress, mod_aisoftskills {{/str}}">
+            {{#dots}}<li class="ss-dot" data-number="{{number}}"><span class="visually-hidden sr-only">{{number}}</span></li>{{/dots}}
+        </ol>
+        <button type="button" class="ss-iconbtn" data-action="sound" aria-pressed="true" title="{{#str}} sounds, mod_aisoftskills {{/str}}" aria-label="{{#str}} sounds, mod_aisoftskills {{/str}}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16 9a4 4 0 010 6"/></svg>
+        </button>
+    </header>
+    <div class="ss-kpistrip" data-region="kpis" role="group" aria-label="{{#str}} workplaceindicators, mod_aisoftskills {{/str}}">
+        {{#kpis}}{{> mod_aisoftskills/kpi_chip }}{{/kpis}}
+    </div>
+    <div class="ss-stage" data-region="stage"></div>
+    <footer class="ss-footer">
+        <p class="ss-scenecount" data-region="count"></p>
+        <button type="button" class="ss-btn ss-btn-primary" data-action="next" disabled>{{#str}} nextscene, mod_aisoftskills {{/str}}
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+    </footer>
+</div>

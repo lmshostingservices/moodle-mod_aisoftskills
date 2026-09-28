@@ -1,0 +1,90 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_aisoftskills/view
+
+    Activity home: the workplace, the career level, skills, the learner's results and the start button.
+    The scene player replaces the home when the learner starts.
+
+    Example context (json):
+    {
+        "uniqid": "ss-1", "config": "{}", "ready": true, "canmanage": false, "canattempt": true, "canstart": true,
+        "resume": false, "nomore": false, "industry": "Office", "levelname": "Manager",
+        "leveldesc": "Leads a team: performance, workload and conflict.", "language": "English",
+        "ladder": [{"key": "worker", "name": "Worker", "number": 1, "current": false, "below": true},
+            {"key": "manager", "name": "Manager", "number": 3, "current": true, "below": false}],
+        "skills": ["Motivating others"], "hasskills": true, "scenes": 8, "bestscore": 75, "hasbest": true,
+        "history": [{"number": 1, "score": 75, "date": "27/09/26, 10:00"}], "hashistory": true, "attemptsinfo": "",
+        "builderurl": "#", "scenesurl": "#", "reporturl": "#", "dir": "ltr", "contentlang": "en"
+    }
+}}
+<div id="{{uniqid}}" class="ss-app" data-config="{{config}}">
+    <div class="ss-home" data-region="home">
+        <section class="ss-hero">
+            <div class="ss-hero-main">
+                <p class="ss-eyebrow">{{industry}}</p>
+                <h3 class="ss-hero-title">{{#str}} herotitle, mod_aisoftskills, {{levelname}} {{/str}}</h3>
+                <p class="ss-hero-desc">{{leveldesc}}</p>
+                <ul class="ss-facts">
+                    <li><span>{{#str}} scenesword, mod_aisoftskills {{/str}}</span><strong>{{scenes}}</strong></li>
+                    <li><span>{{#str}} contentlang, mod_aisoftskills {{/str}}</span><strong>{{language}}</strong></li>
+                    {{#hasbest}}<li><span>{{#str}} bestscore, mod_aisoftskills {{/str}}</span><strong>{{bestscore}}%</strong></li>{{/hasbest}}
+                </ul>
+                {{#hasskills}}
+                <div class="ss-skillchips" dir="{{dir}}" lang="{{contentlang}}">
+                    {{#skills}}<span class="ss-skillchip">{{.}}</span>{{/skills}}
+                </div>
+                {{/hasskills}}
+                <div class="ss-hero-actions">
+                    {{#canstart}}
+                    <button type="button" class="ss-btn ss-btn-primary ss-btn-lg" data-action="start">
+                        {{#resume}}{{#str}} resume, mod_aisoftskills {{/str}}{{/resume}}{{^resume}}{{#str}} start, mod_aisoftskills {{/str}}{{/resume}}
+                    </button>
+                    {{/canstart}}
+                    {{#nomore}}<p class="ss-note">{{#str}} nomoreattempts, mod_aisoftskills {{/str}}</p>{{/nomore}}
+                    {{^ready}}<p class="ss-note">{{#canmanage}}{{#str}} notready_manager, mod_aisoftskills {{/str}}{{/canmanage}}{{^canmanage}}{{#str}} notready_student, mod_aisoftskills {{/str}}{{/canmanage}}</p>{{/ready}}
+                    {{#attemptsinfo}}<p class="ss-note">{{.}}</p>{{/attemptsinfo}}
+                </div>
+            </div>
+            <ol class="ss-ladder" aria-label="{{#str}} careerladder, mod_aisoftskills {{/str}}">
+                {{#ladder}}
+                <li class="ss-rung ss-rung-{{key}}{{#current}} is-current{{/current}}{{#below}} is-below{{/below}}"{{#current}} aria-current="step"{{/current}}>
+                    <span class="ss-rung-num">{{number}}</span><span class="ss-rung-name">{{name}}</span>
+                </li>
+                {{/ladder}}
+            </ol>
+        </section>
+        {{#hashistory}}
+        <section class="ss-panel">
+            <h4 class="ss-panel-title">{{#str}} yourattempts, mod_aisoftskills {{/str}}</h4>
+            <table class="table table-sm ss-table">
+                <thead><tr><th scope="col">{{#str}} attempt, mod_aisoftskills {{/str}}</th><th scope="col">{{#str}} score, mod_aisoftskills {{/str}}</th><th scope="col">{{#str}} date {{/str}}</th></tr></thead>
+                <tbody>{{#history}}<tr><td>{{number}}</td><td>{{score}}%</td><td>{{date}}</td></tr>{{/history}}</tbody>
+            </table>
+        </section>
+        {{/hashistory}}
+        {{#canmanage}}
+        <nav class="ss-teacherbar" aria-label="{{#str}} teachertools, mod_aisoftskills {{/str}}">
+            <a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{builderurl}}">{{#str}} buildlesson, mod_aisoftskills {{/str}}</a>
+            <a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{scenesurl}}">{{#str}} managescenes, mod_aisoftskills {{/str}}</a>
+            {{#reporturl}}<a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{reporturl}}">{{#str}} reports, mod_aisoftskills {{/str}}</a>{{/reporturl}}
+        </nav>
+        {{/canmanage}}
+    </div>
+    <div class="ss-player" data-region="player" dir="{{dir}}" lang="{{contentlang}}" hidden></div>
+    <div class="ss-live visually-hidden sr-only" aria-live="polite" data-region="live"></div>
+</div>

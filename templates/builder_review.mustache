@@ -1,0 +1,61 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_aisoftskills/builder_review
+
+    Review of a lesson draft before the scenes are created.
+
+    Example context (json):
+    {
+        "count": 1,
+        "scenes": [{"index": 0, "skill": "Motivation", "title": "Behind on the weekly target", "context": "It is Thursday.",
+            "question": "What do you say?",
+            "options": [{"letter": "A", "text": "Is there anything I can get you to help you reach your goals faster?",
+                "best": true, "kpiname": "Motivation", "delta": "+20"},
+                {"letter": "B", "text": "Hurry up!", "best": false, "kpiname": "Morale", "delta": "-20"}]}]
+    }
+}}
+<div class="ss-panel">
+    <h4>{{#str}} review_title, mod_aisoftskills, {{count}} {{/str}}</h4>
+    <p class="ss-mini">{{#str}} review_help, mod_aisoftskills {{/str}}</p>
+    <div class="ss-draftgrid">
+        {{#scenes}}
+        <label class="ss-draft">
+            <span class="ss-draft-head">
+                <input type="checkbox" data-scene="{{index}}" checked>
+                <span>
+                    {{#skill}}<span class="ss-draft-sit" dir="auto">{{skill}}</span>{{/skill}}
+                    <strong dir="auto">{{title}}</strong>
+                </span>
+            </span>
+            {{#context}}<span class="ss-draft-context" dir="auto">{{context}}</span>{{/context}}
+            {{#question}}<span class="ss-draft-context" dir="auto"><b>{{question}}</b></span>{{/question}}
+            <span class="ss-draft-phrases">
+                {{#options}}
+                <span class="ss-draft-phrase {{#best}}is-best{{/best}}{{^best}}is-distractor{{/best}}">
+                    <b>{{letter}}</b> <span dir="auto">{{text}}</span>
+                    <span class="ss-draft-kpi">{{#best}}{{#str}} review_better, mod_aisoftskills {{/str}} · {{/best}}{{kpiname}} {{delta}}</span>
+                </span>
+                {{/options}}
+            </span>
+        </label>
+        {{/scenes}}
+    </div>
+    <div class="ss-wizard-actions">
+        <button type="button" class="ss-btn ss-btn-primary" data-action="create">{{#str}} review_create, mod_aisoftskills {{/str}}</button>
+    </div>
+</div>

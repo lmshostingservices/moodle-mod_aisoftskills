@@ -1,0 +1,63 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_aisoftskills/builder_build
+
+    Lesson builder step 5: draft the scenes with any AI assistant, review them and create them.
+
+    Example context (json):
+    {
+        "cmid": 1, "backurl": "#", "scenesurl": "#", "hasbalance": false, "balance": "",
+        "prompt": "Create a lesson", "existing": 0,
+        "summary": {"industry": "Retail", "level": "Supervisor", "skills": "Empathy, Motivation", "language": "English",
+            "scenes": 8}
+    }
+}}
+<div id="ss-build" class="ss-wizard ss-build" data-cmid="{{cmid}}" data-scenesurl="{{scenesurl}}">
+    <div class="ss-wizard-head">
+        <h2 class="h3">{{#str}} buildlesson, mod_aisoftskills {{/str}}</h2>
+        <a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{backurl}}">{{#str}} builder_change, mod_aisoftskills {{/str}}</a>
+    </div>
+    <dl class="ss-choices">
+        <div><dt>{{#str}} step_workplace, mod_aisoftskills {{/str}}</dt><dd>{{summary.industry}}</dd></div>
+        <div><dt>{{#str}} step_level, mod_aisoftskills {{/str}}</dt><dd>{{summary.level}}</dd></div>
+        <div><dt>{{#str}} step_skills, mod_aisoftskills {{/str}}</dt><dd>{{summary.skills}}</dd></div>
+        <div><dt>{{#str}} step_language, mod_aisoftskills {{/str}}</dt><dd>{{summary.language}}</dd></div>
+        <div><dt>{{#str}} scenecount, mod_aisoftskills {{/str}}</dt><dd>{{summary.scenes}}</dd></div>
+    </dl>
+    {{#existing}}<p class="ss-note">{{#str}} builder_existing, mod_aisoftskills, {{existing}} {{/str}}</p>{{/existing}}
+
+    <div class="ss-panel ss-buildpath">
+        <h4><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>{{#str}} build_manual_title, mod_aisoftskills {{/str}}</h4>
+        <ol class="ss-aihelper-steps">
+            <li>{{#str}} build_manual_1, mod_aisoftskills {{/str}}</li>
+            <li>{{#str}} build_manual_2, mod_aisoftskills {{/str}}</li>
+            <li>{{#str}} build_manual_3, mod_aisoftskills {{/str}}</li>
+        </ol>
+        <button type="button" class="ss-btn ss-btn-ghost ss-btn-sm ss-copy" data-target="#ss-lessonprompt" data-done="{{#str}} copied, mod_aisoftskills {{/str}}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>
+            <span>{{#str}} copyprompt, mod_aisoftskills {{/str}}</span>
+        </button>
+        <textarea id="ss-lessonprompt" class="ss-textarea ss-prompt-text" readonly rows="8" aria-label="{{#str}} build_manual_title, mod_aisoftskills {{/str}}">{{prompt}}</textarea>
+        <label class="ss-mini d-block mt-2" for="ss-lessonjson">{{#str}} build_paste, mod_aisoftskills {{/str}}</label>
+        <textarea id="ss-lessonjson" class="ss-textarea" rows="8" data-region="json" placeholder='{"scenes": [ ... ]}'></textarea>
+        <button type="button" class="ss-btn ss-btn-primary mt-2" data-action="preview">{{#str}} build_preview, mod_aisoftskills {{/str}}</button>
+        <p class="ss-mini mt-3">{{#str}} build_ai_off, mod_aisoftskills {{/str}}</p>
+        {{#hasbalance}}<p class="ss-mini">{{balance}}</p>{{/hasbalance}}
+    </div>
+    <div class="ss-review-draft" data-region="review" hidden></div>
+</div>

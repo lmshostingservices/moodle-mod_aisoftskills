@@ -1,0 +1,91 @@
+@mod @mod_aisoftskills
+Feature: Teachers build AI Soft Skills scenes and learners open them
+  In order to practise soft skills in realistic workplace moments
+  As a teacher
+  I need to build scenes that my learners can open, while learners cannot reach the teacher pages
+
+  Background:
+    Given the following "courses" exist:
+      | fullname        | shortname |
+      | Leadership 101  | LD101     |
+    And the following "users" exist:
+      | username | firstname | lastname |
+      | teacher1 | Tina      | Teacher  |
+      | student1 | Sam       | Student  |
+    And the following "course enrolments" exist:
+      | user     | course | role           |
+      | teacher1 | LD101  | editingteacher |
+      | student1 | LD101  | student        |
+    And the following "activities" exist:
+      | activity     | course | idnumber | name             | intro                  | level      | industry |
+      | aisoftskills | LD101  | ss1      | Leading the team | Practise motivating.   | supervisor | retail   |
+
+  Scenario: A teacher opening an empty activity is taken to the scene builder
+    When I am on the "Leading the team" "aisoftskills activity" page logged in as "teacher1"
+    Then I should see "Which industry do your learners work in?"
+    And I should see "Which career level are they practising?"
+    And I should see "Which soft skills should the scenes practise?"
+
+  Scenario: A teacher saves the builder choices and gets a prompt that uses them
+    Given I am on the "Leading the team" "mod_aisoftskills > Builder" page logged in as "teacher1"
+    When I set the field "Hospitality" to "1"
+    And I set the field "Manager" to "1"
+    And I set the field "Resolving conflict" to "1"
+    And I set the field "Spanish" to "1"
+    And I press "Save and build the scenes"
+    Then I should see "Copy prompt"
+    And I should see "Paste the AI's reply"
+    And I should see "Hospitality"
+    And I should see "Resolving conflict"
+    And I should see "Industry: Hospitality" in the "#ss-lessonprompt" "css_element"
+    And I should see "Career level of the learner: Manager" in the "#ss-lessonprompt" "css_element"
+    And I should see "write every title, context, question, response, consequence and reason in Spanish" in the "#ss-lessonprompt" "css_element"
+
+  Scenario: A learner opening an empty activity is told it is not ready
+    When I am on the "Leading the team" "aisoftskills activity" page logged in as "student1"
+    Then I should see "Your teacher is still preparing this activity."
+    And I should not see "Build scenes"
+
+  Scenario: A learner sees the career ladder and can start once a scene is ready
+    Given the following "mod_aisoftskills > scenes" exist:
+      | activity | title             | better                                                       | poorer     |
+      | ss1      | Behind on target  | Is there anything I can get you to help you reach your goals faster? | Hurry up! |
+    When I am on the "Leading the team" "aisoftskills activity" page logged in as "student1"
+    Then I should see "You are the Supervisor"
+    And I should see "Retail"
+    And "Start" "button" should exist
+    And "Reports" "link" should not exist in current page administration
+
+  Scenario: A teacher edits a scene and its two responses
+    Given the following "mod_aisoftskills > scenes" exist:
+      | activity | title            |
+      | ss1      | Behind on target |
+    And I am on the "Leading the team" "mod_aisoftskills > Scenes" page logged in as "teacher1"
+    And I should see "Ready to play"
+    When I click on "Edit scene" "link"
+    And I set the following fields to these values:
+      | Scene title | Short-staffed Friday |
+    And I press "Save changes"
+    Then I should see "Scene saved."
+    And I should see "Short-staffed Friday"
+
+  Scenario: The editor refuses a better response that lowers the indicator
+    Given the following "mod_aisoftskills > scenes" exist:
+      | activity | title            |
+      | ss1      | Behind on target |
+    And I am on the "Leading the team" "mod_aisoftskills > Scenes" page logged in as "teacher1"
+    When I click on "Edit scene" "link"
+    And I set the field "kpidelta0" to "-10"
+    And I press "Save changes"
+    Then I should see "The better response must raise the indicator."
+
+  Scenario: A teacher can open the reports
+    Given the following "mod_aisoftskills > scenes" exist:
+      | activity | title            |
+      | ss1      | Behind on target |
+    When I am on the "Leading the team" "mod_aisoftskills > Report" page logged in as "teacher1"
+    Then I should see "Sam Student"
+    And I should see "Best score"
+    And I click on "Scenes" "link" in the ".ss-tabs" "css_element"
+    And I should see "Behind on target"
+    And I should see "Better first choice"

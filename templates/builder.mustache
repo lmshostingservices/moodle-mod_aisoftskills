@@ -1,0 +1,139 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_aisoftskills/builder
+
+    Lesson builder steps 1 to 4: workplace, level, skills, language.
+
+    Example context (json):
+    {
+        "cmid": 1, "action": "#", "sesskey": "abc", "hasscenes": false, "buildurl": "#",
+        "illustration": true, "photo": false, "customindustry": "",
+        "industries": [{"key": "retail", "name": "Retail", "selected": true, "custom": false}],
+        "levels": [{"key": "worker", "number": 1, "name": "Worker", "desc": "Doing the job well", "selected": true}],
+        "groups": [{"key": "people", "name": "Working with people", "items": [{"key": "empathy", "name": "Empathy", "checked": true}]}],
+        "custom": [{"index": 1, "value": "", "hidden": false}],
+        "languages": [{"code": "en", "name": "English", "endonym": "English", "showendonym": false, "rtl": false, "selected": true}],
+        "scenes": [{"value": 8, "selected": true}]
+    }
+}}
+<form id="ss-wizard" class="ss-wizard" method="post" action="{{action}}">
+    <input type="hidden" name="sesskey" value="{{sesskey}}">
+    <input type="hidden" name="savechoices" value="1">
+    <div class="ss-wizard-head">
+        <h2 class="h3">{{#str}} buildlesson, mod_aisoftskills {{/str}}</h2>
+        <ol class="ss-wizard-steps" aria-label="{{#str}} builder_steps, mod_aisoftskills {{/str}}">
+            <li data-stepdot="1"><span>1</span>{{#str}} step_workplace, mod_aisoftskills {{/str}}</li>
+            <li data-stepdot="2"><span>2</span>{{#str}} step_level, mod_aisoftskills {{/str}}</li>
+            <li data-stepdot="3"><span>3</span>{{#str}} step_skills, mod_aisoftskills {{/str}}</li>
+            <li data-stepdot="4"><span>4</span>{{#str}} step_language, mod_aisoftskills {{/str}}</li>
+            <li><span>5</span>{{#str}} step_build, mod_aisoftskills {{/str}}</li>
+        </ol>
+        {{#hasscenes}}<a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{buildurl}}">{{#str}} builder_skip, mod_aisoftskills {{/str}}</a>{{/hasscenes}}
+    </div>
+
+    <fieldset class="ss-wstep" data-step="1">
+        <legend class="ss-wstep-title">{{#str}} q_industry, mod_aisoftskills {{/str}}</legend>
+        <p class="ss-mini">{{#str}} q_industry_help, mod_aisoftskills {{/str}}</p>
+        <div class="ss-cardgrid">
+            {{#industries}}
+            <label class="ss-pick">
+                <input type="radio" name="industry" value="{{key}}" {{#selected}}checked{{/selected}} required>
+                <span class="ss-pick-body"><strong>{{name}}</strong></span>
+            </label>
+            {{/industries}}
+        </div>
+        <div class="ss-panel ss-custom" data-region="customindustry">
+            <label for="ss-customindustry">{{#str}} customindustry, mod_aisoftskills {{/str}}</label>
+            <input type="text" class="ss-input" id="ss-customindustry" name="customindustry" value="{{customindustry}}" maxlength="120" placeholder="{{#str}} customindustry_placeholder, mod_aisoftskills {{/str}}">
+        </div>
+    </fieldset>
+
+    <fieldset class="ss-wstep" data-step="2">
+        <legend class="ss-wstep-title">{{#str}} q_level, mod_aisoftskills {{/str}}</legend>
+        <p class="ss-mini">{{#str}} q_level_help, mod_aisoftskills {{/str}}</p>
+        <div class="ss-levels">
+            {{#levels}}
+            <label class="ss-pick ss-level">
+                <input type="radio" name="level" value="{{key}}" {{#selected}}checked{{/selected}} required>
+                <span class="ss-pick-body">
+                    <span class="ss-level-code">{{number}}</span>
+                    <strong>{{name}}</strong>
+                    <span class="ss-level-desc">{{desc}}</span>
+                </span>
+            </label>
+            {{/levels}}
+        </div>
+    </fieldset>
+
+    <fieldset class="ss-wstep" data-step="3">
+        <legend class="ss-wstep-title">{{#str}} q_skills, mod_aisoftskills {{/str}}</legend>
+        <p class="ss-mini">{{#str}} q_skills_help, mod_aisoftskills {{/str}}</p>
+        <div class="ss-sitgroups">
+            {{#groups}}
+            <div class="ss-sitgroup">
+                <h4>{{name}}</h4>
+                {{#items}}
+                <label class="ss-check-row ss-sit"><input type="checkbox" name="skills[]" value="{{key}}" {{#checked}}checked{{/checked}}><span>{{name}}</span></label>
+                {{/items}}
+            </div>
+            {{/groups}}
+        </div>
+        <div class="ss-panel ss-custom">
+            <h4>{{#str}} q_custom, mod_aisoftskills {{/str}}</h4>
+            <p class="ss-mini">{{#str}} q_custom_help, mod_aisoftskills {{/str}}</p>
+            {{#custom}}
+            <input type="text" class="ss-input" name="custom[]" value="{{value}}" maxlength="120" data-custom="{{index}}" aria-label="{{#str}} q_custom, mod_aisoftskills {{/str}} {{index}}" placeholder="{{#str}} q_custom_placeholder, mod_aisoftskills {{/str}}" {{#hidden}}hidden{{/hidden}}>
+            {{/custom}}
+            <button type="button" class="ss-btn ss-btn-ghost ss-btn-sm" data-action="addcustom">{{#str}} q_custom_add, mod_aisoftskills {{/str}}</button>
+        </div>
+        <div class="ss-sizes">
+            <label>{{#str}} scenecount, mod_aisoftskills {{/str}}
+                <select name="scenes" class="custom-select form-select">{{#scenes}}<option value="{{value}}" {{#selected}}selected{{/selected}}>{{value}}</option>{{/scenes}}</select>
+            </label>
+            <label>{{#str}} imagestyle, mod_aisoftskills {{/str}}
+                <select name="imagestyle" class="custom-select form-select">
+                    <option value="illustration" {{#illustration}}selected{{/illustration}}>{{#str}} imagestyle_illustration_name, mod_aisoftskills {{/str}}</option>
+                    <option value="photo" {{#photo}}selected{{/photo}}>{{#str}} imagestyle_photo_name, mod_aisoftskills {{/str}}</option>
+                </select>
+            </label>
+        </div>
+        <p class="ss-wizard-error" data-region="skillerror" hidden>{{#str}} q_skills_none, mod_aisoftskills {{/str}}</p>
+    </fieldset>
+
+    <fieldset class="ss-wstep" data-step="4">
+        <legend class="ss-wstep-title">{{#str}} q_language, mod_aisoftskills {{/str}}</legend>
+        <p class="ss-mini">{{#str}} q_language_help, mod_aisoftskills {{/str}}</p>
+        <div class="ss-cardgrid">
+            {{#languages}}
+            <label class="ss-pick">
+                <input type="radio" name="contentlang" value="{{code}}" {{#selected}}checked{{/selected}} required>
+                <span class="ss-pick-body">
+                    <strong>{{name}}</strong>
+                    {{#showendonym}}<span class="ss-pick-endonym" lang="{{code}}" {{#rtl}}dir="rtl"{{/rtl}}>{{endonym}}</span>{{/showendonym}}
+                </span>
+            </label>
+            {{/languages}}
+        </div>
+    </fieldset>
+
+    <div class="ss-wizard-actions">
+        <button type="button" class="ss-btn ss-btn-ghost" data-action="prev">{{#str}} previous, mod_aisoftskills {{/str}}</button>
+        <button type="button" class="ss-btn ss-btn-primary" data-action="nextstep">{{#str}} next, mod_aisoftskills {{/str}}</button>
+        <button type="submit" class="ss-btn ss-btn-primary" data-action="save">{{#str}} builder_save, mod_aisoftskills {{/str}}</button>
+    </div>
+</form>

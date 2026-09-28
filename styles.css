@@ -1,0 +1,1575 @@
+/**
+ * Styles for mod_aisoftskills (in the Label Diagram look).
+ *
+ * @package    mod_aisoftskills
+ * @copyright  2026 LMS Hosting Services
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+.path-mod-aisoftskills .ss-app,
+.path-mod-aisoftskills .ss-editor,
+.path-mod-aisoftskills .ss-report,
+.path-mod-aisoftskills .ss-slides {
+    --ss-bg: #f3f5f9;
+    --ss-surface: #fff;
+    --ss-surface-2: #f8fafc;
+    --ss-border: #e4e8ef;
+    --ss-border-strong: #cbd5e1;
+    --ss-text: #0f172a;
+    --ss-text-2: #334155;
+    --ss-muted: #4b5767;
+    --ss-primary: #4f46e5;
+    --ss-primary-2: #6366f1;
+    --ss-primary-soft: #eef2ff;
+    --ss-success: #0d7f4f;
+    --ss-success-soft: #ecfdf3;
+    --ss-danger: #d0342c;
+    --ss-danger-soft: #fef3f2;
+    --ss-warning: #b26200;
+    --ss-warning-soft: #fffaeb;
+    --ss-teal: #0e9f9a;
+    --ss-radius: 16px;
+    --ss-shadow-sm: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .07);
+    --ss-shadow-md: 0 6px 14px -4px rgba(16, 24, 40, .10), 0 2px 6px -2px rgba(16, 24, 40, .06);
+    --ss-shadow-lg: 0 24px 40px -12px rgba(16, 24, 40, .22), 0 8px 12px -6px rgba(16, 24, 40, .08);
+    --ss-spring: cubic-bezier(.34, 1.56, .64, 1);
+    --ss-ease: cubic-bezier(.22, 1, .36, 1);
+    color: var(--ss-text);
+    font-feature-settings: "tnum" 0;
+}
+.path-mod-aisoftskills .ss-app svg,
+.path-mod-aisoftskills .ss-slides svg,
+.path-mod-aisoftskills .ss-report svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.path-mod-aisoftskills .ss-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    font-size: .95rem;
+    line-height: 1;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: transform .18s var(--ss-ease), box-shadow .18s var(--ss-ease), background-color .18s, opacity .18s;
+}
+.path-mod-aisoftskills .ss-btn svg {
+    width: 18px;
+    height: 18px;
+}
+.path-mod-aisoftskills .ss-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+.path-mod-aisoftskills .ss-btn:active:not(:disabled) {
+    transform: translateY(0) scale(.98);
+}
+.path-mod-aisoftskills .ss-btn:focus-visible,
+.path-mod-aisoftskills .ss-iconbtn:focus-visible {
+    outline: 3px solid var(--ss-primary-2);
+    outline-offset: 3px;
+}
+.path-mod-aisoftskills .ss-btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+.path-mod-aisoftskills .ss-btn-primary {
+    color: #fff;
+    background: linear-gradient(180deg, var(--ss-primary-2), var(--ss-primary));
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 6px 16px -6px rgba(79, 70, 229, .65);
+}
+.path-mod-aisoftskills .ss-btn-primary:hover:not(:disabled) {
+    color: #fff;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 10px 22px -6px rgba(79, 70, 229, .7);
+}
+.path-mod-aisoftskills .ss-btn-ghost {
+    color: var(--ss-text-2);
+    background: var(--ss-surface);
+    border-color: var(--ss-border);
+    box-shadow: var(--ss-shadow-sm);
+}
+.path-mod-aisoftskills .ss-btn-ghost:hover:not(:disabled) {
+    color: var(--ss-text);
+    box-shadow: var(--ss-shadow-md);
+}
+.path-mod-aisoftskills .ss-btn-sm {
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: .875rem;
+    border-radius: 10px;
+}
+.path-mod-aisoftskills .ss-iconbtn {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--ss-border);
+    background: var(--ss-surface);
+    color: var(--ss-text-2);
+    box-shadow: var(--ss-shadow-sm);
+    cursor: pointer;
+    padding: 0;
+    transition: transform .18s var(--ss-ease), box-shadow .18s, color .18s;
+}
+.path-mod-aisoftskills .ss-iconbtn:hover {
+    color: var(--ss-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--ss-shadow-md);
+}
+.path-mod-aisoftskills .ss-iconbtn svg {
+    width: 20px;
+    height: 20px;
+}
+.path-mod-aisoftskills .ss-note {
+    margin-top: 14px;
+    color: var(--ss-muted);
+    font-size: .9rem;
+}
+.path-mod-aisoftskills .ss-shell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 24px;
+    background: var(--ss-bg);
+    border: 1px solid var(--ss-border);
+    box-shadow: var(--ss-shadow-md);
+    outline: none;
+    --maxh: 62vh;
+    animation: ss-rise .5s var(--ss-ease);
+}
+.path-mod-aisoftskills .ss-shell:fullscreen {
+    background: var(--ss-bg);
+}
+.path-mod-aisoftskills .ss-confetti {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 60;
+    pointer-events: none;
+}
+.path-mod-aisoftskills .ss-panel {
+    padding: 16px;
+    border-radius: 18px;
+    background: var(--ss-surface);
+    border: 1px solid var(--ss-border);
+    box-shadow: var(--ss-shadow-sm);
+}
+.path-mod-aisoftskills .ss-panel h4 {
+    margin: 0 0 10px;
+    font-size: .95rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.path-mod-aisoftskills .ss-panel h4 svg {
+    width: 18px;
+    height: 18px;
+    color: var(--ss-primary);
+}
+.path-mod-aisoftskills .ss-ed-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.path-mod-aisoftskills .ss-ed-toolbar .ss-grow {
+    flex: 1;
+}
+.path-mod-aisoftskills .ss-input,
+.path-mod-aisoftskills .ss-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--ss-border);
+    background: var(--ss-surface);
+    font: inherit;
+    color: var(--ss-text);
+    transition: border-color .2s, box-shadow .2s;
+}
+.path-mod-aisoftskills .ss-input:focus,
+.path-mod-aisoftskills .ss-textarea:focus {
+    outline: none;
+    border-color: var(--ss-primary-2);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, .15);
+}
+.path-mod-aisoftskills .ss-textarea {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.5;
+}
+.path-mod-aisoftskills .ss-mini {
+    font-size: .8rem;
+    color: var(--ss-muted);
+}
+.path-mod-aisoftskills .ss-mini a {
+    text-decoration: underline;
+}
+.path-mod-aisoftskills .ss-check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .88rem;
+}
+.path-mod-aisoftskills .ss-counter-pill {
+    font-size: .78rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--ss-surface-2);
+    border: 1px solid var(--ss-border);
+    color: var(--ss-muted);
+}
+.path-mod-aisoftskills .ss-counter-pill.is-full {
+    color: #b54708;
+    background: var(--ss-warning-soft);
+    border-color: #fedf89;
+}
+.path-mod-aisoftskills .ss-slides-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 18px;
+    margin: 18px 0 26px;
+}
+.path-mod-aisoftskills .ss-slidecard {
+    display: flex;
+    flex-direction: column;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--ss-surface);
+    border: 1px solid var(--ss-border);
+    box-shadow: var(--ss-shadow-sm);
+    transition: transform .25s var(--ss-ease), box-shadow .25s;
+}
+.path-mod-aisoftskills .ss-slidecard:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--ss-shadow-lg);
+}
+.path-mod-aisoftskills .ss-slidecard-thumb {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    background: var(--ss-surface-2);
+    display: block;
+}
+.path-mod-aisoftskills .ss-slidecard-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.path-mod-aisoftskills .ss-slidecard-no {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 800;
+    color: #fff;
+    background: rgba(15, 23, 42, .7);
+    backdrop-filter: blur(4px);
+}
+.path-mod-aisoftskills .ss-slidecard-body {
+    padding: 12px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.path-mod-aisoftskills .ss-slidecard-title {
+    font-weight: 800;
+    margin: 0;
+    font-size: 1rem;
+}
+.path-mod-aisoftskills .ss-slidecard-meta {
+    font-size: .82rem;
+    color: var(--ss-muted);
+    font-weight: 600;
+}
+.path-mod-aisoftskills .ss-slidecard-meta.is-warn {
+    color: #b54708;
+}
+.path-mod-aisoftskills .ss-slidecard-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.path-mod-aisoftskills .ss-slidecard-actions .ss-iconbtn {
+    width: 36px;
+    height: 36px;
+}
+.path-mod-aisoftskills .ss-slidecard-actions .ss-iconbtn svg {
+    width: 17px;
+    height: 17px;
+}
+.path-mod-aisoftskills .ss-slidecard-actions .ss-btn {
+    flex: 1 0 100%;
+    justify-content: center;
+}
+.path-mod-aisoftskills .ss-report h3 {
+    font-weight: 800;
+    font-size: 1.15rem;
+    margin: 26px 0 6px;
+}
+.path-mod-aisoftskills .ss-report table.ss-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--ss-surface);
+    border: 1px solid var(--ss-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--ss-shadow-sm);
+}
+.path-mod-aisoftskills .ss-table th {
+    background: var(--ss-surface-2);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--ss-muted);
+    font-weight: 800;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--ss-border);
+    text-align: left;
+}
+.path-mod-aisoftskills .ss-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--ss-border);
+    vertical-align: middle;
+    font-variant-numeric: tabular-nums;
+}
+.path-mod-aisoftskills .ss-table tr:last-child td {
+    border-bottom: 0;
+}
+.path-mod-aisoftskills .ss-tabs {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 14px;
+    background: var(--ss-surface);
+    border: 1px solid var(--ss-border);
+    box-shadow: var(--ss-shadow-sm);
+    margin-bottom: 8px;
+}
+.path-mod-aisoftskills .ss-tabs a {
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    color: var(--ss-muted);
+    text-decoration: none;
+}
+.path-mod-aisoftskills .ss-tabs a.is-on {
+    background: var(--ss-primary-soft);
+    color: var(--ss-primary);
+}
+
+@media (max-width: 700px) {
+    .path-mod-aisoftskills .ss-iconbtn {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* Reduced motion must beat every animated state, so this is the one place !important is used. */
+    /* stylelint-disable declaration-no-important */
+    .path-mod-aisoftskills .ss-app *,
+    .path-mod-aisoftskills .ss-wizard * {
+        animation: none !important;
+        transition: none !important;
+    }
+    /* stylelint-enable declaration-no-important */
+}
+
+@keyframes ss-rise {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(.985);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes ss-fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+.path-mod-aisoftskills .ss-btn-lg {
+    min-height: 50px;
+    padding: 0 28px;
+    font-size: 1.02rem;
+    border-radius: 14px;
+}
+.path-mod-aisoftskills .ss-prompt-text {
+    border: 0;
+    border-radius: 0;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .8rem;
+    min-height: 240px;
+}
+.path-mod-aisoftskills .ss-copy.is-done {
+    background: linear-gradient(180deg, #32d583, var(--ss-success));
+}
+.path-mod-aisoftskills .ss-tips {
+    margin: 4px 0 16px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--ss-primary-soft);
+    border: 1px solid #c7d2fe;
+    color: var(--ss-text-2);
+    font-size: .88rem;
+}
+.path-mod-aisoftskills .ss-tips-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--ss-primary);
+}
+.path-mod-aisoftskills .ss-tips-head svg {
+    width: 18px;
+    height: 18px;
+}
+.path-mod-aisoftskills .ss-tips ul {
+    margin: 0;
+    padding-left: 1.2em;
+    display: grid;
+    gap: 4px;
+    line-height: 1.45;
+}
+.path-mod-aisoftskills .ss-tips strong {
+    color: var(--ss-text);
+}
+.path-mod-aisoftskills .ss-aihelper-steps {
+    margin: 0 0 10px;
+    padding-left: 1.2em;
+    line-height: 1.45;
+}
+.path-mod-aisoftskills .ss-tips .ss-prompt-text {
+    min-height: 200px;
+}
+/* ------------------------------------------------------------------ */
+/* AI Soft Skills additions                                      */
+/* ------------------------------------------------------------------ */
+.path-mod-aisoftskills .ss-wizard {
+    color: var(--ss-text);
+}
+.path-mod-aisoftskills .ss-wizard svg,
+.path-mod-aisoftskills .ss-report svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.path-mod-aisoftskills .ss-wizard {
+    --ss-bg: #f3f5f9;
+    --ss-surface: #fff;
+    --ss-surface-2: #f8fafc;
+    --ss-border: #e4e8ef;
+    --ss-border-strong: #cbd5e1;
+    --ss-text: #0f172a;
+    --ss-text-2: #334155;
+    --ss-muted: #4b5767;
+    --ss-primary: #4f46e5;
+    --ss-primary-2: #6366f1;
+    --ss-primary-soft: #eef2ff;
+    --ss-success: #0d7f4f;
+    --ss-danger: #c4271c;
+    --ss-warning: #a15c00;
+    --ss-radius: 16px;
+    --ss-shadow-sm: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .07);
+    --ss-shadow-md: 0 6px 14px -4px rgba(16, 24, 40, .1), 0 2px 6px -2px rgba(16, 24, 40, .06);
+    --ss-spring: cubic-bezier(.34, 1.56, .64, 1);
+    --ss-ease: cubic-bezier(.22, 1, .36, 1);
+}
+/* Chips: phrase text, romanisation and (hint) meaning, on a readable shade of the phrase colour. */
+/* Home. */
+/* Start screen steps. */
+/* Top bar. */
+/* Phrase card. */
+/* Speaking. */
+/* Practice marks and hints. */
+/* Test stages. */
+/* Results review. */
+/* Lesson builder. */
+.path-mod-aisoftskills .ss-wizard {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+.path-mod-aisoftskills .ss-wizard-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+    margin-bottom: 18px;
+}
+.path-mod-aisoftskills .ss-wizard-head h2 {
+    margin: 0;
+}
+.path-mod-aisoftskills .ss-wizard-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    flex: 1;
+}
+.path-mod-aisoftskills .ss-wizard-steps li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px 4px 4px;
+    border-radius: 999px;
+    color: var(--ss-muted);
+    background: var(--ss-surface-2);
+    border: 1px solid var(--ss-border);
+    font-size: .85rem;
+    font-weight: 600;
+}
+.path-mod-aisoftskills .ss-wizard-steps li span {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid var(--ss-border);
+    font-size: .8rem;
+}
+.path-mod-aisoftskills .ss-wizard-steps li.is-active {
+    color: var(--ss-primary);
+    background: var(--ss-primary-soft);
+    border-color: #c7d2fe;
+}
+.path-mod-aisoftskills .ss-wizard-steps li.is-active span,
+.path-mod-aisoftskills .ss-wizard-steps li.is-done span {
+    color: #fff;
+    background: var(--ss-primary);
+    border-color: var(--ss-primary);
+}
+.path-mod-aisoftskills .ss-wstep {
+    margin: 0 0 20px;
+    padding: 22px;
+    border: 1px solid var(--ss-border);
+    border-radius: var(--ss-radius);
+    background: var(--ss-surface);
+    box-shadow: var(--ss-shadow-sm);
+}
+.path-mod-aisoftskills .ss-wstep-title {
+    float: none;
+    width: auto;
+    margin: 0 0 4px;
+    padding: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+.path-mod-aisoftskills .ss-cardgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+}
+.path-mod-aisoftskills .ss-pick {
+    position: relative;
+    display: block;
+    margin: 0;
+    cursor: pointer;
+}
+.path-mod-aisoftskills .ss-pick input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+.path-mod-aisoftskills .ss-pick-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    height: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 2px solid var(--ss-border);
+    background: var(--ss-surface-2);
+    transition: border-color .15s, background-color .15s, box-shadow .15s;
+}
+.path-mod-aisoftskills .ss-pick:hover .ss-pick-body {
+    border-color: var(--ss-border-strong);
+}
+.path-mod-aisoftskills .ss-pick input:checked + .ss-pick-body {
+    border-color: var(--ss-primary);
+    background: var(--ss-primary-soft);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
+}
+.path-mod-aisoftskills .ss-pick input:focus-visible + .ss-pick-body {
+    outline: 3px solid var(--ss-primary-2);
+    outline-offset: 2px;
+}
+.path-mod-aisoftskills .ss-pick-endonym {
+    color: var(--ss-muted);
+    font-size: .95rem;
+}
+.path-mod-aisoftskills .ss-sitgroups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 14px 0;
+}
+.path-mod-aisoftskills .ss-sitgroup h4 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    font-weight: 800;
+}
+.path-mod-aisoftskills .ss-check-row.ss-sit {
+    margin: 0 0 6px;
+}
+.path-mod-aisoftskills .ss-custom .ss-input {
+    margin-bottom: 8px;
+}
+.path-mod-aisoftskills .ss-sizes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    margin-top: 14px;
+}
+.path-mod-aisoftskills .ss-sizes label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-weight: 600;
+}
+.path-mod-aisoftskills .ss-levels {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+.path-mod-aisoftskills .ss-level-code {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--ss-primary);
+}
+.path-mod-aisoftskills .ss-level-desc {
+    color: var(--ss-text-2);
+    font-size: .9rem;
+}
+.path-mod-aisoftskills .ss-wizard-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.path-mod-aisoftskills .ss-wizard-actions [hidden] {
+    display: none;
+}
+.path-mod-aisoftskills .ss-wizard:not(.is-enhanced) [data-action="prev"],
+.path-mod-aisoftskills .ss-wizard:not(.is-enhanced) [data-action="nextstep"] {
+    display: none;
+}
+.path-mod-aisoftskills .ss-wizard-error {
+    margin: 10px 0 0;
+    color: var(--ss-danger);
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin: 0 0 16px;
+}
+.path-mod-aisoftskills .ss-choices > div {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--ss-surface);
+    border: 1px solid var(--ss-border);
+}
+.path-mod-aisoftskills .ss-choices dt {
+    color: var(--ss-muted);
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+.path-mod-aisoftskills .ss-choices dd {
+    margin: 2px 0 0;
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-buildpath.is-off {
+    align-self: start;
+    background: var(--ss-surface-2);
+    border-style: dashed;
+}
+.path-mod-aisoftskills .ss-review-draft {
+    margin-top: 18px;
+}
+.path-mod-aisoftskills .ss-draftgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin: 12px 0;
+}
+.path-mod-aisoftskills .ss-draft {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--ss-border);
+    background: var(--ss-surface-2);
+    cursor: pointer;
+}
+.path-mod-aisoftskills .ss-draft-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+.path-mod-aisoftskills .ss-draft-head input {
+    margin-top: 4px;
+}
+.path-mod-aisoftskills .ss-draft-sit {
+    display: block;
+    color: var(--ss-muted);
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.path-mod-aisoftskills .ss-draft-context {
+    color: var(--ss-text-2);
+    font-size: .88rem;
+}
+.path-mod-aisoftskills .ss-draft-phrases {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: .88rem;
+}
+.path-mod-aisoftskills .ss-draft-phrase.is-distractor {
+    color: var(--ss-muted);
+    text-decoration: line-through;
+}
+/* Scenes and editor. */
+.path-mod-aisoftskills .ss-slidecard-noimage {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    color: var(--ss-muted);
+    font-weight: 600;
+}
+.path-mod-aisoftskills .ss-imagehelp {
+    margin-top: 10px;
+}
+.path-mod-aisoftskills .ss-imagehelp summary {
+    font-weight: 700;
+    cursor: pointer;
+}
+.path-mod-aisoftskills .ss-imagehelp > * + * {
+    margin-top: 8px;
+}
+.path-mod-aisoftskills .ss-btn.is-recording {
+    color: #fff;
+    background: #c81e4a;
+    border-color: #c81e4a;
+}
+/* Reports. */
+.path-mod-aisoftskills .ss-tab {
+    color: var(--ss-text-2);
+}
+.path-mod-aisoftskills .ss-hardrow td {
+    background: #fff5f4;
+}
+
+@media (max-width: 700px) {
+    .path-mod-aisoftskills .ss-wstep {
+        padding: 16px;
+    }
+}
+/* ------------------------------------------------------------------ */
+/* Soft-skills home, player, consequence gauge and results.            */
+/* ------------------------------------------------------------------ */
+.path-mod-aisoftskills .ss-app {
+    --ss-worker: #0e9f9a;
+    --ss-supervisor: #2563eb;
+    --ss-manager: #7c3aed;
+    --ss-leader: #b45309;
+    --ss-good: #0d7f4f;
+    --ss-bad: #c4271c;
+    position: relative;
+}
+.path-mod-aisoftskills .ss-eyebrow {
+    margin: 0 0 4px;
+    font-size: .8rem;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ss-primary);
+}
+.path-mod-aisoftskills .ss-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 24px;
+    align-items: center;
+    padding: 24px;
+    margin-bottom: 18px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #eef2ff 0%, #f0fdfa 100%);
+    border: 1px solid var(--ss-border);
+    box-shadow: var(--ss-shadow-sm);
+}
+.path-mod-aisoftskills .ss-hero-title {
+    margin: 0 0 6px;
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: var(--ss-text);
+}
+.path-mod-aisoftskills .ss-hero-desc {
+    margin: 0 0 14px;
+    color: var(--ss-text-2);
+}
+.path-mod-aisoftskills .ss-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+}
+.path-mod-aisoftskills .ss-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 12px;
+    padding: 0;
+    list-style: none;
+}
+.path-mod-aisoftskills .ss-facts li {
+    display: flex;
+    flex-direction: column;
+    min-width: 96px;
+    padding: 8px 14px;
+    border-radius: 14px;
+    background: var(--ss-surface);
+    border: 1px solid var(--ss-border);
+}
+.path-mod-aisoftskills .ss-facts span {
+    font-size: .75rem;
+    color: var(--ss-muted);
+}
+.path-mod-aisoftskills .ss-facts strong {
+    font-size: 1.05rem;
+}
+.path-mod-aisoftskills .ss-skillchips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.path-mod-aisoftskills .ss-skillchip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--ss-primary-soft);
+    color: #3730a3;
+    font-size: .8rem;
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-ladder {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.path-mod-aisoftskills .ss-rung {
+    --rung: var(--ss-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: var(--ss-surface);
+    border: 1px solid var(--ss-border);
+    color: var(--ss-muted);
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-rung-worker {
+    --rung: var(--ss-worker);
+}
+.path-mod-aisoftskills .ss-rung-supervisor {
+    --rung: var(--ss-supervisor);
+}
+.path-mod-aisoftskills .ss-rung-manager {
+    --rung: var(--ss-manager);
+}
+.path-mod-aisoftskills .ss-rung-leader {
+    --rung: var(--ss-leader);
+}
+.path-mod-aisoftskills .ss-rung-num {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--rung);
+    color: var(--rung);
+    font-size: .8rem;
+}
+.path-mod-aisoftskills .ss-rung.is-below .ss-rung-num {
+    background: var(--rung);
+    color: #fff;
+}
+.path-mod-aisoftskills .ss-rung.is-current {
+    color: #fff;
+    background: var(--rung);
+    border-color: var(--rung);
+    box-shadow: var(--ss-shadow-md);
+    transform: translateX(-6px);
+}
+.path-mod-aisoftskills .ss-rung.is-current .ss-rung-num {
+    border-color: #fff;
+    background: #fff;
+    color: var(--rung);
+}
+.path-mod-aisoftskills .ss-panel-title {
+    margin: 0 0 10px;
+    font-size: .95rem;
+    font-weight: 800;
+}
+.path-mod-aisoftskills .ss-teacherbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+}
+.path-mod-aisoftskills .ss-shell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 24px;
+    background: var(--ss-bg);
+    border: 1px solid var(--ss-border);
+    box-shadow: var(--ss-shadow-md);
+    overflow: hidden;
+    animation: ss-rise .5s var(--ss-ease);
+}
+.path-mod-aisoftskills .ss-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.path-mod-aisoftskills .ss-bar .ss-iconbtn.is-muted {
+    color: var(--ss-muted);
+    opacity: .7;
+}
+.path-mod-aisoftskills .ss-levelbadge {
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--ss-primary);
+    color: #fff;
+    font-size: .8rem;
+    font-weight: 800;
+}
+.path-mod-aisoftskills .ss-levelbadge-worker {
+    background: #0b7f7b;
+}
+.path-mod-aisoftskills .ss-levelbadge-supervisor {
+    background: var(--ss-supervisor);
+}
+.path-mod-aisoftskills .ss-levelbadge-manager {
+    background: var(--ss-manager);
+}
+.path-mod-aisoftskills .ss-levelbadge-leader {
+    background: #92400e;
+}
+.path-mod-aisoftskills .ss-dots {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.path-mod-aisoftskills .ss-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--ss-border-strong);
+    transition: width .35s var(--ss-ease), background-color .3s;
+}
+.path-mod-aisoftskills .ss-dot.is-done {
+    background: var(--ss-good);
+}
+.path-mod-aisoftskills .ss-dot.is-current {
+    width: 28px;
+    background: var(--ss-primary);
+}
+.path-mod-aisoftskills .ss-kpistrip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.path-mod-aisoftskills .ss-kpichip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 150px;
+    padding: 6px 10px;
+    border-radius: 12px;
+    background: var(--ss-surface);
+    border: 1px solid var(--ss-border);
+    font-size: .8rem;
+}
+.path-mod-aisoftskills .ss-kpichip-name {
+    font-weight: 700;
+    color: var(--ss-text-2);
+    white-space: nowrap;
+}
+.path-mod-aisoftskills .ss-kpichip-bar,
+.path-mod-aisoftskills .ss-finalkpi-bar {
+    position: relative;
+    flex: 1;
+    height: 8px;
+    min-width: 40px;
+    border-radius: 999px;
+    background: var(--ss-border);
+    overflow: hidden;
+}
+.path-mod-aisoftskills .ss-kpichip-bar span,
+.path-mod-aisoftskills .ss-finalkpi-bar span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #f59e0b, #10b981);
+    transition: width .9s var(--ss-ease);
+}
+.path-mod-aisoftskills [dir="rtl"] .ss-kpichip-bar span,
+.path-mod-aisoftskills [dir="rtl"] .ss-finalkpi-bar span {
+    inset: 0 0 0 auto;
+}
+.path-mod-aisoftskills .ss-kpichip-value {
+    min-width: 2ch;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+.path-mod-aisoftskills .ss-scene {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: ss-rise .45s var(--ss-ease);
+}
+.path-mod-aisoftskills .ss-scene-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.path-mod-aisoftskills .ss-scene-title {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 800;
+}
+.path-mod-aisoftskills .ss-scene-body {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+    gap: 18px;
+    align-items: start;
+}
+.path-mod-aisoftskills .ss-figure {
+    position: relative;
+    margin: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--ss-surface-2);
+    box-shadow: var(--ss-shadow-md);
+}
+.path-mod-aisoftskills .ss-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    user-select: none;
+}
+.path-mod-aisoftskills .ss-speaker {
+    position: absolute;
+    inset: auto auto 12px 12px;
+    max-width: calc(100% - 24px);
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, .78);
+    color: #fff;
+    font-size: .85rem;
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-scene-side {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.path-mod-aisoftskills .ss-context {
+    margin: 0;
+    color: var(--ss-text-2);
+    line-height: 1.5;
+}
+.path-mod-aisoftskills .ss-question {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+.path-mod-aisoftskills .ss-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.path-mod-aisoftskills .ss-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    min-height: 64px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 2px solid var(--ss-border);
+    background: var(--ss-surface);
+    color: var(--ss-text);
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.45;
+    text-align: start;
+    cursor: pointer;
+    box-shadow: var(--ss-shadow-sm);
+    transition: transform .18s var(--ss-ease), border-color .18s, box-shadow .18s, background-color .18s;
+}
+.path-mod-aisoftskills .ss-option:hover:not(:disabled),
+.path-mod-aisoftskills .ss-option:focus-visible {
+    border-color: var(--ss-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--ss-shadow-md);
+}
+.path-mod-aisoftskills .ss-option:focus-visible {
+    outline: 3px solid rgba(79, 70, 229, .35);
+    outline-offset: 2px;
+}
+.path-mod-aisoftskills .ss-option:disabled {
+    cursor: default;
+}
+.path-mod-aisoftskills .ss-option-letter {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--ss-primary-soft);
+    color: var(--ss-primary);
+    font-weight: 800;
+}
+.path-mod-aisoftskills .ss-option.is-chosen.is-best {
+    border-color: var(--ss-good);
+    background: #ecfdf3;
+}
+.path-mod-aisoftskills .ss-option.is-chosen.is-best .ss-option-letter {
+    background: var(--ss-good);
+    color: #fff;
+}
+.path-mod-aisoftskills .ss-option.is-poor,
+.path-mod-aisoftskills .ss-option.is-tried {
+    border-color: #f1b8b3;
+    background: #fef3f2;
+}
+.path-mod-aisoftskills .ss-option.is-tried {
+    opacity: .75;
+}
+.path-mod-aisoftskills .ss-option.is-poor .ss-option-letter,
+.path-mod-aisoftskills .ss-option.is-tried .ss-option-letter {
+    background: var(--ss-bad);
+    color: #fff;
+}
+.path-mod-aisoftskills .ss-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.path-mod-aisoftskills .ss-scenecount {
+    margin: 0;
+    color: var(--ss-muted);
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(15, 23, 42, .45);
+    backdrop-filter: blur(3px);
+    animation: ss-fade .2s ease;
+}
+.path-mod-aisoftskills .ss-consequence {
+    width: 100%;
+    max-width: 620px;
+    max-height: 100%;
+    overflow: auto;
+    border-radius: 22px;
+    background: var(--ss-surface);
+    box-shadow: var(--ss-shadow-lg);
+    animation: ss-rise .4s var(--ss-spring);
+}
+.path-mod-aisoftskills .ss-consequence-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    color: #fff;
+    background: linear-gradient(135deg, #0d7f4f, #10b981);
+}
+.path-mod-aisoftskills .ss-consequence.is-poor .ss-consequence-head {
+    background: linear-gradient(135deg, #b42318, #e0472d);
+}
+.path-mod-aisoftskills .ss-consequence-icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .22);
+}
+.path-mod-aisoftskills .ss-consequence-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 3;
+}
+.path-mod-aisoftskills .ss-consequence-title {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+}
+.path-mod-aisoftskills .ss-consequence-body {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+    padding: 18px 20px;
+}
+.path-mod-aisoftskills .ss-gauge {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+.path-mod-aisoftskills .ss-gauge svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+.path-mod-aisoftskills .ss-gauge-track,
+.path-mod-aisoftskills .ss-gauge-fill {
+    fill: none;
+    stroke-width: 16;
+    stroke-linecap: round;
+}
+.path-mod-aisoftskills .ss-gauge-track {
+    stroke: var(--ss-border);
+}
+.path-mod-aisoftskills .ss-gauge-fill {
+    stroke: #10b981;
+    stroke-dasharray: 100 100;
+    stroke-dashoffset: 100;
+}
+.path-mod-aisoftskills .ss-consequence.is-poor .ss-gauge-fill {
+    stroke: #e0472d;
+}
+.path-mod-aisoftskills .ss-gauge-needle {
+    stroke: var(--ss-text);
+    stroke-width: 4;
+    stroke-linecap: round;
+    transform-box: view-box;
+    transform-origin: 100px 110px;
+    transform: rotate(-90deg);
+}
+.path-mod-aisoftskills .ss-gauge-hub {
+    fill: var(--ss-text);
+    stroke: none;
+}
+.path-mod-aisoftskills .ss-gauge-read {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: -14px;
+    line-height: 1.1;
+}
+.path-mod-aisoftskills .ss-gauge-read strong {
+    font-size: 1.9rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+}
+.path-mod-aisoftskills .ss-gauge-read span {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--ss-muted);
+}
+.path-mod-aisoftskills .ss-delta {
+    display: inline-flex;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: .8rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.path-mod-aisoftskills .ss-delta.is-up {
+    background: #dcfce7;
+    color: #0b6b43;
+}
+.path-mod-aisoftskills .ss-delta.is-down {
+    background: #fee4e2;
+    color: #a3190f;
+}
+.path-mod-aisoftskills .ss-consequence-text p {
+    margin: 0 0 10px;
+    line-height: 1.5;
+}
+.path-mod-aisoftskills .ss-consequence-what {
+    font-weight: 600;
+}
+.path-mod-aisoftskills .ss-consequence-why {
+    color: var(--ss-text-2);
+}
+.path-mod-aisoftskills .ss-better {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #ecfdf3;
+    border: 1px solid #abefc6;
+}
+.path-mod-aisoftskills .ss-better-label {
+    font-size: .8rem;
+    font-weight: 800;
+    color: #0b6b43;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.path-mod-aisoftskills .ss-better-text {
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-consequence-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 0 20px 18px;
+}
+.path-mod-aisoftskills .ss-summary {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px;
+    border-radius: 24px;
+    background: var(--ss-surface);
+    border: 1px solid var(--ss-border);
+    box-shadow: var(--ss-shadow-lg);
+    outline: none;
+    animation: ss-rise .6s var(--ss-spring);
+}
+.path-mod-aisoftskills .ss-summary-top {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 18px;
+}
+.path-mod-aisoftskills .ss-ring {
+    --tone: var(--ss-primary);
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    background: conic-gradient(var(--tone) calc(var(--p) * 1%), var(--ss-border) 0);
+}
+.path-mod-aisoftskills .ss-ring > span {
+    display: grid;
+    place-items: center;
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    background: var(--ss-surface);
+    font-size: 1.8rem;
+    font-weight: 900;
+}
+.path-mod-aisoftskills .ss-ring small {
+    font-size: .9rem;
+}
+.path-mod-aisoftskills .ss-summary-great .ss-ring,
+.path-mod-aisoftskills .ss-summary-good .ss-ring {
+    --tone: var(--ss-good);
+}
+.path-mod-aisoftskills .ss-summary-ok .ss-ring {
+    --tone: #b26200;
+}
+.path-mod-aisoftskills .ss-summary-bad .ss-ring {
+    --tone: var(--ss-bad);
+}
+.path-mod-aisoftskills .ss-summary-title {
+    margin: 0 0 4px;
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+.path-mod-aisoftskills .ss-summary-message {
+    margin: 0 0 4px;
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-summary-level {
+    margin: 0;
+    color: var(--ss-text-2);
+}
+.path-mod-aisoftskills .ss-finalkpis {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 0 18px;
+    padding: 0;
+    list-style: none;
+}
+.path-mod-aisoftskills .ss-finalkpi {
+    display: grid;
+    grid-template-columns: minmax(110px, 180px) minmax(0, 1fr) 3ch auto;
+    align-items: center;
+    gap: 10px;
+}
+.path-mod-aisoftskills .ss-finalkpi-name {
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-finalkpi-value {
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+.path-mod-aisoftskills .ss-summary-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.path-mod-aisoftskills .ss-summary-actions .ss-note {
+    margin: 0;
+}
+.path-mod-aisoftskills .ss-slidecard-skill {
+    display: block;
+    margin-bottom: 2px;
+    font-size: .75rem;
+    font-weight: 800;
+    color: var(--ss-primary);
+}
+.path-mod-aisoftskills .ss-draft-phrase.is-best {
+    border-color: #abefc6;
+    background: #ecfdf3;
+}
+.path-mod-aisoftskills .ss-draft-kpi {
+    display: block;
+    font-size: .8rem;
+    color: var(--ss-muted);
+}
+.path-mod-aisoftskills .ss-editor-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 12px;
+}
+.path-mod-aisoftskills .ss-editor-picture {
+    max-width: 520px;
+}
+.path-mod-aisoftskills .ss-editor-form {
+    min-width: 0;
+}
+.path-mod-aisoftskills .ss-editor-form textarea,
+.path-mod-aisoftskills .ss-editor-form input[type="text"] {
+    max-width: 100%;
+}
+.path-mod-aisoftskills .ss-editor-picture img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    box-shadow: var(--ss-shadow-md);
+}
+
+@media (max-width: 860px) {
+    .path-mod-aisoftskills .ss-hero,
+    .path-mod-aisoftskills .ss-scene-body,
+    .path-mod-aisoftskills .ss-consequence-body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .path-mod-aisoftskills .ss-ladder {
+        flex-direction: row-reverse;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+    .path-mod-aisoftskills .ss-rung.is-current {
+        transform: none;
+    }
+    .path-mod-aisoftskills .ss-gauge {
+        max-width: 220px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 520px) {
+    .path-mod-aisoftskills .ss-shell {
+        padding: 10px;
+        border-radius: 16px;
+    }
+    .path-mod-aisoftskills .ss-summary {
+        padding: 18px;
+    }
+    .path-mod-aisoftskills .ss-summary-top {
+        flex-direction: column;
+        text-align: center;
+    }
+    .path-mod-aisoftskills .ss-finalkpi {
+        grid-template-columns: minmax(0, 1fr) 3ch auto;
+    }
+    .path-mod-aisoftskills .ss-finalkpi-bar {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .path-mod-aisoftskills .ss-scene,
+    .path-mod-aisoftskills .ss-consequence,
+    .path-mod-aisoftskills .ss-summary,
+    .path-mod-aisoftskills .ss-shell,
+    .path-mod-aisoftskills .ss-dialog-backdrop {
+        animation: none;
+    }
+    .path-mod-aisoftskills .ss-kpichip-bar span,
+    .path-mod-aisoftskills .ss-option {
+        transition: none;
+    }
+}
