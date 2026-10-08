@@ -50,6 +50,14 @@ if ($node = $PAGE->settingsnav->find('aisoftskills_builder', navigation_node::TY
     $node->make_active();
 }
 
+// The whole plugin needs this site to be unlocked with LMS Labs (50 credits or a recognised Marketplace purchase).
+if (!\mod_aisoftskills\local\unlock::active()) {
+    echo $OUTPUT->header();
+    echo \mod_aisoftskills\local\unlock::locked_notice();
+    echo $OUTPUT->footer();
+    exit;
+}
+
 // Save the choices from steps 1 to 4.
 if (optional_param('savechoices', 0, PARAM_BOOL)) {
     require_sesskey();
@@ -171,6 +179,20 @@ if ($step === 'build') {
             ),
         ];
     }
+    // Scenes from the teacher's own AI assistant are charged like LMS Labs drafts, so they need LMS Labs too.
+    $canimport = $provider instanceof \mod_aisoftskills\local\ai\lmslabs && $provider->is_connected()
+        && has_capability('mod/aisoftskills:useai', $context);
+    $templatedata += [
+        'canimport' => $canimport,
+        'importcredits' => \mod_aisoftskills\local\ai\lmslabs::TEXT_CREDITS,
+        'importblock' => [
+            'cmid' => (int)$cm->id,
+            'requests' => $canimport ? array_map(
+                fn($r) => requests::export($r, $context),
+                requests::open((int)$instance->id, requests::IMPORT)
+            ) : [],
+        ],
+    ];
     $PAGE->requires->js_call_amd('mod_aisoftskills/builder', 'initBuild', ['#ss-build']);
     echo $OUTPUT->header();
     echo $OUTPUT->render_from_template('mod_aisoftskills/builder_build', $templatedata);

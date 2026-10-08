@@ -193,7 +193,7 @@ export const initBuild = async(selector) => {
         return;
     }
     const S = await loadStrings(['lessoninvalid', 'creating', 'lessonempty', 'aidraft_drafting', 'aidraft_confirm',
-        'confirm_title', 'confirm_create',
+        'confirm_title', 'confirm_create', 'import_confirm',
         ...KPIS.map((k) => 'kpi_' + k)]);
     initCopy('.ss-copy');
     const cmid = parseInt(root.dataset.cmid, 10);
@@ -215,15 +215,37 @@ export const initBuild = async(selector) => {
                 Notification.alert('', S.lessonempty);
                 return;
             }
+            // Charged like LMS Labs scene drafts: confirmed first, with the credits named.
+            const credits = keep.length * parseInt(root.dataset.importcredits, 10);
+            const go = await new Promise((resolve) => Notification.saveCancel(S.confirm_title,
+                fmt(S.import_confirm, {count: keep.length, credits}), S.confirm_create, () => resolve(true), () => resolve(false)));
+            if (!go) {
+                return;
+            }
+            const original = btn.textContent;
             btn.disabled = true;
             btn.textContent = S.creating;
+            const region = root.querySelector('[data-region="importreqs"] [data-region="aireqs"]');
+            const imported = (request) => {
+                Requests.toast(request);
+                window.setTimeout(() => {
+                    window.location.href = root.dataset.nexturl;
+                }, 1500);
+            };
             try {
-                await Ajax.call([{methodname: 'mod_aisoftskills_import_lesson', args: {cmid,
+                // One intentional, stored charge per click (a new key); it is never resent automatically.
+                const request = await Ajax.call([{methodname: 'mod_aisoftskills_import_lesson', args: {cmid,
                     // Escape "<" so the JSON passes PARAM_TEXT; the server decodes it and strips any markup itself.
-                    draft: JSON.stringify({scenes: keep}).replace(/</g, '\\u003c')}}])[0];
-                window.location.href = root.dataset.nexturl;
+                    draft: JSON.stringify({scenes: keep}).replace(/</g, '\\u003c')}}], true, true, false, 180000)[0];
+                await Requests.show(region, request, imported);
+                if (request.status !== 'completed') {
+                    btn.disabled = false;
+                    btn.textContent = original;
+                    region.scrollIntoView({behavior: 'smooth', block: 'start'});
+                }
             } catch (err) {
                 btn.disabled = false;
+                btn.textContent = original;
                 Notification.exception(err);
             }
         });
@@ -236,6 +258,14 @@ export const initBuild = async(selector) => {
         });
         root.querySelector('[data-path="' + radio.value + '"]').scrollIntoView({behavior: 'smooth', block: 'nearest'});
     }));
+
+    const importregion = root.querySelector('[data-region="importreqs"] [data-region="aireqs"]');
+    if (importregion) {
+        // An import confirmed later ("Check again") has created its scenes: continue to the pictures.
+        Requests.init(importregion, () => {
+            window.location.href = root.dataset.nexturl;
+        });
+    }
 
     const panel = root.querySelector('[data-region="aidraft"]');
     if (panel) {
@@ -276,7 +306,8 @@ export const initBuild = async(selector) => {
         });
     }
 
-    root.querySelector('[data-action="preview"]').addEventListener('click', () => {
+    const preview = root.querySelector('[data-action="preview"]');
+    preview?.addEventListener('click', () => {
         const data = parse(root.querySelector('[data-region="json"]').value);
         if (!data) {
             Notification.alert('', S.lessoninvalid);

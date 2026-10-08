@@ -41,6 +41,15 @@ $PAGE->set_title(format_string($instance->name));
 $PAGE->set_heading(format_string($course->fullname));
 
 $canmanage = has_capability('mod/aisoftskills:manage', $context);
+
+// The whole plugin needs this site to be unlocked with LMS Labs (50 credits or a recognised Marketplace purchase).
+if (!\mod_aisoftskills\local\unlock::active()) {
+    echo $OUTPUT->header();
+    echo \mod_aisoftskills\local\unlock::locked_notice($canmanage);
+    echo $OUTPUT->footer();
+    exit;
+}
+
 $ready = manager::ready_scenes($instance, $context);
 
 // A new activity with nothing in it: take the teacher straight to the lesson builder.

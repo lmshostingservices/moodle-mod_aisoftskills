@@ -17,8 +17,8 @@
 namespace mod_aisoftskills\external;
 
 use core_external\external_function_parameters;
-use core_external\external_single_structure;
 use core_external\external_value;
+use mod_aisoftskills\local\ai\requests;
 use mod_aisoftskills\local\lesson;
 
 /**
@@ -49,19 +49,21 @@ class import_lesson extends base {
      * @return array
      */
     public static function execute(int $cmid, string $draft): array {
+        global $USER;
         $params = self::validate_parameters(self::execute_parameters(), ['cmid' => $cmid, 'draft' => $draft]);
-        [, , $instance] = self::load_cm($params['cmid'], 'manage');
-        return lesson::import($instance, lesson::parse($params['draft']));
+        [, , $instance, $modcontext] = self::load_ai($params['cmid']);
+        // Charged like an LMS Labs scene draft (3 credits per scene); the scenes are created only once LMS Labs
+        // confirms the charge.
+        $row = requests::start_import($instance, (int)$USER->id, lesson::parse($params['draft']));
+        return requests::export($row, $modcontext);
     }
 
     /**
      * Return structure.
      *
-     * @return external_single_structure
+     * @return \core_external\external_single_structure
      */
-    public static function execute_returns(): external_single_structure {
-        return new external_single_structure([
-            'scenes' => new external_value(PARAM_INT, 'Scenes created'),
-        ]);
+    public static function execute_returns(): \core_external\external_single_structure {
+        return self::request_structure();
     }
 }

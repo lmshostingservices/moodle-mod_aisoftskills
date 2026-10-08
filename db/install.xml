@@ -140,7 +140,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="aisoftskillsid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Teacher who asked"/>
-        <FIELD NAME="operation" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" COMMENT="scene or image"/>
+        <FIELD NAME="operation" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" COMMENT="scene, import or image"/>
         <FIELD NAME="targetid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Scene the picture is for, or the scene a draft created"/>
         <FIELD NAME="idemkey" TYPE="char" LENGTH="128" NOTNULL="true" SEQUENCE="false" COMMENT="Idempotency-Key sent with every try of this request"/>
         <FIELD NAME="sitehash" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="SHA-1 of the LMS Labs Site ID the key was first sent with; the key is never sent for another site"/>
@@ -148,7 +148,7 @@
         <FIELD NAME="status" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="pending" SEQUENCE="false" COMMENT="pending, uncertain, completed, failed, conflict, expired or lost"/>
         <FIELD NAME="errorcode" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="requestid" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false" COMMENT="LMS Labs request id"/>
-        <FIELD NAME="result" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Accepted draft JSON (text requests only)"/>
+        <FIELD NAME="result" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Accepted draft JSON (scene drafts), or the scenes an import creates once LMS Labs confirms the charge"/>
         <FIELD NAME="charged" TYPE="int" LENGTH="6" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="balance" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="tries" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

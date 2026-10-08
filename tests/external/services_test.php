@@ -67,6 +67,16 @@ final class services_test extends \advanced_testcase {
         $instance = $ss->create_instance(['course' => $course->id]);
         $this->scene = $ss->create_scene($instance, 'Behind on target');
         $this->cm = get_coursemodule_from_instance('aisoftskills', $instance->id);
+        // The plugin is unlocked on this site; test_locked_site covers the opposite.
+        set_config('unlockstate', json_encode(['status' => 'unlocked', 'checkedat' => time()]), 'mod_aisoftskills');
+    }
+
+    /**
+     * Resets the fake LMS Labs transport.
+     */
+    protected function tearDown(): void {
+        \mod_aisoftskills\local\ai\lmslabs::$posttransport = null;
+        parent::tearDown();
     }
 
     /**
@@ -142,12 +152,35 @@ final class services_test extends \advanced_testcase {
     }
 
     /**
-     * Teachers import drafts; learners and non-editing teachers cannot; pictures by AI are not available.
+     * Teachers create scenes from an AI assistant's draft, charged per scene like LMS Labs drafts; learners and
+     * non-editing teachers cannot; pictures by AI are not available while switched off.
      */
     public function test_teacher_services(): void {
+        global $DB;
         $draft = json_encode(['scenes' => [['title' => 'New', 'options' => [['text' => 'A', 'best' => true],
             ['text' => 'B', 'best' => false]]]]]);
-        $this->assertSame(['scenes' => 1], $this->call('editingteacher', 'import_lesson', [(int)$this->cm->id, $draft]));
+        // Without an LMS Labs connection nothing is created.
+        try {
+            $this->call('editingteacher', 'import_lesson', [(int)$this->cm->id, $draft]);
+            $this->fail('Scenes were created without LMS Labs');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('ainotavailable', $e->errorcode);
+        }
+        set_config('lmslabssiteid', 'site', 'mod_aisoftskills');
+        set_config('lmslabsapikey', 'key', 'mod_aisoftskills');
+        $sent = [];
+        \mod_aisoftskills\local\ai\lmslabs::$posttransport = function ($url, $headers, $body) use (&$sent) {
+            $sent[] = [$url, json_decode($body, true)];
+            return [200, ['content-type' => 'application/json'], json_encode(['requestId' => 'imp-1',
+                'creditsCharged' => 3, 'creditsBalance' => 47])];
+        };
+        $before = $DB->count_records('aisoftskills_scene');
+        $result = $this->call('editingteacher', 'import_lesson', [(int)$this->cm->id, $draft]);
+        $this->assertSame('completed', $result['status']);
+        $this->assertSame('import', $result['operation']);
+        $this->assertSame($before + 1, $DB->count_records('aisoftskills_scene'));
+        $this->assertSame('https://lms-labs.com/api/moodle/ai-softskills/scenes/import', $sent[0][0]);
+        $this->assertSame(['sceneCount' => 1, 'titles' => ['New']], $sent[0][1]);
         foreach (['student', 'teacher'] as $user) {
             try {
                 $this->call($user, 'import_lesson', [(int)$this->cm->id, $draft]);
@@ -156,12 +189,41 @@ final class services_test extends \advanced_testcase {
                 $this->assertSame('nopermissions', $e->errorcode);
             }
         }
+        set_config('aiimages', 0, 'mod_aisoftskills');
         try {
             $this->call('editingteacher', 'generate_image', [(int)$this->scene->id]);
             $this->fail('A picture was generated');
         } catch (\moodle_exception $e) {
             $this->assertSame('ainotavailable', $e->errorcode);
         }
+    }
+
+    /**
+     * Until LMS Labs has unlocked the plugin, nothing can be set up or played; requests already made can still be
+     * looked at and dismissed.
+     */
+    public function test_locked_site(): void {
+        unset_config('unlockstate', 'mod_aisoftskills');
+        $draft = json_encode(['scenes' => [['title' => 'New', 'options' => [['text' => 'A', 'best' => true],
+            ['text' => 'B', 'best' => false]]]]]);
+        foreach (
+            [['editingteacher', 'import_lesson', [(int)$this->cm->id, $draft]],
+                ['editingteacher', 'draft_scene', [(int)$this->cm->id, 'A brief']],
+                ['editingteacher', 'generate_image', [(int)$this->scene->id]],
+                ['student', 'start_attempt', [(int)$this->cm->id]]] as [$user, $class, $args]
+        ) {
+            try {
+                $this->call($user, $class, $args);
+                $this->fail($class . ' worked on a locked site');
+            } catch (\moodle_exception $e) {
+                $this->assertSame('notactivated', $e->errorcode, $class);
+            }
+        }
+        // A check that got no answer keeps an unlocked site usable; a definite "locked" does not.
+        set_config('unlockstate', json_encode(['status' => 'unknown', 'wasunlocked' => true]), 'mod_aisoftskills');
+        $this->assertTrue(\mod_aisoftskills\local\unlock::active());
+        set_config('unlockstate', json_encode(['status' => 'locked']), 'mod_aisoftskills');
+        $this->assertFalse(\mod_aisoftskills\local\unlock::active());
     }
 
     /**

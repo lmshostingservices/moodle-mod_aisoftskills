@@ -41,6 +41,13 @@ class lmslabs implements provider {
     /** @var int Credits LMS Labs charges per delivered scene draft (owner-approved tariff). */
     public const TEXT_CREDITS = 3;
 
+    /**
+     * @var string AI Soft Skills charge for scenes made outside LMS Labs AI (an AI assistant of the teacher's choice):
+     * the same tariff as an LMS Labs scene draft, per scene. Requested from LMS Labs on 8 Oct 2026; until it is live,
+     * LMS Labs answers 404 and no scene is created.
+     */
+    public const IMPORT_ROUTE = '/api/moodle/ai-softskills/scenes/import';
+
     /** @var string Dedicated AI Soft Skills picture route. */
     public const IMAGE_ROUTE = '/api/moodle/ai-softskills/images';
 
@@ -95,7 +102,7 @@ class lmslabs implements provider {
      * The caller persists the key and body before calling, and reuses both for any later check of the same request.
      * Nothing is retried here.
      *
-     * @param string $route one of TEXT_ROUTE or IMAGE_ROUTE
+     * @param string $route one of TEXT_ROUTE, IMPORT_ROUTE or IMAGE_ROUTE
      * @param string $body exact JSON body
      * @param string $key Idempotency-Key
      * @param string $accept Accept header value
@@ -107,7 +114,7 @@ class lmslabs implements provider {
         if ($credentials === null) {
             throw new moodle_exception('ainotavailable', 'mod_aisoftskills');
         }
-        if (!in_array($route, [self::TEXT_ROUTE, self::IMAGE_ROUTE], true)) {
+        if (!in_array($route, [self::TEXT_ROUTE, self::IMPORT_ROUTE, self::IMAGE_ROUTE], true)) {
             throw new \coding_exception('Unknown LMS Labs route');
         }
         $url = self::BASE_URL . $route;

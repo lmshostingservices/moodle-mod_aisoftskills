@@ -19,6 +19,9 @@ Feature: Teachers build AI Soft Skills scenes and learners open them
     And the following "activities" exist:
       | activity     | course | idnumber | name             | intro                  | level      | industry |
       | aisoftskills | LD101  | ss1      | Leading the team | Practise motivating.   | supervisor | retail   |
+    And the following config values are set as admin:
+      | name        | value                                         | plugin           |
+      | unlockstate | {"status":"unlocked","checkedat":1790000000} | mod_aisoftskills |
 
   Scenario: A teacher opening an empty activity is taken to the scene builder
     When I am on the "Leading the team" "aisoftskills activity" page logged in as "teacher1"
@@ -35,8 +38,8 @@ Feature: Teachers build AI Soft Skills scenes and learners open them
     And I press "Next: Create the scenes"
     And I should see "Step 5 of 8"
     Then I should see "Copy prompt"
-    And I should see "The AI's reply"
     And I should see "LMS Labs AI scene writing is not available on this site"
+    And I should see "Creating scenes needs this site's LMS Labs connection"
     And I should see "Hospitality"
     And I should see "Resolving conflict"
     And I should see "Industry: Hospitality" in the "#ss-lessonprompt" "css_element"
@@ -107,3 +110,17 @@ Feature: Teachers build AI Soft Skills scenes and learners open them
     And I click on "Scenes" "link" in the ".ss-tabs" "css_element"
     And I should see "Behind on target"
     And I should see "Better first choice"
+
+  Scenario: Nothing can be set up or played until AI Soft Skills is activated on the site
+    Given the following config values are set as admin:
+      | name        | value               | plugin           |
+      | unlockstate | {"status":"locked"} | mod_aisoftskills |
+    And the following "mod_aisoftskills > scenes" exist:
+      | activity | title            |
+      | ss1      | Behind on target |
+    When I am on the "Leading the team" "aisoftskills activity" page logged in as "student1"
+    Then I should see "This activity is not available yet."
+    And "Start" "button" should not exist
+    And I am on the "Leading the team" "mod_aisoftskills > Builder" page logged in as "teacher1"
+    And I should see "Ask your site administrator to activate it"
+    And I should not see "Which industry do your learners work in?"

@@ -32,14 +32,19 @@ abstract class base extends external_api {
      *
      * @param int $cmid
      * @param string $capability capability name without the mod/aisoftskills: prefix
+     * @param bool $needsactive false only for looking at or hiding requests already made (recovery stays possible)
      * @return array [course, cm, instance, context]
      */
-    protected static function load_cm(int $cmid, string $capability): array {
+    protected static function load_cm(int $cmid, string $capability, bool $needsactive = true): array {
         global $DB;
         [$course, $cm] = get_course_and_cm_from_cmid($cmid, 'aisoftskills');
         $context = \context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('mod/aisoftskills:' . $capability, $context);
+        if ($needsactive) {
+            // The whole plugin needs this site to be unlocked with LMS Labs.
+            \mod_aisoftskills\local\unlock::require_active();
+        }
         $instance = $DB->get_record('aisoftskills', ['id' => $cm->instance], '*', MUST_EXIST);
         return [$course, $cm, $instance, $context];
     }
@@ -84,10 +89,11 @@ abstract class base extends external_api {
      * Loads an activity for a teacher who may use LMS Labs AI (manage and useai).
      *
      * @param int $cmid
+     * @param bool $needsactive false only for looking at or hiding requests already made
      * @return array [course, cm, instance, context]
      */
-    protected static function load_ai(int $cmid): array {
-        $loaded = self::load_cm($cmid, 'manage');
+    protected static function load_ai(int $cmid, bool $needsactive = true): array {
+        $loaded = self::load_cm($cmid, 'manage', $needsactive);
         require_capability('mod/aisoftskills:useai', $loaded[3]);
         return $loaded;
     }

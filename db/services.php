@@ -45,7 +45,7 @@ $functions = [
     ],
     'mod_aisoftskills_import_lesson' => [
         'classname' => \mod_aisoftskills\external\import_lesson::class,
-        'description' => 'Creates scenes from a lesson draft written by an AI assistant.',
+        'description' => 'Charges for scenes written with an AI assistant (3 LMS Labs credits each) and creates them.',
         'type' => 'write',
         'ajax' => true,
     ],

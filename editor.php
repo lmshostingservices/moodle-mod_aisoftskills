@@ -47,6 +47,14 @@ if ($node = $PAGE->settingsnav->find('aisoftskills_builder', navigation_node::TY
     $node->make_active();
 }
 
+// The whole plugin needs this site to be unlocked with LMS Labs (50 credits or a recognised Marketplace purchase).
+if (!\mod_aisoftskills\local\unlock::active()) {
+    echo $OUTPUT->header();
+    echo \mod_aisoftskills\local\unlock::locked_notice();
+    echo $OUTPUT->footer();
+    exit;
+}
+
 $form = new \mod_aisoftskills\form\scene_form($url, ['rtl' => catalogue::is_rtl((string)$instance->contentlang)]);
 if ($form->is_cancelled()) {
     redirect($backurl);

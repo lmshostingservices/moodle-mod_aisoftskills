@@ -22,6 +22,9 @@ Feature: AI Soft Skills shows each role only the pages its capabilities allow
     And the following "mod_aisoftskills > scenes" exist:
       | activity | title            |
       | ss1      | Behind on target |
+    And the following config values are set as admin:
+      | name        | value                                         | plugin           |
+      | unlockstate | {"status":"unlocked","checkedat":1790000000} | mod_aisoftskills |
 
   Scenario: A learner is offered no teacher pages
     When I am on the "Leading the team" "aisoftskills activity" page logged in as "student1"

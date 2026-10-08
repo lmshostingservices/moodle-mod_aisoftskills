@@ -49,7 +49,7 @@ class check_request extends base {
      */
     public static function execute(int $cmid, int $requestid): array {
         $params = self::validate_parameters(self::execute_parameters(), ['cmid' => $cmid, 'requestid' => $requestid]);
-        [, , $instance, $modcontext] = self::load_ai($params['cmid']);
+        [, , $instance, $modcontext] = self::load_ai($params['cmid'], false);
         $row = requests::check(requests::get((int)$instance->id, $params['requestid']), $instance);
         return requests::export($row, $modcontext);
     }

@@ -312,6 +312,61 @@ final class requests_test extends \advanced_testcase {
     }
 
     /**
+     * Scenes from an AI assistant are charged like drafts (3 credits each) and created only once LMS Labs confirms:
+     * a refusal creates nothing, an unconfirmed charge is checked with the same key, and a confirmed one creates the
+     * scenes exactly once.
+     */
+    public function test_import_charge(): void {
+        global $DB;
+        $draft = ['scenes' => [
+            ['title' => 'Late again', 'options' => [['text' => 'A', 'best' => true], ['text' => 'B', 'best' => false]]],
+            ['title' => 'The <b>complaint</b>', 'options' => [['text' => 'C', 'best' => true], ['text' => 'D', 'best' => false]]],
+        ]];
+        $scenes = fn() => $DB->count_records('aisoftskills_scene', ['aisoftskillsid' => $this->instance->id]);
+        $start = $scenes();
+        $context = \context_module::instance(get_coursemodule_from_instance('aisoftskills', $this->instance->id)->id);
+
+        // Not enough credits: nothing is created.
+        $this->answers = [[402, ['content-type' => 'application/json'], json_encode(['requestId' => 'imp-0',
+            'error' => ['code' => 'INSUFFICIENT_CREDITS', 'message' => 'x'], 'creditsBalance' => 2])]];
+        $row = requests::start_import($this->instance, (int)$this->teacher->id, $draft);
+        $this->assertSame('failed', $row->status);
+        $this->assertSame($start, $scenes());
+        $this->assertSame('https://lms-labs.com/api/moodle/ai-softskills/scenes/import', $this->sent[0][0]);
+        $this->assertSame(
+            ['sceneCount' => 2, 'titles' => ['Late again', 'The complaint']],
+            json_decode($this->sent[0][2], true),
+            'Only the count and titles are sent.'
+        );
+        $this->assertStringContainsString('need 6 and 2 are left', requests::export($row, $context)['message']);
+
+        // Not live yet at LMS Labs.
+        $this->answers = [[404, [], '']];
+        $row = requests::start_import($this->instance, (int)$this->teacher->id, $draft);
+        $this->assertStringContainsString('not available from LMS Labs yet', requests::export($row, $context)['message']);
+        $this->assertSame($start, $scenes());
+
+        // No answer: nothing is created yet; "Check again" uses the same key and creates the scenes once.
+        $this->answers = [[0, [], '']];
+        $row = requests::start_import($this->instance, (int)$this->teacher->id, $draft);
+        $this->assertSame('uncertain', $row->status);
+        $this->assertSame($start, $scenes());
+        $this->answers = [[200, ['content-type' => 'application/json'], json_encode(['requestId' => 'imp-2',
+            'creditsCharged' => 6, 'creditsBalance' => 44])]];
+        $row = requests::check($row, $this->instance);
+        $this->assertSame('completed', $row->status);
+        $this->assertSame($this->sent[2][3], $this->sent[3][3]);
+        $this->assertSame($this->sent[2][2], $this->sent[3][2]);
+        $this->assertSame($start + 2, $scenes());
+        $this->assertSame(6, (int)$row->charged);
+        $this->assertStringContainsString('6 LMS Labs credits used; 44 left', requests::export($row, $context)['message']);
+        // Checking a completed import again sends nothing and creates nothing.
+        requests::check($row, $this->instance);
+        $this->assertCount(4, $this->sent);
+        $this->assertSame($start + 2, $scenes());
+    }
+
+    /**
      * A delivered picture is saved at once; a same-key check after completion is 410, so an undelivered picture is "lost".
      */
     public function test_image_delivered_and_lost(): void {

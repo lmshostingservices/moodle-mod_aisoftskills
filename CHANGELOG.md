@@ -2,6 +2,46 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.3.0] - 2026-10-08
+
+Builds on 1.2.1, which it replaces. The owner approved both changes on 8 Oct 2026. The tariffs are unchanged: 50 credits to unlock, 3 per scene, 5 per picture.
+
+### Changed
+
+- **The whole plugin needs this site to be unlocked with LMS Labs**, either with 50 credits or free when LMS Labs has a record of a Moodle Marketplace purchase. Until then:
+  - teachers can't open any set-up step;
+  - learners see "This activity is not available yet";
+  - the web services refuse to start anything.
+
+  Requests already made can still be checked and dismissed. Administrators get a link to the activation panel in the plugin settings.
+- **An unlocked site stays usable during an LMS Labs outage.** If "Check access" gets no definite answer, an unlocked site keeps working. Only a definite "locked" answer locks it again.
+- **Scenes written with the teacher's own AI assistant now cost 3 credits each**, the same as scenes written by LMS Labs AI:
+  - The teacher confirms the total before anything is sent.
+  - Moodle sends LMS Labs only the number of scenes and their titles, to `POST /api/moodle/ai-softskills/scenes/import` with an Idempotency-Key.
+  - The scenes are created only after LMS Labs confirms the charge. A refusal creates nothing.
+  - An unconfirmed charge is checked again with the same key, so it can never be charged twice.
+- **This route is new and has been requested from LMS Labs.** Until it is live, the teacher is told that this way of creating scenes isn't available yet.
+- **The free "Add scenes" upload on the Check the scenes step has been removed.** Every scene is now created in step 5, where both ways are charged. Teachers can still upload their own picture for any scene in step 6.
+
+## [v1.2.1] - 2026-10-08
+
+Builds on 1.2.0, which it replaces. No tariff, route, unlock contract or database changes.
+
+### Changed
+
+- **Activation is now part of the plugin settings page**, like the other LMS Labs plugins. The separate "AI Soft Skills activation" admin page is gone. The settings page shows:
+  - the last known access;
+  - where the Site ID and API key come from;
+  - the balance;
+  - "Check access" and "Unlock…".
+- Opening the settings page never calls LMS Labs and never spends credits. The live price is fetched only after "Unlock…", on the confirmation step, and nothing is bought until the administrator confirms that price.
+- After an action, the administrator returns to the settings page with the result.
+- When LMS Labs has not confirmed the release or price, the message now says why.
+
+### Fixed
+
+- The separate activation page in 1.1.0 to 1.2.0 failed with an error when opened, so sites could not check access or unlock. The panel in the settings page replaces it and has its own tests.
+
 ## [v1.2.0] - 2026-10-02
 
 Builds on 1.1.1, which it replaces. No tariff, route or database changes.

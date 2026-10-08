@@ -46,6 +46,12 @@ class requests {
     /** @var string Scene picture operation. */
     public const IMAGE = 'image';
 
+    /** @var string Charge for scenes made with the teacher's own AI assistant (3 credits per scene, like a draft). */
+    public const IMPORT = 'import';
+
+    /** @var int Most scenes one import may bring in. */
+    public const MAX_IMPORT = lesson::MAX_SCENES;
+
     /** @var int Longest brief, in Unicode code points. */
     public const MAX_BRIEF = 2000;
 
@@ -156,6 +162,45 @@ class requests {
     }
 
     /**
+     * Charges for scenes made with the teacher's own AI assistant, then creates them once LMS Labs confirms.
+     *
+     * The scenes are kept with the request before anything is sent; LMS Labs receives only how many there are and
+     * their titles. They are created only after a 200, so a refused or unconfirmed charge creates nothing, and
+     * "Check again" (same key) can never charge twice.
+     *
+     * @param stdClass $instance
+     * @param int $userid
+     * @param array $draft parsed lesson draft (scenes)
+     * @return stdClass the stored request
+     */
+    public static function start_import(stdClass $instance, int $userid, array $draft): stdClass {
+        if (\mod_aisoftskills\local\credentials::find() === null) {
+            // Checked before anything is stored, so no request is left waiting for a connection that does not exist.
+            throw new moodle_exception('ainotavailable', 'mod_aisoftskills');
+        }
+        $scenes = lesson::clean($draft)['scenes'];
+        if (!$scenes) {
+            throw new moodle_exception('lessonempty', 'mod_aisoftskills');
+        }
+        if (count($scenes) > self::MAX_IMPORT) {
+            throw new moodle_exception('import_toomany', 'mod_aisoftskills', '', self::MAX_IMPORT);
+        }
+        $titles = array_map(fn($s) => \core_text::substr(
+            str_replace(['<', '>'], '', self::clean_input((string)$s['title'])),
+            0,
+            200
+        ), $scenes);
+        return self::start(
+            $instance,
+            $userid,
+            self::IMPORT,
+            0,
+            ['sceneCount' => count($scenes), 'titles' => array_values($titles)],
+            json_encode(['scenes' => $scenes], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+        );
+    }
+
+    /**
      * Stores a new request with a new key and its exact body, then sends it once.
      *
      * @param stdClass $instance
@@ -163,9 +208,17 @@ class requests {
      * @param string $operation
      * @param int $targetid
      * @param array $body
+     * @param string|null $result kept with the request before sending (an import's scenes, created on delivery)
      * @return stdClass
      */
-    protected static function start(stdClass $instance, int $userid, string $operation, int $targetid, array $body): stdClass {
+    protected static function start(
+        stdClass $instance,
+        int $userid,
+        string $operation,
+        int $targetid,
+        array $body,
+        ?string $result = null
+    ): stdClass {
         global $DB;
         // One unresolved request at a time for the same thing: check it (same key) or dismiss it first.
         [$insql, $params] = $DB->get_in_or_equal(self::CHECKABLE, SQL_PARAMS_NAMED);
@@ -190,6 +243,7 @@ class requests {
             'sitehash' => self::sitehash(),
             'body' => json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'status' => 'pending',
+            'result' => $result,
             'tries' => 0,
             'timecreated' => $now,
             'timemodified' => $now,
@@ -296,8 +350,9 @@ class requests {
             $row->tries++;
             $row->timemodified = time();
             $DB->update_record('aisoftskills_aireq', $row);
+            $import = $row->operation === self::IMPORT;
             [$status, $headers, $body] = lmslabs::post(
-                $image ? lmslabs::IMAGE_ROUTE : lmslabs::TEXT_ROUTE,
+                $image ? lmslabs::IMAGE_ROUTE : ($import ? lmslabs::IMPORT_ROUTE : lmslabs::TEXT_ROUTE),
                 (string)$row->body,
                 (string)$row->idemkey,
                 $image ? 'image/png, image/webp, image/jpeg, application/json' : 'application/json'
@@ -305,6 +360,8 @@ class requests {
             $row->retryafter = max(1, min(60, (int)($headers['retry-after'] ?? self::RETRY_AFTER)));
             if ($image) {
                 self::image_outcome($row, $instance, $status, $headers, $body);
+            } else if ($import) {
+                self::import_outcome($row, $instance, $status, $headers, $body);
             } else {
                 self::scene_outcome($row, $instance, $status, $headers, $body);
             }
@@ -388,6 +445,45 @@ class requests {
             $row->status = 'completed';
             $row->errorcode = null;
             $row->result = json_encode($draft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $DB->update_record('aisoftskills_aireq', $row);
+            $transaction->allow_commit();
+            return;
+        }
+        self::error_outcome($row, $status, $code, $balance, self::TEXT_UNCERTAIN, 'expired');
+    }
+
+    /**
+     * Records the outcome of an import charge; on delivery the kept scenes are created in the same transaction.
+     *
+     * @param stdClass $row
+     * @param stdClass $instance
+     * @param int $status
+     * @param array $headers
+     * @param string $body
+     */
+    protected static function import_outcome(
+        stdClass $row,
+        stdClass $instance,
+        int $status,
+        array $headers,
+        string $body
+    ): void {
+        global $DB;
+        [$code, $requestid, $balance] = self::read_error($headers, $body);
+        $row->requestid = $requestid !== '' ? $requestid : $row->requestid;
+        if ($status === 200) {
+            $data = json_decode($body, true);
+            $kept = json_decode((string)$row->result, true);
+            $count = count($kept['scenes'] ?? []);
+            $row->charged = is_array($data) && isset($data['creditsCharged']) && is_numeric($data['creditsCharged'])
+                ? (int)$data['creditsCharged'] : $count * lmslabs::TEXT_CREDITS;
+            $row->balance = is_array($data) && isset($data['creditsBalance']) && is_numeric($data['creditsBalance'])
+                ? (int)$data['creditsBalance'] : null;
+            $transaction = $DB->start_delegated_transaction();
+            $made = lesson::import($instance, ['scenes' => $kept['scenes'] ?? []]);
+            $row->targetid = (int)$made['scenes'];
+            $row->status = 'completed';
+            $row->errorcode = null;
             $DB->update_record('aisoftskills_aireq', $row);
             $transaction->allow_commit();
             return;
@@ -587,13 +683,17 @@ class requests {
         global $DB;
         $image = $row->operation === self::IMAGE;
         $credits = $image ? lmslabs::IMAGE_CREDITS : lmslabs::TEXT_CREDITS;
+        if ($row->operation === self::IMPORT) {
+            $credits *= max(1, (int)((json_decode((string)$row->body, true) ?: [])['sceneCount'] ?? 1));
+        }
         $a = (object)[
             'requestid' => $row->requestid ?: '-',
             'credits' => $credits,
             'charged' => (int)$row->charged,
             'balance' => $row->balance === null ? '-' : (int)$row->balance,
         ];
-        $prefix = $image ? 'aireq_image_' : 'aireq_scene_';
+        $import = $row->operation === self::IMPORT;
+        $prefix = $image ? 'aireq_image_' : ($import ? 'aireq_import_' : 'aireq_scene_');
         $status = (string)$row->status;
         if ($status === 'completed') {
             $message = get_string($prefix . 'completed' . ($row->balance === null ? '' : 'balance'), 'mod_aisoftskills', $a);
@@ -605,11 +705,14 @@ class requests {
         $body = json_decode((string)$row->body, true) ?: [];
         if ($image) {
             $title = (string)$DB->get_field('aisoftskills_scene', 'title', ['id' => $row->targetid]);
+        } else if ($import) {
+            $title = get_string('import_title', 'mod_aisoftskills', (object)['count' => (int)($body['sceneCount'] ?? 0),
+                'titles' => implode(', ', array_slice((array)($body['titles'] ?? []), 0, 3))]);
         } else {
             $title = \core_text::substr((string)($body['brief'] ?? ''), 0, 120);
         }
         $sceneurl = '';
-        if ($row->targetid && $DB->record_exists('aisoftskills_scene', ['id' => $row->targetid])) {
+        if (!$import && $row->targetid && $DB->record_exists('aisoftskills_scene', ['id' => $row->targetid])) {
             $sceneurl = (new \moodle_url('/mod/aisoftskills/editor.php', ['id' => $context->instanceid,
                 'sceneid' => $row->targetid]))->out(false);
         }
@@ -656,6 +759,7 @@ class requests {
             'unexpected_fields' => 'rejected', 'body_too_large' => 'rejected', 'invalid_idempotency_key' => 'rejected',
             'http_404' => 'not_live',
         ];
-        return get_string('aidrafterror_' . ($map[$code] ?? 'failed'), 'mod_aisoftskills', $a);
+        $prefix = $row->operation === self::IMPORT ? 'aiimporterror_' : 'aidrafterror_';
+        return get_string($prefix . ($map[$code] ?? 'failed'), 'mod_aisoftskills', $a);
     }
 }

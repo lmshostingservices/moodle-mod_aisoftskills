@@ -19,14 +19,15 @@ A Moodle activity for practising workplace soft skills. Each scene is one pictur
 ## Teachers
 
 1. **Add the activity.** Pick the industry (16 industries, or your own), the career level (worker, supervisor, manager or leader), the language of the scenes (20 languages, including right-to-left Arabic), the picture style, retries, shuffling, sounds, attempts and grading.
-2. **Set up the lesson** ("Set up the lesson" in the activity menu). Eight steps, moved through with Back and Next only. Next opens when the step is done:
+2. **Activate the plugin** in the AI Soft Skills settings: "Check access", then "Unlock…" (50 LMS Labs credits, or free when LMS Labs has a record of a Moodle Marketplace purchase). Nothing can be set up or played until the site is unlocked.
+3. **Set up the lesson** ("Set up the lesson" in the activity menu). Eight steps, moved through with Back and Next only. Next opens when the step is done:
    1. Workplace.
    2. Level.
    3. Skills.
    4. Language.
    5. **Create the scenes**, in one of two ways:
       - "Use your own text": paste or type a workplace situation (30 to 300 words), and LMS Labs AI turns it into a scene: title, setting, lead-in conversation and a teaching note. 3 credits, confirmed first.
-      - "Use an AI assistant": for more control and complex scenarios, copy the prompt into ChatGPT or another assistant, paste the reply back in, preview it and create complete scenes.
+      - "Use an AI assistant": for more control and complex scenarios, copy the prompt into ChatGPT or another assistant, paste the reply back in, preview it and create complete scenes. 3 credits per scene, the same as LMS Labs AI, confirmed first.
    6. **Pictures:**
       - "Create missing pictures" asks LMS Labs AI for a picture of every scene that has none (5 credits per delivered picture, confirmed first).
       - Each scene can also get its own AI picture or an uploaded one.
@@ -34,9 +35,9 @@ A Moodle activity for practising workplace soft skills. Each scene is one pictur
    8. **Finish:** see what is ready, preview as a learner, and go back to the course.
 
    "Set up the lesson" always reopens at the first step that is not done yet. A better response always raises its indicator; the poorer one never does.
-3. **Scenes are played** only once they have a picture and valid responses.
-4. **Edit any scene** with its title, skill, context, who the learner is, the question, and both responses: their text, indicator, change, consequence and "why".
-5. **Reports:** learners (attempts, best score, grade), scenes (how often the better response was chosen first, and average tries) and attempts (with downloads and deletion).
+4. **Scenes are played** only once they have a picture and valid responses.
+5. **Edit any scene** with its title, skill, context, who the learner is, the question, and both responses: their text, indicator, change, consequence and "why".
+6. **Reports:** learners (attempts, best score, grade), scenes (how often the better response was chosen first, and average tries) and attempts (with downloads and deletion).
 
 **Grading:** each attempt scores the percentage of scenes where the first choice was the better response. The gradebook uses the highest, average, first or last attempt.
 

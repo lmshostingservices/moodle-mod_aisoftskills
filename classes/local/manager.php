@@ -243,30 +243,6 @@ class manager {
     }
 
     /**
-     * Creates one scene per picture found in a draft area.
-     *
-     * @param stdClass $instance
-     * @param \context $context
-     * @param int $draftitemid
-     * @return int number of scenes created
-     */
-    public static function create_scenes_from_draft(stdClass $instance, \context $context, int $draftitemid): int {
-        $fs = get_file_storage();
-        $count = 0;
-        foreach (self::draft_images($draftitemid) as $source) {
-            $sceneid = self::add_scene($instance, ['title' => self::title_from_filename($source['name'])]);
-            $record = self::image_record($context, $sceneid, $source['name']);
-            if (isset($source['file'])) {
-                $fs->create_file_from_storedfile($record, $source['file']);
-            } else {
-                $fs->create_file_from_pathname($record, $source['path']);
-            }
-            $count++;
-        }
-        return $count;
-    }
-
-    /**
      * Cleans one response.
      *
      * @param array $item text, best, kpi, kpidelta, consequence, reason

@@ -197,6 +197,57 @@ final class unlock {
     }
 
     /**
+     * Whether the plugin may be used on this site: LMS Labs has unlocked it (50 credits or a recognised Marketplace
+     * purchase), and no later check has said "locked". A check that got no definite answer keeps an unlocked site
+     * usable.
+     *
+     * @return bool
+     */
+    public static function active(): bool {
+        $state = self::state();
+        return $state['status'] === 'unlocked' || ($state['status'] === 'unknown' && !empty($state['wasunlocked']));
+    }
+
+    /**
+     * Stops a page or web service call when the plugin is not unlocked on this site.
+     *
+     * @throws \moodle_exception notactivated
+     */
+    public static function require_active(): void {
+        if (!self::active()) {
+            throw new \moodle_exception('notactivated', 'mod_aisoftskills', self::settings_url_for_admins());
+        }
+    }
+
+    /**
+     * The settings page (where activation is) for site administrators, '' for everyone else.
+     *
+     * @return string
+     */
+    public static function settings_url_for_admins(): string {
+        return has_capability('moodle/site:config', \context_system::instance())
+            ? (new \moodle_url('/admin/settings.php', ['section' => 'modsettingaisoftskills']))->out(false) : '';
+    }
+
+    /**
+     * The notice shown instead of a page while the plugin is not unlocked.
+     *
+     * @param bool $teacher whether the viewer manages the activity (learners get a plain "not available yet")
+     * @return string HTML
+     */
+    public static function locked_notice(bool $teacher = true): string {
+        global $OUTPUT;
+        $url = self::settings_url_for_admins();
+        $key = $url !== '' ? 'notactivated_admin' : ($teacher ? 'notactivated_teacher' : 'notactivated_learner');
+        $text = get_string($key, 'mod_aisoftskills');
+        $html = $OUTPUT->notification($text, \core\output\notification::NOTIFY_WARNING, false);
+        if ($url !== '') {
+            $html .= \html_writer::link($url, get_string('notactivated_open', 'mod_aisoftskills'), ['class' => 'btn btn-primary']);
+        }
+        return $html;
+    }
+
+    /**
      * An unlock whose outcome is not known yet, or null.
      *
      * @return array|null ['time', 'expected', 'sha']
@@ -229,6 +280,12 @@ final class unlock {
             ];
         } else {
             $state = ['status' => 'unknown', 'error' => self::error($status, $data)];
+            // An outage or a bad answer must not lock a site LMS Labs has already unlocked: only a definite
+            // "locked" answer clears this.
+            $before = self::state();
+            if ($before['status'] === 'unlocked' || !empty($before['wasunlocked'])) {
+                $state['wasunlocked'] = true;
+            }
         }
         $resolved = null;
         if (self::pending() && $state['status'] !== 'unknown') {

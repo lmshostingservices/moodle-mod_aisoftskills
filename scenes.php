@@ -51,6 +51,14 @@ if ($node = $PAGE->settingsnav->find('aisoftskills_builder', navigation_node::TY
     $node->make_active();
 }
 
+// The whole plugin needs this site to be unlocked with LMS Labs (50 credits or a recognised Marketplace purchase).
+if (!\mod_aisoftskills\local\unlock::active()) {
+    echo $OUTPUT->header();
+    echo \mod_aisoftskills\local\unlock::locked_notice();
+    echo $OUTPUT->footer();
+    exit;
+}
+
 $scene = null;
 if ($sceneid) {
     $scene = $DB->get_record(
@@ -115,22 +123,7 @@ if ($action === 'replace' && $scene) {
     exit;
 }
 
-$addform = new \mod_aisoftskills\form\add_scenes_form($baseurl);
-$addform->set_data(['id' => $cm->id]);
-if ($data = $addform->get_data()) {
-    $count = manager::create_scenes_from_draft($instance, $context, (int)$data->images);
-    if (!$count && trim((string)$data->title) !== '') {
-        manager::add_scene($instance, ['title' => (string)$data->title]);
-        $count = 1;
-    }
-    redirect(
-        $baseurl,
-        get_string('scenescreated', 'mod_aisoftskills', $count),
-        null,
-        $count ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING
-    );
-}
-
+// Scenes are created only in step 5, where every way of creating one is charged.
 $scenes = manager::get_scenes($instance->id);
 $options = manager::get_options(array_keys($scenes));
 $provider = factory::get();
@@ -194,7 +187,6 @@ echo $OUTPUT->render_from_template('mod_aisoftskills/scenes', [
     'hasscenes' => $total > 0,
     'industry' => catalogue::industry_name($instance->industry, (string)$instance->customindustry),
     'count' => $total,
-    'addform' => $step === setuppath::CHECK ? $addform->render() : '',
     'cmid' => (int)$cm->id,
     'canai' => $canai,
     'aioff' => !$canai,

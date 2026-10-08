@@ -23,7 +23,7 @@
     {
         "bar": {"current": 6, "total": 8, "steps": [{"number": 6, "name": "Pictures", "done": false, "current": true, "dot": 0}]},
         "pictures": true, "check": false,
-        "hasscenes": true, "count": 1, "addform": "", "industry": "Retail",
+        "hasscenes": true, "count": 1, "industry": "Retail",
         "cmid": 1, "requests": [], "canai": true, "aioff": false, "missingcount": 1, "missingids": "1",
         "missingcredits": 5, "imagecredits": 5,
         "cards": [{"id": 1, "number": 1, "title": "Behind on the target", "skill": "Motivation", "image": "", "noimage": true,
@@ -102,26 +102,6 @@
         {{/cards}}
     </div>
 
-    {{#check}}
-    <details class="ss-panel ss-addscenes">
-        <summary><strong>{{#str}} addscenes, mod_aisoftskills {{/str}}</strong></summary>
-        <p class="ss-mini mt-2">{{#str}} addscenes_help, mod_aisoftskills {{/str}}</p>
-        <div class="ss-tips">
-            <div class="ss-tips-head">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 9h18M8 5v4"/></svg>
-                <strong>{{#str}} imagetips_title, mod_aisoftskills {{/str}}</strong>
-            </div>
-            <ul>
-                <li>{{#str}} imagetip_size, mod_aisoftskills {{/str}}</li>
-                <li>{{#str}} imagetip_people, mod_aisoftskills {{/str}}</li>
-                <li>{{#str}} imagetip_notext, mod_aisoftskills {{/str}}</li>
-                <li>{{#str}} imagetip_moment, mod_aisoftskills {{/str}}</li>
-                <li>{{#str}} imagetip_workplace, mod_aisoftskills, {{industry}} {{/str}}</li>
-            </ul>
-        </div>
-        {{{addform}}}
-    </details>
-    {{/check}}
 
     {{> mod_aisoftskills/setup_nav}}
 </div>

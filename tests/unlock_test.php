@@ -123,6 +123,14 @@ final class unlock_test extends \advanced_testcase {
         $this->assertSame('unknown', unlock::verify()['status'], 'No answer: unable to verify.');
         $this->assertSame('unknown', unlock::verify()['status'], 'Server error: unable to verify.');
         $this->assertSame('unknown', unlock::state()['status']);
+        // An unlocked site stays usable while LMS Labs cannot be reached; a definite "locked" ends that.
+        $this->assertTrue(unlock::state()['wasunlocked']);
+        $this->assertTrue(unlock::active());
+        $this->answers['/api/plugin-unlock/verify'] = [$this->verify(false, 10), [0, '']];
+        unlock::verify();
+        $this->assertFalse(unlock::active());
+        unlock::verify();
+        $this->assertFalse(unlock::active(), 'No answer after "locked" does not unlock.');
     }
 
     /**
