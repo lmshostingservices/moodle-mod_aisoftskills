@@ -51,7 +51,25 @@ $functions = [
     ],
     'mod_aisoftskills_generate_image' => [
         'classname' => \mod_aisoftskills\external\generate_image::class,
-        'description' => 'Creates a scene picture with AI (when available on the site).',
+        'description' => 'Creates a scene picture with LMS Labs AI (when available on the site).',
+        'type' => 'write',
+        'ajax' => true,
+    ],
+    'mod_aisoftskills_draft_scene' => [
+        'classname' => \mod_aisoftskills\external\draft_scene::class,
+        'description' => 'Drafts one scene with LMS Labs AI (when available on the site).',
+        'type' => 'write',
+        'ajax' => true,
+    ],
+    'mod_aisoftskills_check_request' => [
+        'classname' => \mod_aisoftskills\external\check_request::class,
+        'description' => 'Asks LMS Labs again about a stored AI request, with the same key.',
+        'type' => 'write',
+        'ajax' => true,
+    ],
+    'mod_aisoftskills_dismiss_request' => [
+        'classname' => \mod_aisoftskills\external\dismiss_request::class,
+        'description' => 'Hides a stored AI request from the page.',
         'type' => 'write',
         'ajax' => true,
     ],

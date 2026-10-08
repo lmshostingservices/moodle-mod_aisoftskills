@@ -69,7 +69,6 @@ final class learning_test extends \advanced_testcase {
 
     /**
      * The player data never contains the answer key.
-     * @covers \mod_aisoftskills\local\learning
      */
     public function test_start_hides_answer_key(): void {
         $this->resetAfterTest();
@@ -93,7 +92,6 @@ final class learning_test extends \advanced_testcase {
 
     /**
      * Only the first choice counts; a retry after a poorer choice resolves the scene but not the mark.
-     * @covers \mod_aisoftskills\local\learning
      */
     public function test_first_choice_marked_with_retry(): void {
         global $DB;
@@ -146,7 +144,6 @@ final class learning_test extends \advanced_testcase {
 
     /**
      * Without retries a poorer choice ends the scene and reveals the better response.
-     * @covers \mod_aisoftskills\local\learning
      */
     public function test_no_retry_reveals_better(): void {
         global $DB;
@@ -165,7 +162,6 @@ final class learning_test extends \advanced_testcase {
 
     /**
      * Indicators stay between 0 and 100.
-     * @covers \mod_aisoftskills\local\learning
      */
     public function test_indicators_clamped(): void {
         global $DB;
@@ -188,7 +184,6 @@ final class learning_test extends \advanced_testcase {
 
     /**
      * Wrong scene or option ids, unfinished scenes and attempt limits are refused.
-     * @covers \mod_aisoftskills\local\learning
      */
     public function test_refusals(): void {
         global $DB;
@@ -224,7 +219,6 @@ final class learning_test extends \advanced_testcase {
 
     /**
      * Scenes without a picture are not played; with none ready the activity can't start.
-     * @covers \mod_aisoftskills\local\learning
      */
     public function test_only_ready_scenes(): void {
         $this->resetAfterTest();
@@ -238,7 +232,6 @@ final class learning_test extends \advanced_testcase {
 
     /**
      * Grading methods use each finished attempt's score.
-     * @covers \mod_aisoftskills\local\learning
      */
     public function test_grade_methods(): void {
         global $DB;

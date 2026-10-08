@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Lesson builder: workplace, level, skills and language, then draft and create the scenes.
+ * Set-up steps 1 to 5 and 8: workplace, level, skills, language, create the scenes; finish. Steps 6 and 7 are scenes.php.
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services
@@ -25,13 +25,15 @@
 require(__DIR__ . '/../../config.php');
 
 use mod_aisoftskills\local\ai\factory;
-use mod_aisoftskills\local\ai\text_draft;
+use mod_aisoftskills\local\ai\requests;
 use mod_aisoftskills\local\catalogue;
 use mod_aisoftskills\local\lesson;
 use mod_aisoftskills\local\manager;
+use mod_aisoftskills\local\setuppath;
 
 $id = required_param('id', PARAM_INT);
 $step = optional_param('step', '', PARAM_ALPHA);
+$start = optional_param('start', 1, PARAM_INT);
 
 [$course, $cm] = get_course_and_cm_from_cmid($id, 'aisoftskills');
 $instance = $DB->get_record('aisoftskills', ['id' => $cm->instance], '*', MUST_EXIST);
@@ -41,7 +43,7 @@ require_capability('mod/aisoftskills:manage', $context);
 
 $baseurl = new moodle_url('/mod/aisoftskills/builder.php', ['id' => $cm->id]);
 $PAGE->set_url($baseurl);
-$PAGE->set_title(format_string($instance->name) . ': ' . get_string('buildlesson', 'mod_aisoftskills'));
+$PAGE->set_title(format_string($instance->name) . ': ' . get_string('setup_title', 'mod_aisoftskills'));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->activityheader->disable();
 if ($node = $PAGE->settingsnav->find('aisoftskills_builder', navigation_node::TYPE_SETTING)) {
@@ -84,58 +86,53 @@ if (optional_param('savechoices', 0, PARAM_BOOL)) {
 $instance = $DB->get_record('aisoftskills', ['id' => $cm->instance], '*', MUST_EXIST);
 $str = fn($k, $a = null) => get_string($k, 'mod_aisoftskills', $a);
 $choices = lesson::choices($instance);
+$nav = fn(int $back, ?int $next, string $blocked = '') => ['nav' => [
+    'backurl' => setuppath::url((int)$cm->id, $back)->out(false),
+    'backlabel' => $str('setup_back'),
+    'nexturl' => $next ? setuppath::url((int)$cm->id, $next)->out(false) : null,
+    'nextlabel' => $next ? $str('setup_next', $str('setupstep_' . setuppath::STEPS[$next - 1])) : '',
+    'blocked' => $blocked,
+]];
+
+if ($step === 'resume') {
+    $state = setuppath::state($instance, $context);
+    redirect(setuppath::url((int)$cm->id, setuppath::resume_step($state, (bool)($choices['keys'] || $choices['custom']))));
+}
+
+if ($step === 'finish') {
+    $state = setuppath::state($instance, $context);
+    $todo = [];
+    if (!$state['scenes']) {
+        $todo[] = $str('finish_noscenes');
+    }
+    if ($state['nopicture']) {
+        $todo[] = $str('finish_nopicture', count($state['nopicture']));
+    }
+    if ($state['noresponses']) {
+        $todo[] = $str('finish_noresponses', count($state['noresponses']));
+    }
+    $data = [
+        'bar' => setuppath::bar(setuppath::FINISH),
+        'title' => $str('setupstep_finish'),
+        'ready' => $state['ready'],
+        'scenes' => $state['scenes'],
+        'allready' => !$todo,
+        'todo' => $todo,
+        'viewurl' => (new moodle_url('/mod/aisoftskills/view.php', ['id' => $cm->id]))->out(false),
+        'courseurl' => course_get_url($course, $cm->sectionnum)->out(false),
+    ] + $nav(setuppath::CHECK, null);
+    echo $OUTPUT->header();
+    echo $OUTPUT->render_from_template('mod_aisoftskills/setup_finish', $data);
+    echo $OUTPUT->footer();
+    exit;
+}
 
 if ($step === 'build') {
-    $draftaction = optional_param('draftaction', '', PARAM_ALPHA);
-    if ($draftaction !== '') {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            throw new moodle_exception('invalidparameter');
-        }
-        require_sesskey();
-        require_capability('mod/aisoftskills:useai', $context);
-        if ($draftaction === 'new') {
-            $row = text_draft::create((int)$instance->id, (int)$USER->id,
-                required_param('intent', PARAM_ALPHANUMEXT), required_param('brief', PARAM_TEXT));
-            $row = text_draft::send($row);
-        } else if ($draftaction === 'resume' || $draftaction === 'save') {
-            $row = $DB->get_record('aisoftskills_draft', [
-                'id' => required_param('draftid', PARAM_INT),
-                'aisoftskillsid' => $instance->id,
-                'userid' => $USER->id,
-            ], '*', MUST_EXIST);
-            if ($draftaction === 'resume') {
-                $row = text_draft::send($row);
-            } else {
-                text_draft::save_edit($row, required_param('editedbody', PARAM_TEXT));
-            }
-        } else {
-            throw new moodle_exception('invalidparameter');
-        }
-        redirect(new moodle_url($baseurl, ['step' => 'build', 'draftid' => $row->id]));
-    }
     $provider = factory::get();
     $balance = $provider->balance();
     $names = array_merge(array_map(fn($k) => catalogue::skill_name($k), $choices['keys']), $choices['custom']);
-    $draftid = optional_param('draftid', 0, PARAM_INT);
-    $lastdraft = $draftid ? $DB->get_record('aisoftskills_draft', [
-        'id' => $draftid, 'aisoftskillsid' => $instance->id, 'userid' => $USER->id,
-    ], '*', MUST_EXIST) : false;
-    $drafts = $DB->get_records('aisoftskills_draft',
-        ['aisoftskillsid' => $instance->id, 'userid' => $USER->id], 'id DESC', '*', 0, 20);
-    if (!$lastdraft) {
-        $lastdraft = reset($drafts);
-    }
-    $draftlinks = [];
-    foreach ($drafts as $draftrow) {
-        $draftlinks[] = [
-            'url' => (new moodle_url($baseurl, ['step' => 'build', 'draftid' => $draftrow->id]))->out(false),
-            'title' => userdate($draftrow->timecreated) . ' — ' . $str('textdraft_state_' . $draftrow->state),
-        ];
-    }
     $templatedata = [
         'cmid' => (int)$cm->id,
-        'backurl' => $baseurl->out(false),
-        'scenesurl' => (new moodle_url('/mod/aisoftskills/scenes.php', ['id' => $cm->id]))->out(false),
         'summary' => [
             'industry' => catalogue::industry_name($instance->industry, (string)$instance->customindustry),
             'level' => $str('level_' . $instance->level),
@@ -148,22 +145,32 @@ if ($step === 'build') {
             : $str('balance_credits', $balance['credits'])),
         'prompt' => lesson::prompt($instance),
         'existing' => count(manager::get_scenes($instance->id)),
-        'showdraft' => has_capability('mod/aisoftskills:useai', $context),
-        'candraft' => \mod_aisoftskills\local\credentials::find() !== null,
-        'draftactionurl' => (new moodle_url($baseurl, ['step' => 'build']))->out(false),
-        'draftsesskey' => sesskey(),
-        'draftintent' => \core\uuid::generate(),
-        'draftid' => $lastdraft ? (int)$lastdraft->id : 0,
-        'draftpending' => $lastdraft && $lastdraft->state === 'pending',
-        'draftcomplete' => $lastdraft && $lastdraft->state === 'complete',
-        'draftstatus' => $lastdraft ? $str('textdraft_state_' . $lastdraft->state) : '',
-        'draftreference' => $lastdraft ? (string)$lastdraft->requestid : '',
-        'drafterror' => $lastdraft ? (string)$lastdraft->errorcode : '',
-        'draftedited' => $lastdraft && $lastdraft->state === 'complete' ? (string)$lastdraft->editedbody : '',
-        'draftoriginal' => $lastdraft && $lastdraft->state === 'complete' ?
-            json_encode(json_decode((string)$lastdraft->responsebody, true), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '',
-        'draftlinks' => $draftlinks,
+        'bar' => setuppath::bar(setuppath::CREATE),
+        'nexturl' => setuppath::url((int)$cm->id, setuppath::PICTURES)->out(false),
     ];
+    $templatedata += $nav(4, setuppath::PICTURES, $templatedata['existing'] ? '' : $str('setup_needscene'));
+    if ($provider->can_draft() && has_capability('mod/aisoftskills:useai', $context)) {
+        $sm = get_string_manager();
+        $skills = lesson::chosen_skills($instance);
+        $level = $sm->get_string('level_' . $instance->level, 'mod_aisoftskills', null, 'en');
+        $industry = lesson::industry_english($instance);
+        $templatedata += [
+            'canai' => true,
+            'draftcredits' => \mod_aisoftskills\local\ai\lmslabs::TEXT_CREDITS,
+            'brief' => $sm->get_string('aidraft_briefdefault', 'mod_aisoftskills', (object)[
+                'level' => $level,
+                'skills' => $skills ? implode(', ', $skills) : $sm->get_string('aidraft_anyskills', 'mod_aisoftskills', null, 'en'),
+                'industry' => $industry,
+                'language' => catalogue::language_english((string)$instance->contentlang),
+            ], 'en'),
+            'audience' => $level,
+            'context' => $industry,
+            'requests' => array_map(
+                fn($r) => requests::export($r, $context),
+                requests::open((int)$instance->id, requests::SCENE)
+            ),
+        ];
+    }
     $PAGE->requires->js_call_amd('mod_aisoftskills/builder', 'initBuild', ['#ss-build']);
     echo $OUTPUT->header();
     echo $OUTPUT->render_from_template('mod_aisoftskills/builder_build', $templatedata);
@@ -218,10 +225,9 @@ $templatedata = [
     ),
     'illustration' => $instance->imagestyle !== 'photo',
     'photo' => $instance->imagestyle === 'photo',
-    'hasscenes' => (bool)manager::get_scenes($instance->id),
-    'buildurl' => (new moodle_url($baseurl, ['step' => 'build']))->out(false),
+    'bar' => setuppath::bar(max(1, min(4, $start))),
 ];
-$PAGE->requires->js_call_amd('mod_aisoftskills/builder', 'initWizard', ['#ss-wizard']);
+$PAGE->requires->js_call_amd('mod_aisoftskills/builder', 'initWizard', ['#ss-wizard', max(1, min(4, $start))]);
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('mod_aisoftskills/builder', $templatedata);
 echo $OUTPUT->footer();

@@ -49,12 +49,7 @@ if ($action !== '') {
     require_sesskey();
 }
 
-/**
- * A balance for display.
- *
- * @param array $state
- * @return string
- */
+// A balance for display.
 $balancetext = function (array $state) use ($str): string {
     if (!empty($state['unlimited'])) {
         return $str('act_balance_unlimited');
@@ -63,12 +58,7 @@ $balancetext = function (array $state) use ($str): string {
         : $str('act_balance_unknown');
 };
 
-/**
- * A readable error (never contains request data).
- *
- * @param string $error
- * @return string
- */
+// A readable error (never contains request data).
 $errortext = function (string $error) use ($str): string {
     if ($error === 'nocredentials' || $error === 'network') {
         return $str('act_err_' . $error);
@@ -76,24 +66,12 @@ $errortext = function (string $error) use ($str): string {
     return $error;
 };
 
-/**
- * Why unlocking is not offered.
- *
- * @param string $blocked
- * @param array $state
- * @param array $release
- * @return string
- */
+// Why unlocking is not offered.
 $blockedtext = function (string $blocked, array $state, array $release) use ($str): string {
     return $str('act_blocked_' . $blocked);
 };
 
-/**
- * Why the release/price is not confirmed.
- *
- * @param array $release
- * @return string
- */
+// Why the release/price is not confirmed.
 $reasontext = function (array $release) use ($str): string {
     $a = $release['reason'] === 'mode' ? $release['mode'] : $release['availability'];
     return $str('act_reason_' . $release['reason'], s($a !== '' ? $a : '-'));
@@ -188,8 +166,10 @@ if ($action === 'review') {
     // Free: a fresh access check and the live price. Nothing is bought here.
     $r = unlock::review();
     if (!$r['canbuy']) {
-        echo $OUTPUT->notification($str('act_msg_blocked', $blockedtext($r['blocked'], $r['state'], $r['release'])),
-            \core\output\notification::NOTIFY_WARNING);
+        echo $OUTPUT->notification(
+            $str('act_msg_blocked', $blockedtext($r['blocked'], $r['state'], $r['release'])),
+            \core\output\notification::NOTIFY_WARNING
+        );
         echo $OUTPUT->continue_button($pageurl);
         echo $OUTPUT->footer();
         exit;
@@ -197,8 +177,10 @@ if ($action === 'review') {
     $release = $r['release'];
     $confirmurl = new moodle_url($pageurl, ['action' => 'unlock', 'confirm' => 1, 'expected' => $release['price'],
         'sha' => $release['sha']]);
-    $warning = $r['warning'] === 'insufficient' ? ' ' . $str('act_warn_insufficient',
-        ['price' => $release['price'], 'balance' => $balancetext($r['state'])]) : '';
+    $warning = $r['warning'] === 'insufficient' ? ' ' . $str(
+        'act_warn_insufficient',
+        ['price' => $release['price'], 'balance' => $balancetext($r['state'])]
+    ) : '';
     $message = $str('act_confirm', [
         'price' => $release['price'],
         'balance' => $balancetext($r['state']),
@@ -226,13 +208,17 @@ $table = new html_table();
 $table->attributes['class'] = 'generaltable activation';
 $sourcecell = s($str('act_source_' . $source));
 if (credentials::central_installed()) {
-    $sourcecell .= ' ' . html_writer::link(new moodle_url('/admin/settings.php', ['section' => 'local_aiconfig']),
-        $str('act_configurecentral'));
+    $sourcecell .= ' ' . html_writer::link(
+        new moodle_url('/admin/settings.php', ['section' => 'local_aiconfig']),
+        $str('act_configurecentral')
+    );
 } else {
     $sourcecell .= ' ' . html_writer::span(s($str('act_nocentral')), 'text-muted');
 }
-$sourcecell .= ' ' . html_writer::link(new moodle_url('/admin/settings.php', ['section' => 'modsettingaisoftskills']),
-    $str('act_configurelocal'));
+$sourcecell .= ' ' . html_writer::link(
+    new moodle_url('/admin/settings.php', ['section' => 'modsettingaisoftskills']),
+    $str('act_configurelocal')
+);
 
 $accesscell = html_writer::tag('strong', s($str('act_status_' . $state['status'])));
 $details = [];
@@ -269,8 +255,11 @@ $table->data = [
 echo html_writer::table($table);
 
 if ($pending) {
-    echo $OUTPUT->notification($str('act_pendingnote', userdate($pending['time'])) . ' ' . $str('act_blocked_pending'),
-        \core\output\notification::NOTIFY_WARNING, false);
+    echo $OUTPUT->notification(
+        $str('act_pendingnote', userdate($pending['time'])) . ' ' . $str('act_blocked_pending'),
+        \core\output\notification::NOTIFY_WARNING,
+        false
+    );
 }
 
 // Why "Unlock" is not available right now (the review step checks again before anything is bought).
@@ -287,8 +276,12 @@ if ($source === 'missing') {
 
 $check = new single_button(new moodle_url($pageurl, ['action' => 'check']), $str('act_check'), 'post');
 $check->disabled = $source === 'missing';
-$buy = new single_button(new moodle_url($pageurl, ['action' => 'review']), $str('act_unlock'), 'post',
-    single_button::BUTTON_PRIMARY);
+$buy = new single_button(
+    new moodle_url($pageurl, ['action' => 'review']),
+    $str('act_unlock'),
+    'post',
+    single_button::BUTTON_PRIMARY
+);
 $buy->disabled = $blocked !== '';
 echo html_writer::div($OUTPUT->render($check) . ' ' . $OUTPUT->render($buy), 'd-flex gap-2 activation-actions');
 if ($blocked !== '') {

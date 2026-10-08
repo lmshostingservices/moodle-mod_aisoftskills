@@ -24,24 +24,29 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_aisoftskills\local\catalogue;
-
 $ADMIN->add('modsettings', new admin_externalpage(
-    'mod_aisoftskills_activation', get_string('activation', 'mod_aisoftskills'),
-    new moodle_url('/mod/aisoftskills/activation.php'), 'moodle/site:config'
+    'mod_aisoftskills_activation',
+    get_string('activation', 'mod_aisoftskills'),
+    new moodle_url('/mod/aisoftskills/activation.php'),
+    'moodle/site:config'
 ));
+
+use mod_aisoftskills\local\catalogue;
 
 if ($ADMIN->fulltree) {
     $component = 'mod_aisoftskills';
 
     $unlockstate = \mod_aisoftskills\local\unlock::state();
     $settings->add(new admin_setting_heading(
-        "$component/activationheading", get_string('activation', $component),
+        "$component/activationheading",
+        get_string('activation', $component),
         html_writer::div(
             s(get_string('act_settings_status', $component, get_string('act_status_' .
                 $unlockstate['status'], $component))) . ' ' .
-            html_writer::link(new moodle_url('/mod/aisoftskills/activation.php'),
-                get_string('act_settings_link', $component)),
+            html_writer::link(
+                new moodle_url('/mod/aisoftskills/activation.php'),
+                get_string('act_settings_link', $component)
+            ),
             $unlockstate['status'] === 'unlocked' ? 'alert alert-success' : 'alert alert-warning'
         )
     ));
@@ -51,6 +56,12 @@ if ($ADMIN->fulltree) {
         get_string('settings_ai', $component),
         get_string('settings_ai_desc', $component) . '<p><strong>' .
             get_string(\mod_aisoftskills\local\credentials::status(), $component) . '</strong></p>'
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        "$component/aidrafts",
+        get_string('aidrafts', $component),
+        get_string('aidrafts_desc', $component),
+        1
     ));
     $settings->add(new admin_setting_configcheckbox(
         "$component/aiimages",

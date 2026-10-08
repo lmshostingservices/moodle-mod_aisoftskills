@@ -31,12 +31,18 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @covers     \mod_aisoftskills\external\finish_attempt
  * @covers     \mod_aisoftskills\external\import_lesson
  * @covers     \mod_aisoftskills\external\generate_image
+ * @covers     \mod_aisoftskills\external\draft_scene
+ * @covers     \mod_aisoftskills\external\check_request
+ * @covers     \mod_aisoftskills\external\dismiss_request
  */
 #[CoversClass(start_attempt::class)]
 #[CoversClass(choose_option::class)]
 #[CoversClass(finish_attempt::class)]
 #[CoversClass(import_lesson::class)]
 #[CoversClass(generate_image::class)]
+#[CoversClass(draft_scene::class)]
+#[CoversClass(check_request::class)]
+#[CoversClass(dismiss_request::class)]
 final class services_test extends \advanced_testcase {
     /** @var array */
     protected $u = [];
@@ -91,9 +97,6 @@ final class services_test extends \advanced_testcase {
 
     /**
      * A learner plays a whole attempt through the services.
-     * @covers \mod_aisoftskills\external\start_attempt
-     * @covers \mod_aisoftskills\external\choose_option
-     * @covers \mod_aisoftskills\external\finish_attempt
      */
     public function test_play(): void {
         $data = $this->call('student', 'start_attempt', [(int)$this->cm->id]);
@@ -110,12 +113,13 @@ final class services_test extends \advanced_testcase {
         $summary = $this->call('student', 'finish_attempt', [$data['attemptid']]);
         $this->assertSame(0, $summary['score']);
         $this->assertSame('beginning', $summary['rating']);
+        // The debrief shows the better response for the scene where the first choice was the poorer one.
+        $this->assertCount(1, $summary['takeaways']);
+        $this->assertSame('Behind on target', $summary['takeaways'][0]['title']);
     }
 
     /**
      * Nobody else can play or finish a learner's attempt, and outsiders and teachers cannot start one.
-     * @covers \mod_aisoftskills\external\start_attempt
-     * @covers \mod_aisoftskills\external\choose_option
      */
     public function test_permissions(): void {
         $data = $this->call('student', 'start_attempt', [(int)$this->cm->id]);
@@ -139,8 +143,6 @@ final class services_test extends \advanced_testcase {
 
     /**
      * Teachers import drafts; learners and non-editing teachers cannot; pictures by AI are not available.
-     * @covers \mod_aisoftskills\external\import_lesson
-     * @covers \mod_aisoftskills\external\generate_image
      */
     public function test_teacher_services(): void {
         $draft = json_encode(['scenes' => [['title' => 'New', 'options' => [['text' => 'A', 'best' => true],
@@ -164,7 +166,6 @@ final class services_test extends \advanced_testcase {
 
     /**
      * A teacher creates a scene picture through LMS Labs: it is stored, and the charge and balance are reported.
-     * @covers \mod_aisoftskills\external\generate_image
      */
     public function test_generate_image_success(): void {
         global $DB;
@@ -185,20 +186,76 @@ final class services_test extends \advanced_testcase {
         } finally {
             \mod_aisoftskills\local\ai\lmslabs::$posttransport = null;
         }
-        $this->assertSame(5, $result['charged']);
-        $this->assertSame(42, $result['balance']);
+        $this->assertSame('completed', $result['status']);
         $this->assertSame('abc-1', $result['requestid']);
-        $this->assertStringContainsString('pluginfile.php', $result['url']);
+        $this->assertStringContainsString('5 LMS Labs credits used; 42 left', $result['message']);
+        [$url] = \mod_aisoftskills\local\manager::get_scene_image(
+            \context_module::instance($this->cm->id),
+            (int)$this->scene->id
+        );
+        $this->assertStringContainsString('pluginfile.php', $url);
         $this->assertCount(1, $sent);
         $this->assertLessThanOrEqual(2000, \core_text::strlen($sent[0]['prompt']), 'The prompt is shortened to the route limit.');
         $this->assertStringContainsString('No text', $sent[0]['prompt']);
         $this->assertSame('illustration', $sent[0]['style']);
-        $this->assertSame(1, $DB->count_records('aisoftskills_ailog', ['action' => 'image', 'status' => 'ok']));
+        $this->assertSame(1, $DB->count_records('aisoftskills_ailog', ['action' => 'image', 'status' => 'completed']));
         try {
             $this->call('teacher', 'generate_image', [(int)$this->scene->id]);
             $this->fail('A non-editing teacher created a picture');
         } catch (\required_capability_exception $e) {
             $this->assertSame('nopermissions', $e->errorcode);
         }
+    }
+
+    /**
+     * Scene drafts: only teachers who manage the activity and may use AI; checking again reuses the stored request.
+     */
+    public function test_draft_scene_services(): void {
+        global $DB;
+        set_config('lmslabssiteid', 'site', 'mod_aisoftskills');
+        set_config('lmslabsapikey', 'key', 'mod_aisoftskills');
+        $keys = [];
+        $answers = [
+            [202, ['retry-after' => '5'], json_encode(['requestId' => 'r1', 'error' => ['code' => 'PENDING',
+                'message' => 'PENDING']])],
+            [200, [], json_encode(['requestId' => 'r1', 'model' => 'gpt-4o-2024-08-06', 'creditsCharged' => 3,
+                'creditsBalance' => 97, 'draft' => ['title' => 'A clash', 'setting' => 'An office', 'characters' => ['Pat', 'Alex'],
+                'dialogue' => [['speaker' => 'Pat', 'line' => 'We need to talk.'], ['speaker' => 'Alex', 'line' => 'Now?']],
+                'teachingNote' => 'Listen first.']])],
+        ];
+        \mod_aisoftskills\local\ai\lmslabs::$posttransport = function ($url, $headers, $body) use (&$keys, &$answers) {
+            $keys[] = array_values(preg_grep('/^Idempotency-Key: /', $headers))[0] . '|' . $body;
+            return array_shift($answers);
+        };
+        try {
+            foreach (['student', 'teacher'] as $user) {
+                try {
+                    $this->call($user, 'draft_scene', [(int)$this->cm->id, 'A clash about rotas']);
+                    $this->fail($user . ' drafted a scene');
+                } catch (\required_capability_exception $e) {
+                    $this->assertSame('nopermissions', $e->errorcode);
+                }
+            }
+            $first = $this->call('editingteacher', 'draft_scene', [(int)$this->cm->id, 'A clash about rotas', 'Leaders', '']);
+            $this->assertSame('pending', $first['status']);
+            $this->assertTrue($first['poll']);
+            $this->assertSame(5, $first['retryafter']);
+            try {
+                $this->call('teacher', 'check_request', [(int)$this->cm->id, $first['id']]);
+                $this->fail('A non-editing teacher checked a request');
+            } catch (\required_capability_exception $e) {
+                $this->assertSame('nopermissions', $e->errorcode);
+            }
+            $done = $this->call('editingteacher', 'check_request', [(int)$this->cm->id, $first['id']]);
+        } finally {
+            \mod_aisoftskills\local\ai\lmslabs::$posttransport = null;
+        }
+        $this->assertSame('completed', $done['status']);
+        $this->assertTrue($done['openscene']);
+        $this->assertCount(2, $keys);
+        $this->assertSame($keys[0], $keys[1], 'Checking again sends the same key and body.');
+        $this->assertSame(1, $DB->count_records('aisoftskills_scene', ['title' => 'A clash']));
+        $dismissed = $this->call('editingteacher', 'dismiss_request', [(int)$this->cm->id, $first['id']]);
+        $this->assertSame('completed', $dismissed['status'], 'A completed request is simply no longer listed.');
     }
 }

@@ -17,7 +17,7 @@
 namespace mod_aisoftskills\local\ai;
 
 /**
- * An AI service that creates scene pictures for teachers.
+ * An AI service that drafts scenes and creates scene pictures for teachers.
  *
  * Learners never trigger AI generation: only teachers with mod/aisoftskills:useai, from Moodle PHP.
  *
@@ -34,16 +34,11 @@ interface provider {
     public function can_generate(): bool;
 
     /**
-     * Creates a scene picture (one paid request; callers never retry automatically).
+     * Whether this provider can draft scenes on this site right now.
      *
-     * @param string $prompt English picture description
-     * @param string $style illustration or photo
-     * @param string|null $requestkey Persisted idempotency key (null only for legacy direct provider calls)
-     * @param string|null $requestbody Persisted exact JSON payload for deliberate replay
-     * @return array bytes (PNG, JPEG or WebP), charged (credits), balance (int|null), requestid, model
+     * @return bool
      */
-    public function generate_image(string $prompt, string $style = 'illustration',
-        ?string $requestkey = null, ?string $requestbody = null): array;
+    public function can_draft(): bool;
 
     /**
      * Remaining balance, for information only (it can change before any charge).

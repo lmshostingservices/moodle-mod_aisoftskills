@@ -2,6 +2,109 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.2.0] - 2026-10-02
+
+Builds on 1.1.1, which it replaces. No tariff, route or database changes.
+
+### Changed
+
+- **One set-up path in eight steps.** Teachers move through the steps with Back and Next only:
+  1. Workplace.
+  2. Level.
+  3. Skills.
+  4. Language.
+  5. Create the scenes.
+  6. Pictures.
+  7. Check the scenes.
+  8. Finish.
+
+  A step bar shows where they are ("Step 6 of 8"); it is not a set of links. Next stays closed until the step is done, and says why:
+  - at least one scene is needed after step 5;
+  - every scene needs a picture after step 6;
+  - every scene needs its two responses after step 7.
+- **One teacher entry point.** The separate "Build scenes" and "Scenes" pages are gone from the activity menu and the teacher bar. "Set up the lesson" opens the path at the first step that isn't done yet.
+- **Pictures are a step of their own, before checking the scenes.** "Create missing pictures" is the main button. Each scene also has "Create picture" and "Upload my own picture".
+- **Check the scenes** lists each scene's responses and offers "Add the two responses" where they are missing. The editor shows the step bar, and saving it returns to step 7. "Add scenes" is folded away.
+- **Finish** shows how many scenes are ready and what is still missing, with "Preview as a learner" and "Done: back to the course".
+
+### Fixed
+
+- **Delivered pictures are no longer thrown away over their format.** Earlier versions kept a delivered picture only if LMS Labs sent raw PNG bytes labelled image/png, while the LMS Labs image specification allows PNG or WebP. Anything else (WebP, JPEG, or a picture wrapped as base64 in JSON) was marked "lost", even though it may have been charged. Moodle now:
+  - accepts PNG, WebP and JPEG, checked by their bytes and by Moodle's image check;
+  - accepts the same formats as base64 in a JSON answer;
+  - asks for `Accept: image/png, image/webp, image/jpeg, application/json`.
+
+  If an answer still can't be used, its content type and size (never the bytes) are kept with the request so that LMS Labs support can trace it.
+
+## [v1.1.1] - 2026-10-02
+
+Builds on 1.1.0, which it replaces. No server, tariff or database changes.
+
+### Changed
+
+- **Simpler "Build scenes" page.** Teachers first pick one of two cards, and only that path is shown:
+  - **Use your own text:** paste or type a workplace situation. LMS Labs AI turns it into a scene (3 credits, confirmed first, charged only on delivery). Guidance covers length (30 to 300 words), what works well, what to include and removing real names. Leaving the box empty creates a scene from the builder choices.
+  - **Use an AI assistant:** copy the prompt into ChatGPT, Claude, Gemini or Copilot for more control, paste the reply and preview it. No LMS Labs credits.
+- The separate "Who the learners are" and "The workplace" fields are gone; they are taken from the builder choices.
+- The prompt text is folded under "Show the prompt"; "Copy prompt" sits in step 1.
+- When LMS Labs AI scene writing is not available, only the AI assistant path is shown, with a note saying why.
+
+## [v1.1.0] - 2026-09-30
+
+Release candidate built on the live 1.0.3. It has not been tested against the live LMS Labs service, and no paid provider call was made to test it.
+
+### Added
+
+- **Scene drafts become scenes.** A scene delivered by the approved LMS Labs scene route (3 credits) is saved straight away as a scene:
+  - The title and setting.
+  - The lead-in conversation, shown to learners above the question and editable as "Name: line" rows.
+  - A teachers-only teaching note.
+  - A picture description.
+  The teacher adds the two responses; the route does not supply them yet.
+- **Pictures come from LMS Labs AI only.**
+  - "Create picture (5 credits)" is on every scene without a picture.
+  - "Create missing pictures" makes all of them one after another.
+  - "New AI picture" replaces an existing one.
+  - The copy-this-prompt-into-another-AI picture option has been removed. Teachers can still upload their own pictures.
+- **Every paid request is confirmed first**, with the credits named: each scene draft, each picture, and the batch of missing pictures.
+- **Stored requests** (`aisoftskills_aireq`) for scene drafts and pictures:
+  - The Idempotency-Key and the exact body are saved before sending, and are bound to the LMS Labs site they were sent for.
+  - "Check again" resends the same key and body, so LMS Labs can never charge twice for it.
+  - Requests that are pending, unconfirmed, conflicting, expired or lost stay listed until dismissed.
+  - Pictures follow their own contract: nothing is retained upstream, so an undelivered picture is shown as lost with its reference.
+- **End-of-attempt debrief.** "What to take away" lists each scene where the first choice was the poorer one, with the stronger response and why it works.
+- **Advanced path for complex scenarios.** The copy-and-paste prompt for ChatGPT or another assistant is kept, and now asks for demanding scenes: competing interests, pressure, missing information, emotions under the surface, tempting realistic mistakes and knock-on consequences.
+- **Activation tests:** mocked tests for the 1.0.3 activation page, covering the following (1.0.3 had none):
+  - Not checked, locked, unlocked and unable to verify.
+  - Credentials present but not unlocked.
+  - Review without buying.
+  - Unlock sends the exact live price and SHA; the release is refused when it isn't sellable.
+  - Already unlocked, with historic credits never shown as a new charge.
+  - Restoring a Marketplace purchase at zero credits.
+  - Insufficient credits.
+  - Stale price or release.
+  - An uncertain result blocks another unlock until a free check gives a definite answer.
+
+### Changed
+
+- The builder now leads with "Create a scene with LMS Labs AI", written in plain words, followed by the advanced path. The confusing "script text draft" panel from 1.0.2/1.0.3 is gone.
+- The activation page's LMS Labs host is fixed to lms-labs.com; it can no longer be pointed elsewhere from config.php.
+
+### Upgrade
+
+- Script drafts and picture jobs from 1.0.2/1.0.3 move into the stored requests, keeping their keys:
+  - Completed drafts become scenes.
+  - Unresolved drafts and pictures stay checkable with the same key and body.
+  - A picture that was being saved when interrupted is marked lost.
+- The old `aisoftskills_draft` and `aisoftskills_imagejob` tables are then removed.
+
+### Fixed
+
+- Code checker: constant visibility and comment style in the 1.0.3 activation code.
+- CI: template heading levels.
+
+Version 2026092900. Scene drafts (3 credits) and pictures (5 credits) are unchanged; there is no Moodle-side debit.
+
 ## [v1.0.3] - 2026-09-28
 
 ### Added

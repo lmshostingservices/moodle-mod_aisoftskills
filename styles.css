@@ -167,6 +167,7 @@
     border: 1px solid var(--ss-border);
     box-shadow: var(--ss-shadow-sm);
 }
+.path-mod-aisoftskills .ss-panel h3,
 .path-mod-aisoftskills .ss-panel h4 {
     margin: 0 0 10px;
     font-size: .95rem;
@@ -175,6 +176,7 @@
     align-items: center;
     gap: 8px;
 }
+.path-mod-aisoftskills .ss-panel h3 svg,
 .path-mod-aisoftskills .ss-panel h4 svg {
     width: 18px;
     height: 18px;
@@ -636,6 +638,7 @@
     gap: 16px;
     margin: 14px 0;
 }
+.path-mod-aisoftskills .ss-sitgroup h3,
 .path-mod-aisoftskills .ss-sitgroup h4 {
     margin: 0 0 8px;
     font-size: 1rem;
@@ -1572,4 +1575,155 @@
     .path-mod-aisoftskills .ss-option {
         transition: none;
     }
+}
+.path-mod-aisoftskills .ss-dialogue {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--ss-surface);
+    border: 1px solid var(--ss-border);
+}
+.path-mod-aisoftskills .ss-dialogue-line {
+    margin: 0;
+    line-height: 1.45;
+}
+.path-mod-aisoftskills .ss-dialogue-speaker {
+    font-weight: 800;
+}
+.path-mod-aisoftskills .ss-aidraft-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.path-mod-aisoftskills .ss-aireqs {
+    margin: 14px 0;
+}
+.path-mod-aisoftskills .ss-aireq-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.path-mod-aisoftskills .ss-aireq {
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--ss-border);
+    border-left: 4px solid var(--ss-warning);
+    background: var(--ss-warning-soft);
+}
+.path-mod-aisoftskills .ss-aireq.is-completed {
+    border-left-color: var(--ss-success);
+    background: var(--ss-success-soft);
+}
+.path-mod-aisoftskills .ss-aireq.is-failed,
+.path-mod-aisoftskills .ss-aireq.is-lost,
+.path-mod-aisoftskills .ss-aireq.is-conflict {
+    border-left-color: var(--ss-danger);
+    background: var(--ss-danger-soft);
+}
+.path-mod-aisoftskills .ss-aireq-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+}
+.path-mod-aisoftskills .ss-aireq-message {
+    margin: 6px 0 8px;
+}
+.path-mod-aisoftskills .ss-aireq-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.path-mod-aisoftskills .ss-takeaways {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.path-mod-aisoftskills .ss-takeaway {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--ss-border);
+    background: var(--ss-surface);
+}
+.path-mod-aisoftskills .ss-bulkpictures {
+    margin: 12px 0;
+}
+
+/* Build step: two ways to create scenes. */
+.path-mod-aisoftskills .ss-pathgrid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.path-mod-aisoftskills .ss-pathgrid .ss-pick-body {
+    gap: 6px;
+    padding: 16px 18px;
+}
+.path-mod-aisoftskills .ss-pathgrid .ss-pick-body strong {
+    font-size: 1.1rem;
+}
+.path-mod-aisoftskills .ss-guide {
+    margin: 4px 0 10px;
+    padding-left: 1.2rem;
+}
+.path-mod-aisoftskills .ss-promptview {
+    margin: 10px 0;
+}
+.path-mod-aisoftskills .ss-promptview summary {
+    cursor: pointer;
+    color: var(--ss-primary);
+}
+.path-mod-aisoftskills .ss-aihelper-steps .ss-copy {
+    margin-left: 8px;
+}
+
+/* Set-up path: one step bar on every set-up page, Back and Next at the bottom. */
+.path-mod-aisoftskills .ss-setup-head {
+    margin-bottom: 18px;
+}
+.path-mod-aisoftskills .ss-setup-head h2 {
+    margin: 0 0 4px;
+}
+.path-mod-aisoftskills .ss-setup-head .ss-setupbar {
+    margin-top: 12px;
+}
+.path-mod-aisoftskills .ss-setupbar li:not(.is-active) {
+    font-weight: 500;
+}
+.path-mod-aisoftskills .ss-setupnav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    margin: 24px 0 8px;
+    padding-top: 18px;
+    border-top: 1px solid var(--ss-border);
+}
+.path-mod-aisoftskills .ss-setupnav .ss-grow {
+    flex: 1;
+}
+.path-mod-aisoftskills .ss-setupnav-blocked {
+    margin: 0;
+    color: #92400e;
+    font-weight: 600;
+}
+.path-mod-aisoftskills .ss-finish-list {
+    margin: 10px 0 0;
+    padding-left: 1.2rem;
+}
+.path-mod-aisoftskills .ss-ok {
+    color: #166534;
+    font-weight: 600;
+}
+.path-mod-aisoftskills .ss-addscenes summary {
+    cursor: pointer;
+}
+.path-mod-aisoftskills .ss-setup-progress {
+    margin: 0;
 }

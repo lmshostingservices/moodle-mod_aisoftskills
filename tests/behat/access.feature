@@ -32,9 +32,11 @@ Feature: Teachers build AI Soft Skills scenes and learners open them
     And I set the field "Manager" to "1"
     And I set the field "Resolving conflict" to "1"
     And I set the field "Spanish" to "1"
-    And I press "Save and build the scenes"
+    And I press "Next: Create the scenes"
+    And I should see "Step 5 of 8"
     Then I should see "Copy prompt"
-    And I should see "Paste the AI's reply"
+    And I should see "The AI's reply"
+    And I should see "LMS Labs AI scene writing is not available on this site"
     And I should see "Hospitality"
     And I should see "Resolving conflict"
     And I should see "Industry: Hospitality" in the "#ss-lessonprompt" "css_element"
@@ -44,7 +46,7 @@ Feature: Teachers build AI Soft Skills scenes and learners open them
   Scenario: A learner opening an empty activity is told it is not ready
     When I am on the "Leading the team" "aisoftskills activity" page logged in as "student1"
     Then I should see "Your teacher is still preparing this activity."
-    And I should not see "Build scenes"
+    And I should not see "Set up the lesson"
 
   Scenario: A learner sees the career ladder and can start once a scene is ready
     Given the following "mod_aisoftskills > scenes" exist:
@@ -61,7 +63,8 @@ Feature: Teachers build AI Soft Skills scenes and learners open them
       | activity | title            |
       | ss1      | Behind on target |
     And I am on the "Leading the team" "mod_aisoftskills > Scenes" page logged in as "teacher1"
-    And I should see "Ready to play"
+    And I should see "Two responses ready"
+    And I should see "Next: Finish"
     When I click on "Edit scene" "link"
     And I set the following fields to these values:
       | Scene title | Short-staffed Friday |
@@ -78,6 +81,21 @@ Feature: Teachers build AI Soft Skills scenes and learners open them
     And I set the field "kpidelta0" to "-10"
     And I press "Save changes"
     Then I should see "The better response must raise the indicator."
+
+  Scenario: The set-up path opens at the step it is up to and only moves forward when the step is done
+    Given the following "mod_aisoftskills > scenes" exist:
+      | activity | title            | picture |
+      | ss1      | Behind on target | none    |
+    When I am on the "Leading the team" "aisoftskills activity" page logged in as "teacher1"
+    And I navigate to "Set up the lesson" in current page administration
+    Then I should see "Create a picture for every scene"
+    And I should see "Scenes still without a picture: 1."
+    And the "Next: Check the scenes" "button" should be disabled
+    And "Next: Check the scenes" "link" should not exist
+    And I should see "Upload my own picture"
+    And I click on "Back" "link" in the ".ss-setupnav" "css_element"
+    And I should see "Use an AI assistant"
+    And I should see "Step 5 of 8"
 
   Scenario: A teacher can open the reports
     Given the following "mod_aisoftskills > scenes" exist:

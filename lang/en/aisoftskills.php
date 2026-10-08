@@ -24,15 +24,109 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['act_access'] = 'Access';
+$string['act_balance'] = 'Balance';
+$string['act_balance_unknown'] = 'Unknown (check access to update)';
+$string['act_balance_unlimited'] = 'Unlimited';
+$string['act_blocked_nocredentials'] = 'Add a complete Site ID and API key first.';
+$string['act_blocked_pending'] = 'An earlier unlock request has an uncertain outcome. Check access before trying again.';
+$string['act_blocked_pendingstorage'] = 'The pending request could not be saved. Nothing was sent; contact your administrator.';
+$string['act_blocked_release'] = 'LMS Labs has not confirmed the release and price.';
+$string['act_blocked_unlocked'] = 'This site is already unlocked.';
+$string['act_blocked_unverified'] = 'Access could not be verified. Check access first.';
+$string['act_check'] = 'Check access';
+$string['act_checkedat'] = 'checked {$a}';
+$string['act_configurecentral'] = 'Configure Central Config';
+$string['act_configurelocal'] = 'AI Soft Skills settings';
+$string['act_confirm'] = 'Unlock AI Soft Skills for this site for {$a->price} LMS Labs credits? This spends credits once and cannot be undone. Balance now: {$a->balance}. Release: {$a->release}.';
+$string['act_confirmbutton'] = 'Unlock for {$a} credits';
+$string['act_credits'] = '{$a} credits';
+$string['act_entitlementsource'] = 'entitlement: {$a}';
+$string['act_err_network'] = 'no response from LMS Labs';
+$string['act_err_nocredentials'] = 'no complete Site ID and API key';
+$string['act_intro'] = 'AI Soft Skills needs one-time activation for this site. Checking access is free. Unlocking spends LMS Labs credits only after you confirm the live price.';
+$string['act_msg_already'] = 'This site was already unlocked.';
+$string['act_msg_ambiguous'] = 'Not unlocked: LMS Labs could not match this site to a single Marketplace purchase ({$a}). Contact LMS Labs support; trying again will not fix this.';
+$string['act_msg_balance'] = 'Balance: {$a}.';
+$string['act_msg_blocked'] = 'Nothing was sent to LMS Labs. {$a}';
+$string['act_msg_changed'] = 'Not unlocked: the price or release changed after confirmation. Review the new price and try again.';
+$string['act_msg_check_locked'] = 'Access checked: this site is locked.';
+$string['act_msg_check_unknown'] = 'Access could not be verified ({$a}).';
+$string['act_msg_check_unlocked'] = 'Access checked: this site is unlocked.';
+$string['act_msg_conflict'] = 'Not unlocked: LMS Labs reported a conflict ({$a}). If the message does not say what to do, contact LMS Labs support.';
+$string['act_msg_consumed'] = 'LMS Labs recorded {$a} credits for this unlock.';
+$string['act_msg_historic'] = 'Credits used when the unlock was first bought: {$a} (not a new charge).';
+$string['act_msg_insufficient'] = 'Not unlocked: not enough credits ({$a}).';
+$string['act_msg_notreported'] = 'LMS Labs did not report the credits for this request; check the balance below.';
+$string['act_msg_refused'] = 'Not unlocked: LMS Labs refused the request ({$a}).';
+$string['act_msg_resolved_locked'] = 'The earlier unlock request did not unlock this site. You can review the price and try again.';
+$string['act_msg_resolved_unlocked'] = 'The earlier unlock request did complete.';
+$string['act_msg_restoredpurchase'] = 'It was activated from your existing {$a} purchase, so this unlock used 0 credits.';
+$string['act_msg_servermessage'] = 'LMS Labs: {$a}';
+$string['act_msg_stale'] = 'Not unlocked: the credit price at LMS Labs changed ({$a}). Review the new price and confirm again.';
+$string['act_msg_uncertain'] = 'The unlock request did not return a clear answer ({$a}). Check access before trying again; unlocking stays disabled until then.';
+$string['act_msg_unlocked'] = 'AI Soft Skills is unlocked for this site.';
+$string['act_nocentral'] = 'Central Config (local_aiconfig) is not installed.';
+$string['act_notproof'] = 'Having a Site ID and API key does not mean this site has unlocked AI Soft Skills. Use Check access.';
+$string['act_pendingnote'] = 'An unlock request sent {$a} did not return a clear answer.';
+$string['act_price'] = 'One-time activation price';
+$string['act_price_live'] = '{$a} credits (live from LMS Labs)';
+$string['act_price_unavailable'] = 'Unavailable: {$a}. Unlocking is disabled until LMS Labs confirms the release and price.';
+$string['act_reason_mode'] = 'the acquisition mode ({$a}) does not allow unlocking with credits';
+$string['act_reason_noprice'] = 'the catalogue entry has no valid credit price';
+$string['act_reason_nosha'] = 'the catalogue entry has no valid SHA-256';
+$string['act_reason_notavailable'] = 'the release is not available (availability: {$a})';
+$string['act_reason_notlisted'] = 'mod_aisoftskills is not in the LMS Labs release catalogue';
+$string['act_reason_nozip'] = 'the release package is not available at LMS Labs';
+$string['act_reason_unreachable'] = 'the LMS Labs release catalogue could not be read';
+$string['act_release'] = 'Release {$a->version}, SHA-256 {$a->sha}';
+$string['act_settings_link'] = 'Open AI Soft Skills activation';
+$string['act_settings_status'] = 'Activation status (last check): {$a}.';
+$string['act_source'] = 'Credential source';
+$string['act_source_central'] = 'Central Config (local_aiconfig)';
+$string['act_source_local'] = 'This plugin\'s own Site ID and API key (complete pair)';
+$string['act_source_missing'] = 'Not configured';
+$string['act_status_locked'] = 'Locked';
+$string['act_status_notchecked'] = 'Not checked';
+$string['act_status_unknown'] = 'Unable to verify';
+$string['act_status_unlocked'] = 'Unlocked';
+$string['act_unlock'] = 'Unlock…';
+$string['act_unlockedat'] = 'unlocked {$a}';
+$string['act_warn_insufficient'] = 'The balance ({$a->balance}) is below the price ({$a->price} credits). LMS Labs will refuse the unlock unless it recognises an existing purchase for this site.';
+$string['activation'] = 'AI Soft Skills activation';
+$string['addresponses'] = 'Add the two responses';
 $string['addscenes'] = 'Add scenes';
 $string['addscenes_help'] = 'Upload pictures (one scene per picture, a ZIP works too), or give a title to add a scene and upload its picture later.';
 $string['aibadimage'] = 'The AI service did not return a usable picture.';
+$string['aidraft_anyskills'] = 'the soft skills that matter most at their level';
+$string['aidraft_audience'] = 'Who the learners are';
+$string['aidraft_brief'] = 'Your text';
+$string['aidraft_briefdefault'] = 'One short workplace scene for learners at the {$a->level} level to practise {$a->skills}. Two to four colleagues talk in a {$a->industry} workplace; the conversation stops at the moment the learner must decide what to say. Write every line in {$a->language}.';
+$string['aidraft_briefrequired'] = 'Describe what the scene should be about.';
+$string['aidraft_button'] = 'Create a scene ({$a} credits)';
+$string['aidraft_confirm'] = 'Create this scene with LMS Labs AI? LMS Labs charges 3 credits when the scene is delivered.';
+$string['aidraft_context'] = 'The workplace';
+$string['aidraft_drafting'] = 'Drafting the scene. This can take up to a minute and a half; you can leave this page and come back.';
+$string['aidraft_imageprompt'] = '{$a->title}. {$a->setting} People in the picture: {$a->characters}.';
+$string['aidraft_nobrackets'] = 'Remove the < and > characters: LMS Labs does not accept them.';
+$string['aidraft_toolong'] = '{$a->field} is too long: at most {$a->max} characters.';
+$string['aidrafterror_failed'] = 'LMS Labs could not draft this scene. You have not been charged. (LMS Labs reference: {$a->requestid})';
+$string['aidrafterror_insufficient_credits'] = 'Not enough LMS Labs credits: a scene draft needs {$a->credits} and {$a->balance} are left. Top up at lms-labs.com. (LMS Labs reference: {$a->requestid})';
+$string['aidrafterror_invalid_credentials'] = 'LMS Labs did not accept this site\'s Site ID and API key. Check them in Central Config. (LMS Labs reference: {$a->requestid})';
+$string['aidrafterror_no_entitlement'] = 'This site does not have AI Soft Skills enabled with LMS Labs. (LMS Labs reference: {$a->requestid})';
+$string['aidrafterror_not_live'] = 'The LMS Labs scene draft service is not available yet. (LMS Labs reference: {$a->requestid})';
+$string['aidrafterror_provider_failed'] = 'The AI service could not draft this scene. You have not been charged. Try again later. (LMS Labs reference: {$a->requestid})';
+$string['aidrafterror_rate_limited'] = 'Too many drafts requested at once. Wait a moment and try again. You have not been charged. (LMS Labs reference: {$a->requestid})';
+$string['aidrafterror_rejected'] = 'LMS Labs did not accept this request. Check the text and try again. You have not been charged. (LMS Labs reference: {$a->requestid})';
+$string['aidrafterror_unusable_draft'] = 'LMS Labs delivered a draft this site could not use, and may have charged {$a->charged} credits. Contact LMS Labs support with the reference before drafting again. (LMS Labs reference: {$a->requestid})';
+$string['aidrafts'] = 'AI scene drafts';
+$string['aidrafts_desc'] = 'Let teachers draft a scene (title, setting, lead-in conversation and teaching note) with LMS Labs AI in the lesson builder. Each delivered draft costs 3 LMS Labs credits; failed drafts are not charged. Teachers need the "Use LMS Labs AI" capability.';
 $string['aierror_body_too_large'] = 'The picture request is too large. Shorten the scene\'s picture description. (LMS Labs reference: {$a->requestid})';
 $string['aierror_deadline_exceeded'] = 'The picture took too long and was stopped. Check your LMS Labs usage before trying again. (LMS Labs reference: {$a->requestid})';
-$string['aierror_failed'] = 'Picture status could not be confirmed. Check the original request with the same key before making a new paid request. (LMS Labs reference: {$a->requestid})';
-$string['aierror_idempotency_conflict'] = 'LMS Labs rejected a changed request with the original billing key. Contact support; do not retry with a new key automatically. (LMS Labs reference: {$a->requestid})';
-$string['aierror_image_failed'] = 'The picture request failed. Check its original key and LMS Labs usage before making a new paid request. (LMS Labs reference: {$a->requestid})';
-$string['aierror_image_unavailable'] = 'LMS Labs could not confirm picture availability. Check the original request with the same key. (LMS Labs reference: {$a->requestid})';
+$string['aierror_failed'] = 'LMS Labs could not create the picture. You have not been charged. (LMS Labs reference: {$a->requestid})';
+$string['aierror_idempotency_conflict'] = 'LMS Labs rejected a duplicate request. Try again. (LMS Labs reference: {$a->requestid})';
+$string['aierror_image_failed'] = 'The picture could not be created. You have not been charged. (LMS Labs reference: {$a->requestid})';
+$string['aierror_image_unavailable'] = 'LMS Labs pictures are not available right now. You have not been charged. (LMS Labs reference: {$a->requestid})';
 $string['aierror_insufficient_credits'] = 'Not enough LMS Labs credits: a picture needs {$a->credits} and {$a->balance} are left. Top up at lms-labs.com. (LMS Labs reference: {$a->requestid})';
 $string['aierror_invalid_credentials'] = 'LMS Labs did not accept this site\'s Site ID and API key. Check them in Central Config. (LMS Labs reference: {$a->requestid})';
 $string['aierror_invalid_idempotency_key'] = 'LMS Labs could not read the request. You have not been charged. (LMS Labs reference: {$a->requestid})';
@@ -47,20 +141,44 @@ $string['aierror_provider_failed'] = 'The picture service could not create this 
 $string['aierror_provider_rate_limited'] = 'The picture service is busy. Wait a moment and try again. You have not been charged. (LMS Labs reference: {$a->requestid})';
 $string['aierror_provider_unavailable'] = 'The picture service is not available right now. You have not been charged. (LMS Labs reference: {$a->requestid})';
 $string['aierror_rate_limited'] = 'Too many pictures requested at once. Wait a moment and try again. You have not been charged. (LMS Labs reference: {$a->requestid})';
-$string['aierror_result_not_retained'] = 'This request already completed, but the image is not retained by LMS Labs. It might have charged 5 credits; a new intentional request may charge again. (LMS Labs reference: {$a->requestid})';
+$string['aierror_result_not_retained'] = 'This request was already completed. Try again to create a new picture. (LMS Labs reference: {$a->requestid})';
 $string['aierror_settlement_unconfirmed'] = 'LMS Labs could not confirm the charge for this picture. Check your LMS Labs usage before trying again. (LMS Labs reference: {$a->requestid})';
 $string['aierror_unexpected_fields'] = 'LMS Labs could not read the request. You have not been charged. (LMS Labs reference: {$a->requestid})';
-$string['aierror_unusable_image'] = 'No usable image was delivered. Billing is uncertain if delivery was corrupted; check the original request. (LMS Labs reference: {$a->requestid})';
+$string['aierror_unusable_image'] = 'LMS Labs did not return a usable picture. You have not been charged. (LMS Labs reference: {$a->requestid})';
 $string['aiimages'] = 'AI scene pictures';
-$string['aiimages_desc'] = 'Let teachers create a scene picture with AI from its picture prompt. Each successful picture costs 5 LMS Labs credits. An uncertain/lost response may already have charged; check its original billing key before requesting another picture. Teachers need the "Use AI to create scene pictures" capability.';
+$string['aiimages_desc'] = 'Let teachers create a scene picture with AI from its picture prompt. Each successful picture costs 5 LMS Labs credits; failed requests are not charged. Teachers need the "Use AI to create scene pictures" capability.';
 $string['ainotavailable'] = 'AI pictures are switched off, or this site\'s LMS Labs Site ID and API key are not set.';
 $string['airate'] = 'AI requests per teacher per hour';
 $string['airate_desc'] = 'Most AI picture requests one teacher can make per hour.';
 $string['airatelimit'] = 'You have reached the hourly limit for AI requests. Try again later.';
+$string['aireq_busy'] = 'An earlier request for this is still unresolved. Use "Check again" on it, or dismiss it, before asking for a new one.';
+$string['aireq_checkagain'] = 'Check again';
+$string['aireq_checking'] = 'Checking…';
+$string['aireq_dismiss'] = 'Dismiss';
+$string['aireq_dismissconfirm'] = 'LMS Labs may still complete this request and charge for it. Dismiss it anyway? You can then ask for a new one, which is a separate request.';
+$string['aireq_heading'] = 'LMS Labs requests to finish';
+$string['aireq_image_completed'] = 'Picture created. {$a->charged} LMS Labs credits used.';
+$string['aireq_image_completedbalance'] = 'Picture created. {$a->charged} LMS Labs credits used; {$a->balance} left.';
+$string['aireq_image_conflict'] = 'LMS Labs says this request was already used with a different picture description, so nothing was created. Dismiss it and create the picture again. (LMS Labs reference: {$a->requestid})';
+$string['aireq_image_dismissed'] = 'Dismissed.';
+$string['aireq_image_expired'] = 'LMS Labs no longer has this request. Dismiss it and create the picture again if you still need one. (LMS Labs reference: {$a->requestid})';
+$string['aireq_image_lost'] = 'LMS Labs finished this request, but no picture reached this site, and LMS Labs does not keep pictures. {$a->credits} credits may have been charged. Contact LMS Labs support with the reference before creating another picture; a new picture is a new, separately charged request. (LMS Labs reference: {$a->requestid})';
+$string['aireq_image_pending'] = 'LMS Labs is still creating this picture. This page checks again every few seconds. (LMS Labs reference: {$a->requestid})';
+$string['aireq_image_uncertain'] = 'LMS Labs did not confirm this picture. It may still have been created and charged. "Check again" asks about the same request and can never create or charge a second picture. (LMS Labs reference: {$a->requestid})';
+$string['aireq_openscene'] = 'Open the scene';
+$string['aireq_scene_completed'] = 'Scene created: {$a->charged} LMS Labs credits used. Create another, or press Next for the pictures.';
+$string['aireq_scene_completedbalance'] = 'Scene created: {$a->charged} LMS Labs credits used; {$a->balance} left. Create another, or press Next for the pictures.';
+$string['aireq_scene_conflict'] = 'LMS Labs says this request was already used with different text, so nothing was drafted. Dismiss it and draft again. (LMS Labs reference: {$a->requestid})';
+$string['aireq_scene_dismissed'] = 'Dismissed.';
+$string['aireq_scene_expired'] = 'This draft is no longer available at LMS Labs (drafts are kept for 24 hours). Dismiss it and draft again if you still need it. (LMS Labs reference: {$a->requestid})';
+$string['aireq_scene_lost'] = 'This draft did not reach this site. Contact LMS Labs support with the reference. (LMS Labs reference: {$a->requestid})';
+$string['aireq_scene_pending'] = 'LMS Labs is still drafting this scene. This page checks again every few seconds. (LMS Labs reference: {$a->requestid})';
+$string['aireq_scene_uncertain'] = 'LMS Labs did not confirm this draft. It may still be completing. "Check again" asks about the same request: a delivered draft is sent again without a second charge. (LMS Labs reference: {$a->requestid})';
+$string['aireq_sitechanged'] = 'This request was made with a different LMS Labs Site ID, so it cannot be checked with the current one (that could be charged again). Dismiss it; ask for a new one if you still need it.';
 $string['aisoftskills:addinstance'] = 'Add a new AI Soft Skills activity';
 $string['aisoftskills:attempt'] = 'Play the scenes';
 $string['aisoftskills:manage'] = 'Build and edit scenes';
-$string['aisoftskills:useai'] = 'Use AI to create scene pictures';
+$string['aisoftskills:useai'] = 'Use LMS Labs AI (scene drafts and pictures)';
 $string['aisoftskills:view'] = 'View AI Soft Skills';
 $string['aisoftskills:viewreports'] = 'View reports';
 $string['allowretry'] = 'Try again after a poorer choice';
@@ -83,20 +201,17 @@ $string['bestresponse'] = 'Better response';
 $string['bestresponse_help'] = 'The response that shows the skill well. Choosing it first counts towards the grade.';
 $string['bestscore'] = 'Best score';
 $string['betterresponse'] = 'A better response';
-$string['build_ai_off'] = 'The scenes are drafted with an AI assistant of your choice; this plugin does not send them to an AI service. Add a picture to each scene afterwards.';
-$string['build_manual_1'] = 'Copy the prompt below.';
-$string['build_manual_2'] = 'Paste it into ChatGPT, Claude, Gemini or Copilot.';
-$string['build_manual_3'] = 'Paste the reply here and preview it.';
-$string['build_manual_title'] = 'Use any AI assistant';
-$string['build_paste'] = 'Paste the AI\'s reply';
+$string['build_manual_1'] = 'Copy the prompt.';
+$string['build_manual_2'] = 'Paste it into ChatGPT, Claude, Gemini or Copilot. Change it there if you want different scenes.';
+$string['build_manual_3'] = 'Paste the AI\'s whole reply below and press Preview.';
+$string['build_paste'] = 'The AI\'s reply';
 $string['build_preview'] = 'Preview';
-$string['builder_change'] = 'Change choices';
+$string['build_showprompt'] = 'Show the prompt';
 $string['builder_existing'] = 'This activity already has {$a} scenes. New scenes are added after them.';
-$string['builder_save'] = 'Save and build the scenes';
-$string['builder_skip'] = 'Skip to building';
-$string['builder_steps'] = 'Scene builder steps';
-$string['buildlesson'] = 'Build scenes';
+$string['builder_save'] = 'Next: Create the scenes';
 $string['careerladder'] = 'Career levels';
+$string['check_intro'] = 'Open each scene and read it through. Every scene needs two responses for learners to choose between, with one marked as the better one. Scenes created from your own text need their two responses added here.';
+$string['check_title'] = 'Check each scene';
 $string['col_answers'] = 'Answers';
 $string['col_attempt'] = 'Attempt';
 $string['col_attempts'] = 'Attempts';
@@ -114,12 +229,13 @@ $string['col_tries'] = 'Average tries';
 $string['completionallscenes'] = 'Play every scene';
 $string['completionallscenes_desc'] = 'Finish an attempt with every scene played';
 $string['completiondetail:allscenes'] = 'Play every scene';
+$string['confirm_create'] = 'Yes, create it';
+$string['confirm_title'] = 'Use LMS Labs credits?';
 $string['confirmdeleteattempts'] = 'Delete the selected attempts? Grades and completion are recalculated.';
 $string['confirmdeletescene'] = 'Delete the scene "{$a}", its picture, its responses and learners\' choices in it?';
 $string['contentlang'] = 'Language of the scenes';
 $string['contentlang_help'] = 'The language the scenes, responses and consequences are written in. Buttons and messages follow each learner\'s Moodle language.';
 $string['copied'] = 'Copied';
-$string['copyimageprompt'] = 'Copy picture prompt';
 $string['copyprompt'] = 'Copy prompt';
 $string['creating'] = 'Creating scenes…';
 $string['credentials_central'] = 'In use: the Site ID and API key from LMS Labs Central Config. The standalone fields below are ignored while Central Config has both.';
@@ -135,8 +251,22 @@ $string['deltarange'] = 'Use a number from -{$a} to {$a}.';
 $string['editscene'] = 'Edit scene';
 $string['errorsceneneeds'] = 'Upload at least one picture or give the scene a title.';
 $string['eventattemptfinished'] = 'Attempt finished';
-$string['generateimage'] = 'Create the picture with AI ({$a} credits)';
+$string['finish_done'] = 'Done: back to the course';
+$string['finish_nopicture'] = 'Scenes without a picture: {$a}';
+$string['finish_noresponses'] = 'Scenes without their two responses: {$a}';
+$string['finish_noscenes'] = 'There are no scenes yet.';
+$string['finish_notready'] = '{$a->ready} of {$a->scenes} scenes are ready';
+$string['finish_notready_help'] = 'Learners only see the scenes that are ready. Use Back to finish the others.';
+$string['finish_preview'] = 'Preview as a learner';
+$string['finish_ready'] = 'All {$a} scenes are ready';
+$string['finish_ready_help'] = 'Learners can now play the activity. Preview it as a learner first if you like.';
+$string['genall_button'] = 'Create missing pictures ({$a->credits} credits)';
+$string['genall_confirm'] = 'Create the missing pictures ({$a->count})? LMS Labs charges 5 credits for each picture it delivers, up to {$a->credits} credits. They are made one after another and saved in Moodle.';
+$string['genall_progress'] = 'Creating picture {$a->done} of {$a->count}…';
+$string['generateimage'] = 'Create picture ({$a} credits)';
 $string['generating'] = 'Creating… this can take a minute';
+$string['genone_confirm'] = 'Create a picture for this scene? LMS Labs charges 5 credits when the picture is delivered.';
+$string['genone_confirm_replace'] = 'Create a new picture for this scene? It replaces the current picture. LMS Labs charges 5 credits when the new picture is delivered.';
 $string['gradeaverage'] = 'Average of attempts';
 $string['gradefirst'] = 'First attempt';
 $string['gradehighest'] = 'Highest attempt';
@@ -147,9 +277,6 @@ $string['headline_best'] = 'Great choice!';
 $string['headline_bestretry'] = 'That works better.';
 $string['headline_poor'] = 'That didn\'t go well.';
 $string['herotitle'] = 'You are the {$a}';
-$string['imagecreated'] = 'Picture created. {$a} LMS Labs credits used.';
-$string['imagecreatedbalance'] = 'Picture created. {$a->charged} LMS Labs credits used; {$a->balance} left.';
-$string['imagehelp'] = 'Picture';
 $string['imageprompt_full'] = 'Create one {$a->style} for a workplace soft-skills lesson.
 
 Scene: {$a->description}
@@ -161,7 +288,6 @@ Rules:
 - Show the people involved clearly; faces, gestures and body language make the moment obvious.
 - The moment is shown just before anyone responds, so the picture suits both possible responses.
 - No text, letters, numbers, captions, signs, logos or speech bubbles.';
-$string['imageprompt_help'] = 'Copy this prompt into any AI that makes pictures (ChatGPT, Gemini, Copilot), then upload the picture.';
 $string['imagereplaced'] = 'Picture saved.';
 $string['imagestyle'] = 'Picture style';
 $string['imagestyle_illustration'] = 'bright, friendly flat illustration';
@@ -226,35 +352,42 @@ $string['lang_vi'] = 'Vietnamese';
 $string['lang_zh'] = 'Chinese (Simplified)';
 $string['lessonempty'] = 'The draft has no usable scenes. Each scene needs a title and two responses, one of them marked as the better one.';
 $string['lessoninvalid'] = 'That doesn\'t look like a set of scenes. Paste the whole reply, including the {"scenes": …} part.';
-$string['lessonprompt'] = 'You are an expert workplace trainer. Create picture-based soft-skills scenes.
+$string['lessonprompt'] = 'You are a senior workplace-learning designer and an expert in soft skills and behavioural coaching. Write demanding, realistic branching scenes for experienced adults.
 
 Industry: {$a->industry}
 Career level of the learner: {$a->level}. {$a->levelguide}
-Language: write every title, context, question, response, consequence and reason in {$a->language}. Use natural, everyday {$a->language} as people speak it at work.
+Language: write every title, context, question, response, consequence and reason in {$a->language}. Use natural {$a->language} as people really speak it at work in this industry, including its usual job titles and jargon.
 
 Soft skills to practise:
 {$a->skills}
 
-Create {$a->scenes} scenes, shared out between the skills. A scene is one realistic moment in this industry that a single picture can show, for example "A shift is behind on its target an hour before closing". The learner plays the {$a->level} and must choose between exactly two responses:
-- one clearly better response that shows the skill well (best: true);
-- one poorer but realistic response that people really do use under pressure (best: false), for example shouting "Hurry up!" instead of asking "Is there anything I can get you to help you reach your goals faster?".
-Do not make the poorer response silly or obviously rude every time; it should be tempting.
+Create {$a->scenes} scenes, shared out between the skills. Each scene is one decisive moment that a single picture can show. Make every scene genuinely complex:
+- at least two people with different, legitimate interests (for example a tired colleague, a demanding client and your own manager), and a real cost to every choice;
+- pressure that is typical for this industry and level: time, safety, targets, money, reputation, hierarchy or cultural differences;
+- missing or conflicting information, so the learner has to read the situation, not just recall a rule;
+- emotions under the surface (fear, pride, frustration, embarrassment) that the better response notices and handles.
+
+The learner plays the {$a->level} and chooses between exactly two responses:
+- the better response (best: true): what a skilled {$a->level} would really say or do. It is specific and shows the skill through observable behaviour, for example naming what they see, asking a real question, agreeing a next step or owning a mistake. It is not perfect or preachy, and it may still carry a cost;
+- the poorer response (best: false): a tempting, common mistake that capable people make under this pressure, for example taking over, avoiding the conversation, over-promising or reacting to tone instead of the problem. It must sound reasonable at first reading. Never make it rude, silly or obviously wrong.
 
 For each response give:
-- text: exactly what the person says or does
+- text: exactly what the person says or does, in one to three sentences
 - best: true or false (exactly one true per scene)
 - kpi: the workplace indicator the choice moves most, one of: {$a->kpis}
-- kpidelta: how much it moves, a whole number from 5 to {$a->maxdelta} for the better response and from -{$a->maxdelta} to -5 for the poorer one
-- consequence: two or three sentences on what happens next because of this choice
-- reason: one sentence on why the response works or does not
+- kpidelta: how much it moves, a whole number from 5 to {$a->maxdelta} for the better response and from -{$a->maxdelta} to -5 for the poorer one; bigger numbers for bigger consequences
+- consequence: two or three sentences on what realistically happens next, including a knock-on effect on another person, the team or the customer
+- reason: one or two sentences naming the specific behaviour that made it work or backfire, linked to the skill
 
 For every scene give:
 - skill: the soft skill practised
 - title: a short title for the moment
-- context: one or two sentences describing what is happening
+- context: two or three sentences: who is involved, what has just happened, and what is at stake
 - speaker: who the learner is in this moment, for example "You, the shift supervisor"
-- question: what the learner must decide, for example "What do you say to the team?"
-- imageprompt: an English description of one {$a->style} of this moment in a {$a->industry} workplace, showing the people involved, their body language and the setting. No text, letters, captions, signs or speech bubbles.
+- question: the decision the learner faces, for example "What do you say to Maria right now?"
+- imageprompt: an English description of one {$a->style} of this moment in a {$a->industry} workplace, showing the people involved, their body language and expressions, and the setting. No text, letters, captions, signs or speech bubbles. Do not describe real people.
+
+Vary the scenes: different people, places, times of day and kinds of pressure. Do not repeat the same dilemma.
 
 Reply with JSON only, in exactly this shape:
 {"scenes":[{"skill":"","title":"","context":"","speaker":"","question":"","imageprompt":"","options":[{"text":"","best":true,"kpi":"","kpidelta":20,"consequence":"","reason":""},{"text":"","best":false,"kpi":"","kpidelta":-20,"consequence":"","reason":""}]}]}';
@@ -281,7 +414,6 @@ $string['lmslabsapikey_desc'] = 'Used only with the standalone site ID above. St
 $string['lmslabscredentialsmissing'] = 'Configure this site\'s LMS Labs Site ID and API key in Central Config, or provide both in this plugin\'s settings.';
 $string['lmslabssiteid'] = 'Standalone LMS Labs site ID';
 $string['lmslabssiteid_desc'] = 'Leave empty when LMS Labs Central Config (local_aiconfig) is installed: its Site ID and API key are used automatically. Used only when Central Config does not have both, and only together with the standalone API key.';
-$string['managescenes'] = 'Scenes';
 $string['maxattempts'] = 'Attempts allowed';
 $string['modulename'] = 'AI Soft Skills';
 $string['modulename_help'] = 'AI Soft Skills lets learners practise workplace soft skills through picture scenes. Each scene shows a real moment in the chosen industry, such as a leader encouraging a team that is behind on a target, and offers two possible responses. The better response brings confetti and a rising workplace indicator such as morale or productivity; the poorer one shows what goes wrong. Only the first choice in each scene is marked.
@@ -304,6 +436,25 @@ $string['noscenesyet'] = 'No scenes yet. Build the scenes, or add scenes below.'
 $string['notready_manager'] = 'Add scenes that each have a picture and two responses, one of them marked as the better one.';
 $string['notready_student'] = 'Your teacher is still preparing this activity.';
 $string['notyourattempt'] = 'This attempt belongs to someone else.';
+$string['own_cost'] = 'Each click creates one scene for {$a} LMS Labs credits, charged only when the scene is delivered. Create as many scenes as you need, then press Next. Pictures come in the next step; the two responses learners choose between are added in step 7.';
+$string['own_guide_empty'] = 'No text? Leave the box empty and LMS Labs AI writes a scene from your choices above.';
+$string['own_guide_include'] = 'Say who is involved, what goes wrong, and the moment the learner has to decide what to say.';
+$string['own_guide_length'] = 'Length: 30 to 300 words (at most 2,000 characters). One situation per scene.';
+$string['own_guide_privacy'] = 'Remove real names and personal details.';
+$string['own_guide_type'] = 'What works well: something that happened at work, a customer complaint, an incident report, or a procedure staff find hard to follow.';
+$string['own_label'] = 'Your text';
+$string['own_placeholder'] = 'Example: A guest at the front desk complains loudly that their room is not ready. A new receptionist is about to blame housekeeping in front of the guest.';
+$string['path_assistant_desc'] = 'Copy our prompt into ChatGPT, Claude, Gemini or Copilot. More control over the content, and best for complex scenarios. No LMS Labs credits.';
+$string['path_assistant_note'] = 'This plugin does not send the prompt anywhere. Scenes arrive complete with both responses. Pictures are created with LMS Labs AI in the next step.';
+$string['path_assistant_only'] = 'LMS Labs AI scene writing is not available on this site, so create the scenes with your own AI assistant.';
+$string['path_assistant_title'] = 'Use an AI assistant';
+$string['path_own_desc'] = 'Paste or type a workplace situation. LMS Labs AI turns it into a scene. Quick and simple.';
+$string['path_own_title'] = 'Use your own text';
+$string['path_question'] = 'How do you want to create the scenes?';
+$string['pictures_alldone'] = 'Every scene has a picture.';
+$string['pictures_intro'] = 'Learners only see scenes that have a picture. LMS Labs AI creates each picture for {$a} credits, charged only when the picture is delivered. You can also upload your own picture.';
+$string['pictures_notconnected'] = 'Scene pictures are created by LMS Labs AI. Connect LMS Labs (Site ID and API key in Central Config) and switch on "AI scene pictures" to create them here, or upload your own picture for each scene.';
+$string['pictures_title'] = 'Create a picture for every scene';
 $string['playsettings'] = 'Playing';
 $string['pluginadministration'] = 'AI Soft Skills administration';
 $string['pluginname'] = 'AI Soft Skills';
@@ -314,6 +465,12 @@ $string['privacy:metadata:ailog:action'] = 'What was requested.';
 $string['privacy:metadata:ailog:status'] = 'Whether the request worked.';
 $string['privacy:metadata:ailog:timecreated'] = 'When the request was made.';
 $string['privacy:metadata:ailog:userid'] = 'The teacher.';
+$string['privacy:metadata:aireq'] = 'Teachers\' LMS Labs AI requests (scene drafts and pictures), kept so a request is never sent twice with a new key.';
+$string['privacy:metadata:aireq:body'] = 'The text sent to LMS Labs: the scene brief, audience and workplace, or the picture description.';
+$string['privacy:metadata:aireq:requestid'] = 'The LMS Labs reference.';
+$string['privacy:metadata:aireq:status'] = 'Whether the request worked.';
+$string['privacy:metadata:aireq:timecreated'] = 'When the request was made.';
+$string['privacy:metadata:aireq:userid'] = 'The teacher.';
 $string['privacy:metadata:attempt'] = 'Each time a learner plays the scenes.';
 $string['privacy:metadata:attempt:attempt'] = 'The attempt number.';
 $string['privacy:metadata:attempt:kpis'] = 'The workplace indicator values reached.';
@@ -332,7 +489,8 @@ $string['privacy:metadata:choice:sceneid'] = 'The scene.';
 $string['privacy:metadata:choice:timecreated'] = 'When the first choice was made.';
 $string['privacy:metadata:choice:tries'] = 'How many responses were tried.';
 $string['privacy:metadata:core_grades'] = 'Grades are stored in the gradebook.';
-$string['privacy:metadata:lmslabs'] = 'When a teacher creates a scene picture with AI, the scene\'s English picture description and the site\'s LMS Labs credentials are sent to LMS Labs, which creates the picture with OpenAI. No learner data is sent.';
+$string['privacy:metadata:lmslabs'] = 'When a teacher drafts a scene or creates a scene picture with LMS Labs AI, the teacher-written text (scene brief, audience and workplace, or the English picture description) and the site\'s LMS Labs credentials are sent to LMS Labs, which creates the text and pictures with its own AI providers. No learner data is sent.';
+$string['privacy:metadata:lmslabs:brief'] = 'The teacher-written scene brief, audience and workplace.';
 $string['privacy:metadata:lmslabs:prompt'] = 'The teacher-written picture description of the scene.';
 $string['privacy:metadata:lmslabs:siteid'] = 'The site\'s LMS Labs Site ID.';
 $string['progress'] = 'Progress';
@@ -354,6 +512,7 @@ $string['rating_beginning'] = 'Keep practising';
 $string['rating_developing'] = 'Good start';
 $string['rating_excellent'] = 'Outstanding!';
 $string['rating_strong'] = 'Well done!';
+$string['regenerateimage'] = 'New AI picture ({$a} credits)';
 $string['regradeall'] = 'Recalculate grades';
 $string['regraded'] = 'Grades recalculated.';
 $string['replaceimage'] = 'Save picture';
@@ -385,27 +544,47 @@ $string['scenecontext_help'] = 'One or two sentences shown above the picture, in
 $string['scenecount'] = 'Number of scenes';
 $string['scenecounter'] = 'Scene {$a->number} of {$a->total}';
 $string['scenedeleted'] = 'Scene deleted.';
+$string['scenehasimage'] = 'Picture ready';
 $string['sceneimage'] = 'Picture';
 $string['sceneimageprompt'] = 'Picture description (for AI)';
-$string['sceneimageprompt_help'] = 'An English description of the picture, used in the picture prompt. It is never shown to learners.';
-$string['sceneneedsimage'] = 'Needs a picture. ';
+$string['sceneimageprompt_help'] = 'An English description of the picture. LMS Labs AI uses it to create the scene picture. It is never shown to learners.';
+$string['sceneneedsimage'] = 'Needs a picture';
 $string['sceneneedsresponses'] = 'Needs two responses, one marked as the better one.';
 $string['scenequestion'] = 'Question to the learner';
-$string['sceneready'] = 'Ready to play';
+$string['sceneresponsesok'] = 'Two responses ready';
 $string['scenesaved'] = 'Scene saved.';
 $string['scenescreated'] = '{$a} scenes added.';
+$string['scenescript'] = 'Lead-in conversation';
+$string['scenescript_help'] = 'Shown to learners above the question, one line each. Write each line as "Name: what they say". Leave empty for no conversation.';
 $string['sceneskill'] = 'Soft skill';
 $string['scenesleft'] = 'Play every scene before finishing.';
 $string['scenespeaker'] = 'Who the learner is';
 $string['scenesword'] = 'Scenes';
+$string['sceneteachingnote'] = 'Teaching note';
+$string['sceneteachingnote_help'] = 'For teachers only: what this scene teaches. It is never shown to learners.';
 $string['scenetitle'] = 'Scene title';
 $string['scenetitle_help'] = 'Used when you add a scene without a picture. Scenes made from pictures take the file name as their title.';
 $string['scenex'] = 'Scene {$a}';
 $string['score'] = 'Score';
 $string['seeresults'] = 'See my results';
 $string['settings_ai'] = 'AI pictures (LMS Labs)';
-$string['settings_ai_desc'] = 'AI Soft Skills uses LMS Labs only to create scene pictures, at 5 LMS Labs credits per successful picture; failed requests are not charged and are never retried automatically. Teachers draft the scenes themselves with the copy-and-paste prompt. The picture description (English, teacher-written) is sent to LMS Labs; no learner data is sent.';
+$string['settings_ai_desc'] = 'AI Soft Skills uses LMS Labs for two things, each charged by LMS Labs only when it is delivered: scene drafts (3 credits each) and scene pictures (5 credits each). Every request is stored in Moodle before it is sent and is never retried automatically; "Check again" asks about the same request and cannot be charged twice. Teachers can still draft scenes themselves with the copy-and-paste prompt. Only teacher-written text is sent to LMS Labs; no learner data is sent.';
 $string['settings_defaults'] = 'Defaults for new activities';
+$string['setup_back'] = 'Back';
+$string['setup_needpictures'] = 'Scenes still without a picture: {$a}.';
+$string['setup_needresponses'] = 'Scenes still without their two responses: {$a}.';
+$string['setup_needscene'] = 'Create at least one scene first.';
+$string['setup_next'] = 'Next: {$a}';
+$string['setup_progress'] = 'Step {$a->current} of {$a->total}';
+$string['setup_title'] = 'Set up the lesson';
+$string['setupstep_check'] = 'Check the scenes';
+$string['setupstep_create'] = 'Create the scenes';
+$string['setupstep_finish'] = 'Finish';
+$string['setupstep_language'] = 'Language';
+$string['setupstep_level'] = 'Level';
+$string['setupstep_pictures'] = 'Pictures';
+$string['setupstep_skills'] = 'Skills';
+$string['setupstep_workplace'] = 'Workplace';
 $string['shuffleoptions'] = 'Shuffle the order of the two responses';
 $string['skill_accountability'] = 'Accountability';
 $string['skill_activelistening'] = 'Active listening';
@@ -440,11 +619,12 @@ $string['sounds_desc'] = 'Play short sound effects (made in the browser, no audi
 $string['start'] = 'Start';
 $string['state_finished'] = 'Finished';
 $string['state_inprogress'] = 'In progress';
-$string['step_build'] = 'Build';
 $string['step_language'] = 'Language';
 $string['step_level'] = 'Level';
 $string['step_skills'] = 'Skills';
 $string['step_workplace'] = 'Workplace';
+$string['takeaway_better'] = 'A stronger response:';
+$string['takeaways'] = 'What to take away';
 $string['teachertools'] = 'Teacher tools';
 $string['tryagain'] = 'Try the other response';
 $string['tryagainactivity'] = 'Play again';
@@ -452,6 +632,7 @@ $string['twooptionsrequired'] = 'A scene needs exactly two responses, with one m
 $string['uploadimage'] = 'Upload a picture';
 $string['uploadimages'] = 'Pictures';
 $string['uploadimages_help'] = 'PNG, JPEG, GIF or WebP, or a ZIP of them (up to 100 pictures).';
+$string['uploadownimage'] = 'Upload my own picture';
 $string['whatdoyousay'] = 'What do you say?';
 $string['why'] = 'Why:';
 $string['workplace'] = 'Workplace';
@@ -459,130 +640,3 @@ $string['workplaceindicators'] = 'Workplace indicators';
 $string['yourattempts'] = 'Your attempts';
 $string['zipinvalid'] = 'That ZIP file could not be read.';
 $string['ziptoolarge'] = 'That ZIP is too large. Upload at most {$a} pictures and 200 MB unpacked.';
-$string['textdraft_title'] = 'Workplace scene/script text draft';
-$string['textdraft_explanation'] = 'A successful script draft costs 3 credits, separately from pictures (5 credits each). Describe an adult workplace conversation without learner personal data. The generated dialogue is for teacher review and editing: it is NOT a playable two-choice scene and cannot be directly imported as a branching lesson. Moodle saves both the original draft and your edits.';
-$string['textdraft_brief'] = 'Scene/script brief (up to 2,000 characters)';
-$string['textdraft_submit'] = 'Request script draft (3 credits if successful)';
-$string['textdraft_resume'] = 'Check original request using the same key (never starts a new draft)';
-$string['textdraft_result'] = 'Your editable script draft';
-$string['textdraft_original'] = 'Original scene/script draft (read-only)';
-$string['textdraft_save'] = 'Save edits in Moodle (no credits)';
-$string['textdraft_reference'] = 'LMS Labs reference:';
-$string['textdraft_state_pending'] = 'Pending or delivery uncertain. Check the original request; do not create another draft to retry.';
-$string['textdraft_state_complete'] = 'Draft received and saved in Moodle.';
-$string['textdraft_state_error'] = 'This request cannot be resumed. Review the error before intentionally creating another draft.';
-$string['textdraft_state_expired'] = 'The remote request expired. Starting a new draft requires a new intentional submission.';
-$string['textdraft_invalid'] = 'Enter a non-empty brief of at most 2,000 characters, without control characters or angle brackets.';
-$string['textdraft_invalidedit'] = 'The edited script must have text and be at most 32,000 characters.';
-$string['textdraft_intentconflict'] = 'This submission token already belongs to a different draft. Reload before making a new request.';
-$string['textdraft_uncertain'] = 'Could not confirm the result. The original request was saved. Use Check original request to recover with the same key; do not start another paid draft.';
-$string['textdraft_sitechanged'] = 'This request belongs to a different LMS Labs Site ID. Restore the original site credentials before checking it.';
-$string['privacy:metadata:draft'] = 'Teacher-authored scene/script drafts and persisted request state for recovery. Completed scripts remain in Moodle until deletion. Pending briefs are kept for recovery until expiration or deletion.';
-$string['privacy:metadata:draft:userid'] = 'The teacher who requested the draft.';
-$string['privacy:metadata:draft:requestkey'] = 'Backend idempotency key used to avoid duplicate charges.';
-$string['privacy:metadata:draft:intentkey'] = 'Teacher form token used to deduplicate form submissions.';
-$string['privacy:metadata:draft:siteid'] = 'Site ID used for this request; recovery cannot silently switch billing clients.';
-$string['privacy:metadata:draft:requestbody'] = 'The teacher-authored brief while a request is pending.';
-$string['privacy:metadata:draft:bodyhash'] = 'Digest used to reject changed form payloads on repeat submission.';
-$string['privacy:metadata:draft:responsebody'] = 'The original completed dialogue/script draft.';
-$string['privacy:metadata:draft:editedbody'] = 'The teacher-edited copy of the script.';
-$string['privacy:metadata:draft:requestid'] = 'LMS Labs request reference.';
-$string['privacy:metadata:draft:errorcode'] = 'Sanitized error code, if any.';
-$string['privacy:metadata:draft:state'] = 'The operation status.';
-$string['privacy:metadata:draft:timecreated'] = 'When the operation was requested.';
-$string['privacy:metadata:draft:timemodified'] = 'When the operation was last updated.';
-$string['privacy:metadata:textdraft'] = 'The teacher-authored brief and site credentials are sent to LMS Labs for a separately billed OpenAI text draft; no learner data should be included.';
-$string['imageintent_invalid'] = 'Invalid image request. Reload this page before requesting another picture.';
-$string['imageintent_sitechanged'] = 'The original picture request belongs to another LMS Labs Site ID. Restore the original account before checking its status.';
-$string['imageintent_deleteblocked'] = 'This scene has an unresolved picture request. Check its original billing key or ask support to reconcile it before deleting the scene.';
-$string['imageintent_uncertain'] = 'Picture status is uncertain. Check the saved request using the same key; do not start another paid operation.';
-$string['imageintent_pending'] = 'An earlier picture request is pending or uncertain. Check the original request with the same key (no new picture intent). Reference:';
-$string['imageintent_saving'] = 'Moodle picture storage was interrupted after LMS Labs returned image bytes. This request might already have charged 5 credits. Inspect the scene picture and contact support; a new billing key is blocked until the operation is reconciled. Reference:';
-$string['imageintent_resume'] = 'Check the original picture request (same billing key)';
-$string['imageintent_confirm'] = 'Start a NEW picture request? A successful picture costs 5 credits. Existing uncertain requests must first be checked using their original key.';
-$string['imageintent_replayed'] = 'Picture was already saved in Moodle. No additional credits were charged.';
-$string['imageintent_lost'] = 'The previous picture request completed or returned 410 but no image bytes are available. It may already have charged 5 credits. LMS Labs does NOT retain/replay pictures; a NEW intentional request may charge again. Reference:';
-$string['imageintent_closed'] = 'The previous picture request ended with an error. Starting another request is a new intentional operation and may cost 5 credits. Reference:';
-$string['privacy:metadata:imagejob'] = 'Teacher picture request identity, exact pending prompt/style, billing key and status. No image bytes are stored here, and LMS Labs cannot replay an image after completion.';
-$string['privacy:metadata:imagejob:userid'] = 'The teacher who requested the image.';
-$string['privacy:metadata:imagejob:sceneid'] = 'The scene for the picture.';
-$string['privacy:metadata:imagejob:intentkey'] = 'Form intent to avoid charging twice on a repeated submission.';
-$string['privacy:metadata:imagejob:requestkey'] = 'Backend idempotency key for manual pending recovery.';
-$string['privacy:metadata:imagejob:siteid'] = 'Billing site identity used in the original request.';
-$string['privacy:metadata:imagejob:requestbody'] = 'Picture description and style while request status is unresolved.';
-$string['privacy:metadata:imagejob:requestid'] = 'Backend request reference.';
-$string['privacy:metadata:imagejob:errorcode'] = 'Sanitized operation status/error code.';
-$string['privacy:metadata:imagejob:state'] = 'State of the image operation.';
-$string['privacy:metadata:imagejob:timecreated'] = 'When the image request began.';
-$string['privacy:metadata:imagejob:timemodified'] = 'When the status last changed.';
-
-$string['activation'] = 'AI Soft Skills activation';
-$string['act_access'] = 'Access';
-$string['act_balance'] = 'Balance';
-$string['act_balance_unknown'] = 'Unknown (check access to update)';
-$string['act_balance_unlimited'] = 'Unlimited';
-$string['act_blocked_nocredentials'] = 'Add a complete Site ID and API key first.';
-$string['act_blocked_pending'] = 'An earlier unlock request has an uncertain outcome. Check access before trying again.';
-$string['act_blocked_release'] = 'LMS Labs has not confirmed the release and price.';
-$string['act_blocked_unlocked'] = 'This site is already unlocked.';
-$string['act_blocked_unverified'] = 'Access could not be verified. Check access first.';
-$string['act_blocked_pendingstorage'] = 'The pending request could not be saved. Nothing was sent; contact your administrator.';
-$string['act_check'] = 'Check access';
-$string['act_checkedat'] = 'checked {$a}';
-$string['act_configurecentral'] = 'Configure Central Config';
-$string['act_configurelocal'] = 'AI Soft Skills settings';
-$string['act_confirm'] = 'Unlock AI Soft Skills for this site for {$a->price} LMS Labs credits? This spends credits once and cannot be undone. Balance now: {$a->balance}. Release: {$a->release}.';
-$string['act_confirmbutton'] = 'Unlock for {$a} credits';
-$string['act_credits'] = '{$a} credits';
-$string['act_entitlementsource'] = 'entitlement: {$a}';
-$string['act_err_network'] = 'no response from LMS Labs';
-$string['act_err_nocredentials'] = 'no complete Site ID and API key';
-$string['act_intro'] = 'AI Soft Skills needs one-time activation for this site. Checking access is free. Unlocking spends LMS Labs credits only after you confirm the live price.';
-$string['act_msg_already'] = 'This site was already unlocked.';
-$string['act_msg_ambiguous'] = 'Not unlocked: LMS Labs could not match this site to a single Marketplace purchase ({$a}). Contact LMS Labs support; trying again will not fix this.';
-$string['act_msg_balance'] = 'Balance: {$a}.';
-$string['act_msg_blocked'] = 'Nothing was sent to LMS Labs. {$a}';
-$string['act_msg_changed'] = 'Not unlocked: the price or release changed after confirmation. Review the new price and try again.';
-$string['act_msg_check_locked'] = 'Access checked: this site is locked.';
-$string['act_msg_check_unknown'] = 'Access could not be verified ({$a}).';
-$string['act_msg_check_unlocked'] = 'Access checked: this site is unlocked.';
-$string['act_msg_conflict'] = 'Not unlocked: LMS Labs reported a conflict ({$a}). If the message does not say what to do, contact LMS Labs support.';
-$string['act_msg_consumed'] = 'LMS Labs recorded {$a} credits for this unlock.';
-$string['act_msg_historic'] = 'Credits used when the unlock was first bought: {$a} (not a new charge).';
-$string['act_msg_insufficient'] = 'Not unlocked: not enough credits ({$a}).';
-$string['act_msg_notreported'] = 'LMS Labs did not report the credits for this request; check the balance below.';
-$string['act_msg_refused'] = 'Not unlocked: LMS Labs refused the request ({$a}).';
-$string['act_msg_resolved_locked'] = 'The earlier unlock request did not unlock this site. You can review the price and try again.';
-$string['act_msg_resolved_unlocked'] = 'The earlier unlock request did complete.';
-$string['act_msg_restoredpurchase'] = 'It was activated from your existing {$a} purchase, so this unlock used 0 credits.';
-$string['act_msg_servermessage'] = 'LMS Labs: {$a}';
-$string['act_msg_stale'] = 'Not unlocked: the credit price at LMS Labs changed ({$a}). Review the new price and confirm again.';
-$string['act_msg_uncertain'] = 'The unlock request did not return a clear answer ({$a}). Check access before trying again; unlocking stays disabled until then.';
-$string['act_msg_unlocked'] = 'AI Soft Skills is unlocked for this site.';
-$string['act_notproof'] = 'Having a Site ID and API key does not mean this site has unlocked AI Soft Skills. Use Check access.';
-$string['act_pendingnote'] = 'An unlock request sent {$a} did not return a clear answer.';
-$string['act_price'] = 'One-time activation price';
-$string['act_price_live'] = '{$a} credits (live from LMS Labs)';
-$string['act_price_unavailable'] = 'Unavailable: {$a}. Unlocking is disabled until LMS Labs confirms the release and price.';
-$string['act_reason_mode'] = 'the acquisition mode ({$a}) does not allow unlocking with credits';
-$string['act_reason_noprice'] = 'the catalogue entry has no valid credit price';
-$string['act_reason_nosha'] = 'the catalogue entry has no valid SHA-256';
-$string['act_reason_notavailable'] = 'the release is not available (availability: {$a})';
-$string['act_reason_notlisted'] = 'mod_aisoftskills is not in the LMS Labs release catalogue';
-$string['act_reason_nozip'] = 'the release package is not available at LMS Labs';
-$string['act_reason_unreachable'] = 'the LMS Labs release catalogue could not be read';
-$string['act_release'] = 'Release {$a->version}, SHA-256 {$a->sha}';
-$string['act_settings_link'] = 'Open AI Soft Skills activation';
-$string['act_settings_status'] = 'Activation status (last check): {$a}.';
-$string['act_source'] = 'Credential source';
-$string['act_source_central'] = 'Central Config (local_aiconfig)';
-$string['act_source_local'] = 'This plugin\'s own Site ID and API key (complete pair)';
-$string['act_source_missing'] = 'Not configured';
-$string['act_nocentral'] = 'Central Config (local_aiconfig) is not installed.';
-$string['act_status_locked'] = 'Locked';
-$string['act_status_notchecked'] = 'Not checked';
-$string['act_status_unknown'] = 'Unable to verify';
-$string['act_status_unlocked'] = 'Unlocked';
-$string['act_unlock'] = 'Unlock…';
-$string['act_unlockedat'] = 'unlocked {$a}';
-$string['act_warn_insufficient'] = 'The balance ({$a->balance}) is below the price ({$a->price} credits). LMS Labs will refuse the unlock unless it recognises an existing purchase for this site.';

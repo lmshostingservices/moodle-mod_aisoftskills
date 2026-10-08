@@ -26,18 +26,20 @@
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
 import {init as initCopy} from 'mod_aisoftskills/copy';
-import {render, loadStrings} from 'mod_aisoftskills/ui';
+import * as Requests from 'mod_aisoftskills/requests';
+import {render, loadStrings, fmt} from 'mod_aisoftskills/ui';
 
 const KPIS = ['morale', 'motivation', 'productivity', 'trust', 'wellbeing', 'engagement', 'teamwork',
     'customersatisfaction', 'quality', 'safety'];
 const MAX_DELTA = 50;
 
 /**
- * The wizard (steps 1 to 4).
+ * The wizard (set-up steps 1 to 4).
  *
  * @param {string} selector
+ * @param {number} start the step to open (1 to 4), e.g. 4 when coming back from step 5
  */
-export const initWizard = async(selector) => {
+export const initWizard = async(selector, start = 1) => {
     const form = document.querySelector(selector);
     if (!form) {
         return;
@@ -48,6 +50,8 @@ export const initWizard = async(selector) => {
     const next = form.querySelector('[data-action="nextstep"]');
     const save = form.querySelector('[data-action="save"]');
     const skillStep = 2;
+    const progress = document.querySelector('[data-region="setupprogress"]');
+    const S = await loadStrings(['setup_progress']);
     let current = 0;
     form.classList.add('is-enhanced');
 
@@ -65,7 +69,15 @@ export const initWizard = async(selector) => {
         dots.forEach((d, k) => {
             d.classList.toggle('is-active', k === current);
             d.classList.toggle('is-done', k < current);
+            if (k === current) {
+                d.setAttribute('aria-current', 'step');
+            } else {
+                d.removeAttribute('aria-current');
+            }
         });
+        if (progress) {
+            progress.textContent = fmt(S.setup_progress, {current: current + 1, total: 8});
+        }
         prev.hidden = current === 0;
         next.hidden = current === steps.length - 1;
         save.hidden = current !== steps.length - 1;
@@ -111,7 +123,7 @@ export const initWizard = async(selector) => {
         }
     });
     syncIndustry();
-    show(0);
+    show(start - 1);
 };
 
 /**
@@ -180,7 +192,9 @@ export const initBuild = async(selector) => {
     if (!root) {
         return;
     }
-    const S = await loadStrings(['lessoninvalid', 'creating', 'lessonempty', ...KPIS.map((k) => 'kpi_' + k)]);
+    const S = await loadStrings(['lessoninvalid', 'creating', 'lessonempty', 'aidraft_drafting', 'aidraft_confirm',
+        'confirm_title', 'confirm_create',
+        ...KPIS.map((k) => 'kpi_' + k)]);
     initCopy('.ss-copy');
     const cmid = parseInt(root.dataset.cmid, 10);
     const review = root.querySelector('[data-region="review"]');
@@ -207,13 +221,60 @@ export const initBuild = async(selector) => {
                 await Ajax.call([{methodname: 'mod_aisoftskills_import_lesson', args: {cmid,
                     // Escape "<" so the JSON passes PARAM_TEXT; the server decodes it and strips any markup itself.
                     draft: JSON.stringify({scenes: keep}).replace(/</g, '\\u003c')}}])[0];
-                window.location.href = root.dataset.scenesurl;
+                window.location.href = root.dataset.nexturl;
             } catch (err) {
                 btn.disabled = false;
                 Notification.exception(err);
             }
         });
     };
+
+    // Two ways to create scenes: show only the one the teacher picks.
+    root.querySelectorAll('input[name="ss-path"]').forEach((radio) => radio.addEventListener('change', () => {
+        root.querySelectorAll('[data-path]').forEach((path) => {
+            path.hidden = path.dataset.path !== radio.value;
+        });
+        root.querySelector('[data-path="' + radio.value + '"]').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+    }));
+
+    const panel = root.querySelector('[data-region="aidraft"]');
+    if (panel) {
+        const region = panel.querySelector('[data-region="aireqs"]');
+        // A delivered scene is saved already: reload so it counts and Next opens.
+        const delivered = (request) => {
+            Requests.toast(request);
+            window.setTimeout(() => window.location.reload(), 2500);
+        };
+        Requests.init(region, delivered);
+        const button = panel.querySelector('[data-action="aidraft"]');
+        const label = button.querySelector('span');
+        const original = label.textContent;
+        button.addEventListener('click', async() => {
+            const value = (name) => panel.querySelector('[data-field="' + name + '"]').value;
+            // No text of their own: LMS Labs AI writes a scene from the choices made earlier.
+            const brief = value('brief').trim() || panel.querySelector('[data-field="brief"]').dataset.default;
+            // A paid request: confirmed first, with the credits named.
+            const go = await new Promise((resolve) => Notification.saveCancel(S.confirm_title, S.aidraft_confirm,
+                S.confirm_create, () => resolve(true), () => resolve(false)));
+            if (!go) {
+                return;
+            }
+            button.disabled = true;
+            label.textContent = S.aidraft_drafting;
+            try {
+                // One intentional, stored request per click (a new key); it is never resent automatically.
+                const request = await Ajax.call([{methodname: 'mod_aisoftskills_draft_scene', args: {cmid,
+                    brief, audience: value('audience'), context: value('context')}}],
+                    true, true, false, 180000)[0];
+                await Requests.show(region, request, delivered);
+            } catch (err) {
+                Notification.exception(err);
+            } finally {
+                button.disabled = false;
+                label.textContent = original;
+            }
+        });
+    }
 
     root.querySelector('[data-action="preview"]').addEventListener('click', () => {
         const data = parse(root.querySelector('[data-region="json"]').value);

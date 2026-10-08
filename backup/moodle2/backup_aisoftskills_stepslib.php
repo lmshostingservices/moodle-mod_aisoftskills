@@ -41,7 +41,7 @@ class backup_aisoftskills_activity_structure_step extends backup_activity_struct
         ]);
         $scenes = new backup_nested_element('scenes');
         $scene = new backup_nested_element('scene', ['id'], ['sortorder', 'skill', 'title', 'context', 'speaker',
-            'question', 'imageprompt', 'timecreated', 'timemodified']);
+            'question', 'imageprompt', 'script', 'teachingnote', 'timecreated', 'timemodified']);
         $options = new backup_nested_element('options');
         $option = new backup_nested_element('option', ['id'], ['sortorder', 'text', 'best', 'kpi', 'kpidelta',
             'consequence', 'reason']);

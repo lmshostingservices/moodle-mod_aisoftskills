@@ -58,7 +58,6 @@ final class lesson_test extends \advanced_testcase {
 
     /**
      * Only scenes with two responses and exactly one better response are kept; deltas follow the better flag.
-     * @covers \mod_aisoftskills\local\lesson
      */
     public function test_parse(): void {
         $this->resetAfterTest();
@@ -82,7 +81,6 @@ final class lesson_test extends \advanced_testcase {
 
     /**
      * Unknown indicators fall back and deltas are limited.
-     * @covers \mod_aisoftskills\local\manager
      */
     public function test_clean_option(): void {
         $o = manager::clean_option(['text' => 'x', 'best' => 1, 'kpi' => 'nonsense', 'kpidelta' => 400]);
@@ -96,7 +94,6 @@ final class lesson_test extends \advanced_testcase {
 
     /**
      * Imported scenes land in order with their two responses.
-     * @covers \mod_aisoftskills\local\lesson
      */
     public function test_import(): void {
         global $DB;
@@ -115,7 +112,6 @@ final class lesson_test extends \advanced_testcase {
 
     /**
      * The prompt carries the industry, level, language and skills, in English whatever the teacher's language.
-     * @covers \mod_aisoftskills\local\lesson
      */
     public function test_prompt(): void {
         $this->resetAfterTest();

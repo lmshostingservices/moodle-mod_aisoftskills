@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Scene manager: pictures, order, and adding or removing scenes.
+ * Set-up steps 6 (pictures for every scene) and 7 (check each scene: responses, order, add or remove).
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services
@@ -25,13 +25,15 @@
 require(__DIR__ . '/../../config.php');
 
 use mod_aisoftskills\local\ai\factory;
+use mod_aisoftskills\local\ai\requests;
 use mod_aisoftskills\local\catalogue;
-use mod_aisoftskills\local\lesson;
 use mod_aisoftskills\local\manager;
+use mod_aisoftskills\local\setuppath;
 
 $id = required_param('id', PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
 $sceneid = optional_param('sceneid', 0, PARAM_INT);
+$step = optional_param('step', 'check', PARAM_ALPHA) === 'pictures' ? setuppath::PICTURES : setuppath::CHECK;
 
 [$course, $cm] = get_course_and_cm_from_cmid($id, 'aisoftskills');
 $instance = $DB->get_record('aisoftskills', ['id' => $cm->instance], '*', MUST_EXIST);
@@ -39,12 +41,13 @@ require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/aisoftskills:manage', $context);
 
-$baseurl = new moodle_url('/mod/aisoftskills/scenes.php', ['id' => $cm->id]);
+$baseurl = setuppath::url((int)$cm->id, $step);
 $PAGE->set_url($baseurl);
-$PAGE->set_title(format_string($instance->name) . ': ' . get_string('managescenes', 'mod_aisoftskills'));
+$PAGE->set_title(format_string($instance->name) . ': ' .
+    get_string('setupstep_' . setuppath::STEPS[$step - 1], 'mod_aisoftskills'));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->activityheader->disable();
-if ($node = $PAGE->settingsnav->find('aisoftskills_scenes', navigation_node::TYPE_SETTING)) {
+if ($node = $PAGE->settingsnav->find('aisoftskills_builder', navigation_node::TYPE_SETTING)) {
     $node->make_active();
 }
 
@@ -136,13 +139,16 @@ $cards = [];
 $i = 0;
 $total = count($scenes);
 $sesskey = sesskey();
+$missing = [];
+$noresponses = 0;
 foreach ($scenes as $s) {
     $i++;
-    $imagejob = \mod_aisoftskills\local\ai\image_job::latest((int)$s->id, (int)$USER->id);
     [$url] = manager::get_scene_image($context, (int)$s->id);
-    $list = array_values(array_filter($options[$s->id], fn($o) => trim((string)$o->text) !== ''));
-    $hasbest = count(array_filter($list, fn($o) => (int)$o->best === 1)) === 1;
-    $responsesok = count($list) === manager::OPTIONS && $hasbest;
+    $responsesok = setuppath::responses_ok($options[$s->id]);
+    if (!$url) {
+        $missing[] = (int)$s->id;
+    }
+    $noresponses += $responsesok ? 0 : 1;
     $cards[] = [
         'id' => (int)$s->id,
         'number' => $i,
@@ -150,19 +156,9 @@ foreach ($scenes as $s) {
         'skill' => format_string((string)$s->skill, true, ['context' => $context]),
         'image' => $url,
         'noimage' => !$url,
-        'responses' => count($list),
         'responsesok' => $responsesok,
-        'ready' => $url && $responsesok,
-        'imageprompt' => lesson::image_prompt($instance, $s),
         'canai' => $canai,
         'imagecredits' => \mod_aisoftskills\local\ai\lmslabs::IMAGE_CREDITS,
-        'imageintent' => \core\uuid::generate(),
-        'imagepending' => $imagejob && $imagejob->state === 'pending',
-        'imagesaving' => $imagejob && $imagejob->state === 'saving',
-        'imagewarning' => $imagejob && $imagejob->state === 'lost',
-        'imageclosed' => $imagejob && $imagejob->state === 'error',
-        'imageref' => $imagejob ? (string)$imagejob->requestid : '',
-        'imageerror' => $imagejob ? (string)$imagejob->errorcode : '',
         'editurl' => (new moodle_url('/mod/aisoftskills/editor.php', ['id' => $cm->id, 'sceneid' => $s->id]))->out(false),
         'upurl' => $i > 1 ? (new moodle_url($baseurl, ['action' => 'up', 'sceneid' => $s->id, 'sesskey' => $sesskey]))
             ->out(false) : null,
@@ -173,16 +169,49 @@ foreach ($scenes as $s) {
     ];
 }
 
+$str = fn($k, $a = null) => get_string($k, 'mod_aisoftskills', $a);
+if ($step === setuppath::PICTURES) {
+    $blocked = $missing ? $str('setup_needpictures', count($missing)) : '';
+    $back = setuppath::CREATE;
+} else {
+    $blocked = $noresponses ? $str('setup_needresponses', $noresponses)
+        : ($missing ? $str('setup_needpictures', count($missing)) : '');
+    $back = setuppath::PICTURES;
+}
+if (!$total) {
+    $blocked = $str('setup_needscene');
+}
+$next = $step + 1;
+
 $PAGE->requires->js_call_amd('mod_aisoftskills/scenes', 'init', ['#ss-scenes']);
 
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('mod_aisoftskills/scenes', [
+    'bar' => setuppath::bar($step),
+    'pictures' => $step === setuppath::PICTURES,
+    'check' => $step === setuppath::CHECK,
     'cards' => $cards,
     'hasscenes' => $total > 0,
     'industry' => catalogue::industry_name($instance->industry, (string)$instance->customindustry),
     'count' => $total,
-    'viewurl' => (new moodle_url('/mod/aisoftskills/view.php', ['id' => $cm->id]))->out(false),
-    'builderurl' => (new moodle_url('/mod/aisoftskills/builder.php', ['id' => $cm->id]))->out(false),
-    'addform' => $addform->render(),
+    'addform' => $step === setuppath::CHECK ? $addform->render() : '',
+    'cmid' => (int)$cm->id,
+    'canai' => $canai,
+    'aioff' => !$canai,
+    'missingcount' => count($missing),
+    'missingids' => implode(',', $missing),
+    'missingcredits' => count($missing) * \mod_aisoftskills\local\ai\lmslabs::IMAGE_CREDITS,
+    'imagecredits' => \mod_aisoftskills\local\ai\lmslabs::IMAGE_CREDITS,
+    'requests' => $step === setuppath::PICTURES && has_capability('mod/aisoftskills:useai', $context) ? array_map(
+        fn($r) => requests::export($r, $context),
+        requests::open((int)$instance->id, requests::IMAGE)
+    ) : [],
+    'nav' => [
+        'backurl' => setuppath::url((int)$cm->id, $back)->out(false),
+        'backlabel' => $str('setup_back'),
+        'nexturl' => setuppath::url((int)$cm->id, $next)->out(false),
+        'nextlabel' => $str('setup_next', $str('setupstep_' . setuppath::STEPS[$next - 1])),
+        'blocked' => $blocked,
+    ],
 ]);
 echo $OUTPUT->footer();

@@ -215,7 +215,7 @@ class manager {
      * Adds a scene at the end.
      *
      * @param stdClass $instance
-     * @param array $data title, skill, context, speaker, question, imageprompt
+     * @param array $data title, skill, context, speaker, question, imageprompt, script (JSON), teachingnote
      * @return int scene id
      */
     public static function add_scene(stdClass $instance, array $data): int {
@@ -235,6 +235,8 @@ class manager {
             'speaker' => self::clean_line($data['speaker'] ?? ''),
             'question' => self::clean_line($data['question'] ?? ''),
             'imageprompt' => self::clean_text($data['imageprompt'] ?? '', 2000),
+            'script' => self::clean_script($data['script'] ?? ''),
+            'teachingnote' => self::clean_text($data['teachingnote'] ?? '', 2000),
             'timecreated' => $now,
             'timemodified' => $now,
         ]);
@@ -298,7 +300,7 @@ class manager {
      * Saves a scene and its two responses.
      *
      * @param stdClass $scene
-     * @param array $data title, skill, context, speaker, question, imageprompt
+     * @param array $data title, skill, context, speaker, question, imageprompt, script (JSON), teachingnote
      * @param array $options exactly two response arrays; exactly one marked best
      */
     public static function save_scene(stdClass $scene, array $data, array $options): void {
@@ -317,10 +319,13 @@ class manager {
                 $update->$field = self::clean_line($data[$field], $len);
             }
         }
-        foreach (['context', 'imageprompt'] as $field) {
+        foreach (['context', 'imageprompt', 'teachingnote'] as $field) {
             if (array_key_exists($field, $data)) {
                 $update->$field = self::clean_text($data[$field], 2000);
             }
+        }
+        if (array_key_exists('script', $data)) {
+            $update->script = self::clean_script($data['script']);
         }
         if (isset($update->title) && $update->title === '') {
             $update->title = get_string('newscene', 'mod_aisoftskills');
@@ -337,8 +342,8 @@ class manager {
                 $DB->insert_record('aisoftskills_option', $option);
             }
         }
-        for ($i = count($clean); $i < count($existing); $i++) {
-            $DB->delete_records('aisoftskills_option', ['id' => $existing[$i]->id]);
+        foreach (array_slice($existing, count($clean)) as $extra) {
+            $DB->delete_records('aisoftskills_option', ['id' => $extra->id]);
         }
         $transaction->allow_commit();
     }
@@ -351,13 +356,6 @@ class manager {
      */
     public static function delete_scene(\context $context, stdClass $scene): void {
         global $DB;
-        if ($DB->record_exists_select('aisoftskills_imagejob',
-            'sceneid = :sceneid AND (state = :pending OR state = :saving)',
-            ['sceneid' => $scene->id, 'pending' => 'pending', 'saving' => 'saving'])) {
-            // An unconfirmed charge must retain its scene, persisted body and billing key.
-            throw new moodle_exception('imageintent_deleteblocked', 'mod_aisoftskills');
-        }
-        $DB->delete_records('aisoftskills_imagejob', ['sceneid' => $scene->id]);
         $DB->delete_records('aisoftskills_choice', ['sceneid' => $scene->id]);
         $DB->delete_records('aisoftskills_option', ['sceneid' => $scene->id]);
         $DB->delete_records('aisoftskills_scene', ['id' => $scene->id]);
@@ -744,5 +742,88 @@ class manager {
         $lines = preg_split('/\R/u', clean_param((string)$value, PARAM_TEXT));
         $lines = array_map(fn($l) => trim(preg_replace('/[ \t]+/u', ' ', $l)), $lines);
         return \core_text::substr(trim(implode("\n", $lines)), 0, $length);
+    }
+
+    /** @var int Most dialogue lines in a scene's lead-in. */
+    public const MAX_DIALOGUE = 20;
+
+    /**
+     * Cleans a scene's lead-in dialogue (JSON with characters and speaker/line pairs).
+     *
+     * @param mixed $value JSON string or array
+     * @return string JSON, or '' when there is no dialogue
+     */
+    public static function clean_script($value): string {
+        $data = is_array($value) ? $value : json_decode((string)$value, true);
+        $dialogue = [];
+        foreach (array_slice((array)($data['dialogue'] ?? []), 0, self::MAX_DIALOGUE) as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            $line = self::clean_text($entry['line'] ?? '', 1000);
+            if ($line !== '') {
+                $dialogue[] = ['speaker' => self::clean_line($entry['speaker'] ?? '', 100), 'line' => $line];
+            }
+        }
+        if (!$dialogue) {
+            return '';
+        }
+        $characters = [];
+        foreach (array_merge((array)($data['characters'] ?? []), array_column($dialogue, 'speaker')) as $name) {
+            $name = self::clean_line($name, 100);
+            if ($name !== '' && !in_array($name, $characters, true)) {
+                $characters[] = $name;
+            }
+        }
+        return json_encode(
+            ['characters' => $characters, 'dialogue' => $dialogue],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
+    }
+
+    /**
+     * A scene's dialogue lines.
+     *
+     * @param string|null $script
+     * @return array list of ['speaker' => string, 'line' => string]
+     */
+    public static function dialogue(?string $script): array {
+        $data = json_decode(self::clean_script((string)$script), true);
+        return $data['dialogue'] ?? [];
+    }
+
+    /**
+     * A scene's dialogue as editable text, one "Speaker: line" per line.
+     *
+     * @param string|null $script
+     * @return string
+     */
+    public static function script_to_text(?string $script): string {
+        return implode("\n", array_map(
+            fn($d) => $d['speaker'] !== '' ? $d['speaker'] . ': ' . $d['line'] : $d['line'],
+            self::dialogue($script)
+        ));
+    }
+
+    /**
+     * Reads "Speaker: line" text back into dialogue JSON.
+     *
+     * @param string $text
+     * @return string JSON, or '' when empty
+     */
+    public static function text_to_script(string $text): string {
+        $dialogue = [];
+        foreach (preg_split('/\R/u', $text) as $row) {
+            $row = trim($row);
+            if ($row === '') {
+                continue;
+            }
+            if (preg_match('/^([^:]{1,100}):\s*(.+)$/u', $row, $m)) {
+                $dialogue[] = ['speaker' => trim($m[1]), 'line' => trim($m[2])];
+            } else {
+                $dialogue[] = ['speaker' => '', 'line' => $row];
+            }
+        }
+        return self::clean_script(['dialogue' => $dialogue]);
     }
 }

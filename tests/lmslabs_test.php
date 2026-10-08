@@ -20,7 +20,7 @@ use mod_aisoftskills\local\ai\lmslabs;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
- * Tests for the LMS Labs connection (balance only; no network).
+ * Tests for the LMS Labs connection (no network).
  *
  * @package    mod_aisoftskills
  * @category   test
@@ -40,111 +40,49 @@ final class lmslabs_test extends \advanced_testcase {
     }
 
     /**
-     * Pictures need the site switch and a complete credential pair.
-     * @covers \mod_aisoftskills\local\ai\lmslabs
+     * Pictures and drafts each need their site switch and a complete credential pair.
      */
-    public function test_generation_switch(): void {
+    public function test_switches(): void {
         $this->resetAfterTest();
         set_config('aiimages', 1, 'mod_aisoftskills');
+        set_config('aidrafts', 1, 'mod_aisoftskills');
         $p = new lmslabs();
         $this->assertFalse($p->can_generate(), 'No credentials.');
+        $this->assertFalse($p->can_draft(), 'No credentials.');
         set_config('lmslabssiteid', 'site', 'mod_aisoftskills');
         set_config('lmslabsapikey', 'key', 'mod_aisoftskills');
         $this->assertTrue($p->is_connected());
         $this->assertTrue($p->can_generate());
+        $this->assertTrue($p->can_draft());
         set_config('aiimages', 0, 'mod_aisoftskills');
         $this->assertFalse($p->can_generate());
+        $this->assertTrue($p->can_draft());
+        set_config('aidrafts', 0, 'mod_aisoftskills');
+        $this->assertFalse($p->can_draft());
+    }
+
+    /**
+     * Only the two AI Soft Skills routes can be posted to, and never without a complete credential pair.
+     */
+    public function test_post_routes(): void {
+        $this->resetAfterTest();
         lmslabs::$posttransport = function () {
-            $this->fail('No request may be made while AI pictures are off.');
+            $this->fail('Nothing may be sent.');
         };
-        $this->expectException(\moodle_exception::class);
-        $p->generate_image('x');
-    }
-
-    /**
-     * A picture request: header-only credentials, a fresh idempotency key, exactly prompt and style, PNG back.
-     * @covers \mod_aisoftskills\local\ai\lmslabs
-     */
-    public function test_generate_image_success(): void {
-        $this->resetAfterTest();
-        set_config('aiimages', 1, 'mod_aisoftskills');
-        set_config('lmslabssiteid', 'My Site', 'mod_aisoftskills');
-        set_config('lmslabsapikey', 'secret', 'mod_aisoftskills');
-        $png = file_get_contents(__DIR__ . '/fixtures/scene.png');
-        $seen = [];
-        lmslabs::$posttransport = function ($url, $headers, $body) use (&$seen, $png) {
-            $seen[] = [$url, $headers, $body];
-            return [200, ['Content-Type' => 'image/png', 'X-Request-Id' => 'req-1', 'X-Credits-Charged' => '5',
-                'X-Credits-Balance' => '95', 'X-Image-Model' => 'gpt-image-2'], $png];
-        };
-        $p = new lmslabs();
-        $result = $p->generate_image('A calm team huddle', 'photo');
-        $this->assertSame($png, $result['bytes']);
-        $this->assertSame(5, $result['charged']);
-        $this->assertSame(95, $result['balance']);
-        $this->assertSame('req-1', $result['requestid']);
-        [$url, $headers, $body] = $seen[0];
-        $this->assertSame('https://lms-labs.com/api/moodle/ai-softskills/images', $url);
-        $this->assertContains('X-Site-ID: My Site', $headers);
-        $this->assertContains('X-API-Key: secret', $headers);
-        $this->assertSame(['prompt' => 'A calm team huddle', 'style' => 'photo'], json_decode($body, true));
-        $this->assertStringNotContainsString('secret', $body . $url);
-        $keys = preg_grep('/^Idempotency-Key: [0-9a-f-]{36}$/', $headers);
-        $this->assertCount(1, $keys);
-        // A second intentional request uses a new key.
-        $p->generate_image('A calm team huddle', 'photo');
-        $this->assertNotSame(array_values($keys), array_values(preg_grep('/^Idempotency-Key: /', $seen[1][1])));
-        $this->assertCount(2, $seen, 'Exactly one request per call; nothing is retried.');
-    }
-
-    /**
-     * Errors map to clear messages with the LMS Labs reference, are never retried, and a 200 that is not a PNG fails.
-     * @covers \mod_aisoftskills\local\ai\lmslabs
-     */
-    public function test_generate_image_errors(): void {
-        $this->resetAfterTest();
-        set_config('aiimages', 1, 'mod_aisoftskills');
+        try {
+            lmslabs::post(lmslabs::TEXT_ROUTE, '{}', 'k', 'application/json');
+            $this->fail('Sent without credentials');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('ainotavailable', $e->errorcode);
+        }
         set_config('lmslabssiteid', 'site', 'mod_aisoftskills');
         set_config('lmslabsapikey', 'key', 'mod_aisoftskills');
-        $cases = [
-            [402, ['error' => 'INSUFFICIENT_CREDITS', 'requestId' => 'r2', 'balance' => 4], 'aierror_insufficient_credits'],
-            [403, ['error' => 'NO_ENTITLEMENT', 'requestId' => 'r3'], 'aierror_no_entitlement'],
-            [503, ['error' => 'SETTLEMENT_UNCONFIRMED', 'requestId' => 'r4'], 'aierror_settlement_unconfirmed'],
-            [404, ['error' => 'Not found'], 'aierror_not_live'],
-            [500, ['error' => 'SOMETHING_NEW'], 'aierror_failed'],
-            [200, 'not a picture', 'aierror_unusable_image'],
-        ];
-        $p = new lmslabs();
-        foreach ($cases as [$status, $body, $expected]) {
-            $calls = 0;
-            lmslabs::$posttransport = function () use ($status, $body, &$calls) {
-                $calls++;
-                return [$status, ['content-type' => $status === 200 ? 'image/png' : 'application/json'],
-                    is_array($body) ? json_encode($body) : $body];
-            };
-            try {
-                $p->generate_image('x');
-                $this->fail('Accepted HTTP ' . $status);
-            } catch (\moodle_exception $e) {
-                $this->assertSame($expected, $e->errorcode);
-                $this->assertSame(1, $calls);
-            }
-        }
-        lmslabs::$posttransport = fn() => [402, [], json_encode(['error' => 'INSUFFICIENT_CREDITS', 'requestId' => 'r9',
-            'balance' => 4])];
-        try {
-            $p->generate_image('x');
-        } catch (\moodle_exception $e) {
-            $this->assertStringContainsString('4 are left', $e->getMessage());
-            $this->assertStringContainsString('r9', $e->getMessage());
-        }
-        $this->expectException(\moodle_exception::class);
-        $p->generate_image(str_repeat('é', lmslabs::MAX_PROMPT + 1));
+        $this->expectException(\coding_exception::class);
+        lmslabs::post('/api/credits/consume', '{}', 'k', 'application/json');
     }
 
     /**
      * The balance is read with the key in the X-API-Key header, never the URL.
-     * @covers \mod_aisoftskills\local\ai\lmslabs
      */
     public function test_balance(): void {
         $this->resetAfterTest();

@@ -17,11 +17,12 @@
 {{!
     @template mod_aisoftskills/builder
 
-    Lesson builder steps 1 to 4: workplace, level, skills, language.
+    Set-up steps 1 to 4: workplace, level, skills, language. Back and Next move between them.
 
     Example context (json):
     {
-        "cmid": 1, "action": "#", "sesskey": "abc", "hasscenes": false, "buildurl": "#",
+        "cmid": 1, "action": "#", "sesskey": "abc",
+        "bar": {"current": 1, "total": 8, "steps": [{"number": 1, "name": "Workplace", "done": false, "current": true, "dot": 1}]},
         "illustration": true, "photo": false, "customindustry": "",
         "industries": [{"key": "retail", "name": "Retail", "selected": true, "custom": false}],
         "levels": [{"key": "worker", "number": 1, "name": "Worker", "desc": "Doing the job well", "selected": true}],
@@ -34,16 +35,9 @@
 <form id="ss-wizard" class="ss-wizard" method="post" action="{{action}}">
     <input type="hidden" name="sesskey" value="{{sesskey}}">
     <input type="hidden" name="savechoices" value="1">
-    <div class="ss-wizard-head">
-        <h2 class="h3">{{#str}} buildlesson, mod_aisoftskills {{/str}}</h2>
-        <ol class="ss-wizard-steps" aria-label="{{#str}} builder_steps, mod_aisoftskills {{/str}}">
-            <li data-stepdot="1"><span>1</span>{{#str}} step_workplace, mod_aisoftskills {{/str}}</li>
-            <li data-stepdot="2"><span>2</span>{{#str}} step_level, mod_aisoftskills {{/str}}</li>
-            <li data-stepdot="3"><span>3</span>{{#str}} step_skills, mod_aisoftskills {{/str}}</li>
-            <li data-stepdot="4"><span>4</span>{{#str}} step_language, mod_aisoftskills {{/str}}</li>
-            <li><span>5</span>{{#str}} step_build, mod_aisoftskills {{/str}}</li>
-        </ol>
-        {{#hasscenes}}<a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{buildurl}}">{{#str}} builder_skip, mod_aisoftskills {{/str}}</a>{{/hasscenes}}
+    <div class="ss-setup-head">
+        <h2 class="h3">{{#str}} setup_title, mod_aisoftskills {{/str}}</h2>
+        {{#bar}}{{> mod_aisoftskills/setup_steps}}{{/bar}}
     </div>
 
     <fieldset class="ss-wstep" data-step="1">
@@ -86,7 +80,7 @@
         <div class="ss-sitgroups">
             {{#groups}}
             <div class="ss-sitgroup">
-                <h4>{{name}}</h4>
+                <h3>{{name}}</h3>
                 {{#items}}
                 <label class="ss-check-row ss-sit"><input type="checkbox" name="skills[]" value="{{key}}" {{#checked}}checked{{/checked}}><span>{{name}}</span></label>
                 {{/items}}
@@ -94,7 +88,7 @@
             {{/groups}}
         </div>
         <div class="ss-panel ss-custom">
-            <h4>{{#str}} q_custom, mod_aisoftskills {{/str}}</h4>
+            <h3>{{#str}} q_custom, mod_aisoftskills {{/str}}</h3>
             <p class="ss-mini">{{#str}} q_custom_help, mod_aisoftskills {{/str}}</p>
             {{#custom}}
             <input type="text" class="ss-input" name="custom[]" value="{{value}}" maxlength="120" data-custom="{{index}}" aria-label="{{#str}} q_custom, mod_aisoftskills {{/str}} {{index}}" placeholder="{{#str}} q_custom_placeholder, mod_aisoftskills {{/str}}" {{#hidden}}hidden{{/hidden}}>

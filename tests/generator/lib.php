@@ -96,7 +96,7 @@ class mod_aisoftskills_generator extends testing_module_generator {
     /**
      * Creates a scene from Behat table data.
      *
-     * @param array $data activityid (instance id), title, better, poorer, kpi
+     * @param array $data activityid (instance id), title, better, poorer, kpi, picture ("none" for no picture)
      * @return stdClass scene
      */
     public function create_behat_scene(array $data): stdClass {
@@ -107,7 +107,9 @@ class mod_aisoftskills_generator extends testing_module_generator {
             $data['title'],
             $data['better'] ?? 'Is there anything I can get you to help you reach your goals faster?',
             $data['poorer'] ?? 'Hurry up!',
-            array_filter(['kpi' => $data['kpi'] ?? null, 'skill' => $data['skill'] ?? null])
+            array_filter(['kpi' => $data['kpi'] ?? null, 'skill' => $data['skill'] ?? null]),
+            // Column "picture": "none" creates the scene without a picture.
+            ($data['picture'] ?? '') === 'none' ? '' : null
         );
     }
 }

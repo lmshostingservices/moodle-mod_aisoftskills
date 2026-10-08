@@ -21,10 +21,11 @@ use moodle_exception;
 /**
  * LMS Labs account connection.
  *
- * AI Soft Skills uses LMS Labs for scene pictures: POST /api/moodle/ai-softskills/images, the dedicated route of the
- * AI Soft Skills image contract (owner-approved tariff: 5 credits per successful picture). Credentials go in headers
- * only, every intentional request carries a new Idempotency-Key, and a failed request is never retried automatically.
- * The balance check (GET /api/credits) is read-only and advisory. No other LMS Labs route or product billing is used.
+ * AI Soft Skills uses two dedicated LMS Labs routes (owner-approved tariffs, charged by LMS Labs only):
+ * POST /api/moodle/ai-softskills/scenes/draft (3 credits per delivered scene draft) and
+ * POST /api/moodle/ai-softskills/images (5 credits per delivered picture). Credentials go in headers only. Each
+ * intentional request gets a new Idempotency-Key that is stored with its exact body before sending (see requests), and
+ * nothing is retried automatically. The balance check (GET /api/credits) is read-only and advisory.
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services
@@ -33,6 +34,12 @@ use moodle_exception;
 class lmslabs implements provider {
     /** @var string Fixed LMS Labs host. */
     public const BASE_URL = 'https://lms-labs.com';
+
+    /** @var string Dedicated AI Soft Skills scene draft route. */
+    public const TEXT_ROUTE = '/api/moodle/ai-softskills/scenes/draft';
+
+    /** @var int Credits LMS Labs charges per delivered scene draft (owner-approved tariff). */
+    public const TEXT_CREDITS = 3;
 
     /** @var string Dedicated AI Soft Skills picture route. */
     public const IMAGE_ROUTE = '/api/moodle/ai-softskills/images';
@@ -74,38 +81,43 @@ class lmslabs implements provider {
     }
 
     /**
-     * Creates one scene picture (one paid request; never retried automatically).
+     * Whether scene drafts can be requested: AI scene drafts switched on for the site and a complete credential pair.
      *
-     * @param string $prompt English picture description (at most MAX_PROMPT code points)
-     * @param string $style illustration or photo
-     * @param string|null $requestkey Durable Moodle key for manual recovery
-     * @param string|null $requestbody Durable exact body; do not rebuild a changed prompt on recovery
-     * @return array bytes (PNG), charged, balance, requestid, model
-     * @throws moodle_exception on any failure, with the LMS Labs request id when there is one
+     * @return bool
      */
-    public function generate_image(string $prompt, string $style = 'illustration',
-        ?string $requestkey = null, ?string $requestbody = null): array {
+    public function can_draft(): bool {
+        return (bool)get_config('mod_aisoftskills', 'aidrafts') && $this->is_connected();
+    }
+
+    /**
+     * Sends one POST to an AI Soft Skills route with header-only credentials and the given Idempotency-Key.
+     *
+     * The caller persists the key and body before calling, and reuses both for any later check of the same request.
+     * Nothing is retried here.
+     *
+     * @param string $route one of TEXT_ROUTE or IMAGE_ROUTE
+     * @param string $body exact JSON body
+     * @param string $key Idempotency-Key
+     * @param string $accept Accept header value
+     * @return array [status (0 when LMS Labs could not be reached or did not answer), lower-case headers, body]
+     */
+    public static function post(string $route, string $body, string $key, string $accept): array {
         global $CFG;
         $credentials = \mod_aisoftskills\local\credentials::find();
-        if ($credentials === null || !get_config('mod_aisoftskills', 'aiimages')) {
+        if ($credentials === null) {
             throw new moodle_exception('ainotavailable', 'mod_aisoftskills');
         }
-        $prompt = trim($prompt);
-        if ($prompt === '' || \core_text::strlen($prompt) > self::MAX_PROMPT) {
-            throw new moodle_exception('aierror_prompt_too_long', 'mod_aisoftskills');
+        if (!in_array($route, [self::TEXT_ROUTE, self::IMAGE_ROUTE], true)) {
+            throw new \coding_exception('Unknown LMS Labs route');
         }
-        $style = in_array($style, self::STYLES, true) ? $style : 'illustration';
-        $url = self::BASE_URL . self::IMAGE_ROUTE;
+        $url = self::BASE_URL . $route;
         $headers = [
             'Content-Type: application/json',
-            'Accept: image/png, application/json',
+            'Accept: ' . $accept,
             'X-Site-ID: ' . $credentials['siteid'],
             'X-API-Key: ' . $credentials['apikey'],
-            // A new key for every intentional request: a replay can never be charged twice.
-            'Idempotency-Key: ' . ($requestkey ?? \core\uuid::generate()),
+            'Idempotency-Key: ' . $key,
         ];
-        $body = $requestbody ?? json_encode(['prompt' => $prompt, 'style' => $style],
-            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (self::$posttransport) {
             [$status, $responseheaders, $response] = (self::$posttransport)($url, $headers, $body);
         } else {
@@ -114,45 +126,20 @@ class lmslabs implements provider {
             $curl->setHeader($headers);
             $response = $curl->post($url, $body, [
                 'CURLOPT_CONNECTTIMEOUT' => 10,
-                // The route answers within 85 seconds.
-                'CURLOPT_TIMEOUT' => 95,
+                // Both routes finish within 85 to 90 seconds.
+                'CURLOPT_TIMEOUT' => 100,
                 'CURLOPT_FOLLOWLOCATION' => false,
             ]);
             if ($curl->get_errno()) {
-                throw new moodle_exception('aierror_network', 'mod_aisoftskills');
+                return [0, [], ''];
             }
-            $info = $curl->get_info();
-            $status = (int)($info['http_code'] ?? 0);
+            $status = (int)($curl->get_info()['http_code'] ?? 0);
             $responseheaders = [];
             foreach ((array)$curl->getResponse() as $name => $value) {
                 $responseheaders[strtolower((string)$name)] = is_array($value) ? end($value) : (string)$value;
             }
         }
-        $responseheaders = array_change_key_case((array)$responseheaders, CASE_LOWER);
-        $requestid = clean_param((string)($responseheaders['x-request-id'] ?? ''), PARAM_ALPHANUMEXT);
-        $type = strtolower(trim(explode(';', (string)($responseheaders['content-type'] ?? ''))[0]));
-        if ((int)$status === 200 && $type === 'image/png' && strncmp((string)$response, "\x89PNG\r\n\x1a\n", 8) === 0) {
-            return [
-                'bytes' => (string)$response,
-                'charged' => (int)($responseheaders['x-credits-charged'] ?? self::IMAGE_CREDITS),
-                'balance' => isset($responseheaders['x-credits-balance']) ? (int)$responseheaders['x-credits-balance'] : null,
-                'requestid' => $requestid,
-                'model' => clean_param((string)($responseheaders['x-image-model'] ?? ''), PARAM_TEXT),
-            ];
-        }
-        $data = json_decode((string)$response, true);
-        $code = is_array($data) ? strtolower(clean_param((string)($data['error'] ?? ''), PARAM_ALPHANUMEXT)) : '';
-        if ($requestid === '' && is_array($data)) {
-            $requestid = clean_param((string)($data['requestId'] ?? ''), PARAM_ALPHANUMEXT);
-        }
-        if ((int)$status === 200) {
-            $code = 'unusable_image';
-        } else if ($code === '' || !get_string_manager()->string_exists('aierror_' . $code, 'mod_aisoftskills')) {
-            $code = (int)$status === 404 ? 'not_live' : 'failed';
-        }
-        $a = (object)['requestid' => $requestid !== '' ? $requestid : '-', 'balance' => (int)($data['balance'] ?? 0),
-            'credits' => self::IMAGE_CREDITS];
-        throw new moodle_exception('aierror_' . $code, 'mod_aisoftskills', '', $a);
+        return [(int)$status, array_change_key_case((array)$responseheaders, CASE_LOWER), (string)$response];
     }
 
     /**

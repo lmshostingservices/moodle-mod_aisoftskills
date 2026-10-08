@@ -69,6 +69,10 @@ class start_attempt extends base {
                 'title' => new external_value(PARAM_TEXT, 'Title'),
                 'skill' => new external_value(PARAM_TEXT, 'Soft skill'),
                 'context' => new external_value(PARAM_TEXT, 'What is happening'),
+                'dialogue' => new external_multiple_structure(new external_single_structure([
+                    'speaker' => new external_value(PARAM_TEXT, 'Who speaks'),
+                    'line' => new external_value(PARAM_TEXT, 'What they say'),
+                ]), 'Lead-in conversation'),
                 'speaker' => new external_value(PARAM_TEXT, 'Who responds'),
                 'question' => new external_value(PARAM_TEXT, 'Question to the learner'),
                 'image' => new external_value(PARAM_URL, 'Picture URL'),

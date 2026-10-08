@@ -79,4 +79,41 @@ abstract class base extends external_api {
         }
         return [$course, $cm, $instance, $context, $scene];
     }
+
+    /**
+     * Loads an activity for a teacher who may use LMS Labs AI (manage and useai).
+     *
+     * @param int $cmid
+     * @return array [course, cm, instance, context]
+     */
+    protected static function load_ai(int $cmid): array {
+        $loaded = self::load_cm($cmid, 'manage');
+        require_capability('mod/aisoftskills:useai', $loaded[3]);
+        return $loaded;
+    }
+
+    /**
+     * Structure of one stored LMS Labs request, as shown on the page.
+     *
+     * @return \core_external\external_single_structure
+     */
+    protected static function request_structure(): \core_external\external_single_structure {
+        return new \core_external\external_single_structure([
+            'id' => new \core_external\external_value(PARAM_INT, 'Request id in this site'),
+            'operation' => new \core_external\external_value(PARAM_ALPHA, 'scene or image'),
+            'status' => new \core_external\external_value(PARAM_ALPHA, 'pending, uncertain, completed, failed, conflict, '
+                . 'expired, lost or dismissed'),
+            'title' => new \core_external\external_value(PARAM_TEXT, 'Brief or scene title'),
+            'message' => new \core_external\external_value(PARAM_TEXT, 'What happened and what to do next'),
+            'requestid' => new \core_external\external_value(PARAM_ALPHANUMEXT, 'LMS Labs reference'),
+            'canrecheck' => new \core_external\external_value(PARAM_BOOL, 'Check again is possible (same key and body)'),
+            'candismiss' => new \core_external\external_value(PARAM_BOOL, 'Can be dismissed'),
+            'poll' => new \core_external\external_value(PARAM_BOOL, 'Still in progress at LMS Labs'),
+            'retryafter' => new \core_external\external_value(PARAM_INT, 'Seconds to wait before checking again'),
+            'sceneid' => new \core_external\external_value(PARAM_INT, 'Scene id, 0 none'),
+            'sceneurl' => new \core_external\external_value(PARAM_URL, 'Scene editor URL, empty when none'),
+            'openscene' => new \core_external\external_value(PARAM_BOOL, 'Offer a link to the drafted scene'),
+            'timecreated' => new \core_external\external_value(PARAM_TEXT, 'When it was asked for'),
+        ]);
+    }
 }

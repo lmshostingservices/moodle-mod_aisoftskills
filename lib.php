@@ -125,10 +125,9 @@ function aisoftskills_delete_instance($id) {
         [$insql, $params] = $DB->get_in_or_equal($sceneids, SQL_PARAMS_NAMED);
         $DB->delete_records_select('aisoftskills_option', "sceneid $insql", $params);
     }
-    $DB->delete_records('aisoftskills_imagejob', ['aisoftskillsid' => $id]);
     $DB->delete_records('aisoftskills_scene', ['aisoftskillsid' => $id]);
     $DB->delete_records('aisoftskills_ailog', ['aisoftskillsid' => $id]);
-    $DB->delete_records('aisoftskills_draft', ['aisoftskillsid' => $id]);
+    $DB->delete_records('aisoftskills_aireq', ['aisoftskillsid' => $id]);
     aisoftskills_grade_item_delete($instance);
     $DB->delete_records('aisoftskills', ['id' => $id]);
     return true;
@@ -289,21 +288,14 @@ function aisoftskills_extend_settings_navigation(settings_navigation $settingsna
     }
     $context = context_module::instance($cm->id);
     if (has_capability('mod/aisoftskills:manage', $context)) {
+        // One entry for teachers: it opens the set-up path at the step it is up to.
         $node->add(
-            get_string('buildlesson', 'mod_aisoftskills'),
-            new moodle_url('/mod/aisoftskills/builder.php', ['id' => $cm->id]),
+            get_string('setup_title', 'mod_aisoftskills'),
+            new moodle_url('/mod/aisoftskills/builder.php', ['id' => $cm->id, 'step' => 'resume']),
             navigation_node::TYPE_SETTING,
             null,
             'aisoftskills_builder',
             new pix_icon('i/settings', '')
-        );
-        $node->add(
-            get_string('managescenes', 'mod_aisoftskills'),
-            new moodle_url('/mod/aisoftskills/scenes.php', ['id' => $cm->id]),
-            navigation_node::TYPE_SETTING,
-            null,
-            'aisoftskills_scenes',
-            new pix_icon('i/edit', '')
         );
     }
     if (has_capability('mod/aisoftskills:viewreports', $context)) {

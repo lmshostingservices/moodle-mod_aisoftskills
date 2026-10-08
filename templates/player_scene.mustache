@@ -23,6 +23,7 @@
     {
         "sceneid": 1, "number": 1, "total": 8, "title": "The deadline is slipping", "skill": "Motivating others",
         "context": "The team is behind schedule and tired.", "speaker": "You, the team leader",
+        "dialogue": [{"speaker": "Sam", "line": "We will never make Friday."}, {"speaker": "Ana", "line": "Not like this."}],
         "question": "What do you say?", "image": "https://example.com/scene.png",
         "options": [{"id": 11, "letter": "A", "text": "Is there anything I can get you to help you reach the goal faster?"},
             {"id": 12, "letter": "B", "text": "Hurry up, all of you!"}]
@@ -40,6 +41,11 @@
         </figure>
         <div class="ss-scene-side">
             {{#context}}<p class="ss-context" dir="auto">{{context}}</p>{{/context}}
+            {{#dialogue.0}}
+            <div class="ss-dialogue">
+                {{#dialogue}}<p class="ss-dialogue-line" dir="auto">{{#speaker}}<strong class="ss-dialogue-speaker">{{speaker}}</strong> {{/speaker}}<span>{{line}}</span></p>{{/dialogue}}
+            </div>
+            {{/dialogue.0}}
             <p class="ss-question" dir="auto">{{#question}}{{question}}{{/question}}{{^question}}{{#str}} whatdoyousay, mod_aisoftskills {{/str}}{{/question}}</p>
             <div class="ss-options" role="group" aria-label="{{#str}} responses, mod_aisoftskills {{/str}}">
                 {{#options}}

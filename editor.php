@@ -38,12 +38,12 @@ require_capability('mod/aisoftskills:manage', $context);
 $scene = $DB->get_record('aisoftskills_scene', ['id' => $sceneid, 'aisoftskillsid' => $instance->id], '*', MUST_EXIST);
 
 $url = new moodle_url('/mod/aisoftskills/editor.php', ['id' => $cm->id, 'sceneid' => $scene->id]);
-$backurl = new moodle_url('/mod/aisoftskills/scenes.php', ['id' => $cm->id]);
+$backurl = \mod_aisoftskills\local\setuppath::url((int)$cm->id, \mod_aisoftskills\local\setuppath::CHECK);
 $PAGE->set_url($url);
 $PAGE->set_title(format_string($instance->name) . ': ' . format_string($scene->title));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->activityheader->disable();
-if ($node = $PAGE->settingsnav->find('aisoftskills_scenes', navigation_node::TYPE_SETTING)) {
+if ($node = $PAGE->settingsnav->find('aisoftskills_builder', navigation_node::TYPE_SETTING)) {
     $node->make_active();
 }
 
@@ -69,13 +69,16 @@ if ($form->is_cancelled()) {
         'speaker' => $data->speaker,
         'question' => $data->question,
         'imageprompt' => $data->imageprompt,
+        'script' => manager::text_to_script((string)$data->scripttext),
+        'teachingnote' => $data->teachingnote,
     ], $options);
     redirect($backurl, get_string('scenesaved', 'mod_aisoftskills'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
 $defaults = ['id' => $cm->id, 'sceneid' => $scene->id, 'title' => $scene->title, 'skill' => $scene->skill,
     'context' => $scene->context, 'speaker' => $scene->speaker, 'question' => $scene->question,
-    'imageprompt' => $scene->imageprompt, 'best' => 0];
+    'imageprompt' => $scene->imageprompt, 'scripttext' => manager::script_to_text($scene->script),
+    'teachingnote' => $scene->teachingnote, 'best' => 0];
 $existing = manager::get_options([$scene->id])[$scene->id];
 foreach (array_values($existing) as $i => $option) {
     if ($i >= manager::OPTIONS) {
@@ -96,6 +99,7 @@ $form->set_data($defaults);
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('mod_aisoftskills/editor', [
     'title' => format_string($scene->title, true, ['context' => $context]),
+    'bar' => \mod_aisoftskills\local\setuppath::bar(\mod_aisoftskills\local\setuppath::CHECK),
     'image' => $image,
     'backurl' => $backurl->out(false),
     'replaceurl' => (new moodle_url($backurl, ['action' => 'replace', 'sceneid' => $scene->id]))->out(false),

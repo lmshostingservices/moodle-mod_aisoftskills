@@ -17,20 +17,25 @@
 {{!
     @template mod_aisoftskills/builder_build
 
-    Lesson builder step 5: draft the scenes with any AI assistant, review them and create them.
+    Set-up step 5: pick one of two ways to create the scenes: your own text (LMS Labs AI writes the scene)
+    or your own AI assistant (copy the prompt, paste the reply).
 
     Example context (json):
     {
-        "cmid": 1, "backurl": "#", "scenesurl": "#", "hasbalance": false, "balance": "",
+        "cmid": 1, "nexturl": "#",
+        "bar": {"current": 5, "total": 8, "steps": [{"number": 5, "name": "Create the scenes", "done": false, "current": true, "dot": 0}]},
+        "nav": {"backurl": "#", "backlabel": "Back", "nexturl": "#", "nextlabel": "Next: Pictures", "blocked": ""}, "hasbalance": false, "balance": "",
+        "canai": true, "draftcredits": 3, "brief": "One short workplace scene", "audience": "Supervisors", "context": "Retail",
+        "requests": [],
         "prompt": "Create a lesson", "existing": 0,
         "summary": {"industry": "Retail", "level": "Supervisor", "skills": "Empathy, Motivation", "language": "English",
             "scenes": 8}
     }
 }}
-<div id="ss-build" class="ss-wizard ss-build" data-cmid="{{cmid}}" data-scenesurl="{{scenesurl}}">
-    <div class="ss-wizard-head">
-        <h2 class="h3">{{#str}} buildlesson, mod_aisoftskills {{/str}}</h2>
-        <a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{backurl}}">{{#str}} builder_change, mod_aisoftskills {{/str}}</a>
+<div id="ss-build" class="ss-wizard ss-build" data-cmid="{{cmid}}" data-nexturl="{{nexturl}}">
+    <div class="ss-setup-head">
+        <h2 class="h3">{{#str}} setup_title, mod_aisoftskills {{/str}}</h2>
+        {{#bar}}{{> mod_aisoftskills/setup_steps}}{{/bar}}
     </div>
     <dl class="ss-choices">
         <div><dt>{{#str}} step_workplace, mod_aisoftskills {{/str}}</dt><dd>{{summary.industry}}</dd></div>
@@ -41,64 +46,72 @@
     </dl>
     {{#existing}}<p class="ss-note">{{#str}} builder_existing, mod_aisoftskills, {{existing}} {{/str}}</p>{{/existing}}
 
-    {{#showdraft}}
-    <div class="ss-panel">
-        <h3>{{#str}} textdraft_title, mod_aisoftskills {{/str}}</h3>
-        <p>{{#str}} textdraft_explanation, mod_aisoftskills {{/str}}</p>
-        {{#candraft}}
-        <form method="post" action="{{draftactionurl}}">
-            <input type="hidden" name="sesskey" value="{{draftsesskey}}">
-            <input type="hidden" name="draftaction" value="new">
-            <input type="hidden" name="intent" value="{{draftintent}}">
-            <label for="ss-textbrief">{{#str}} textdraft_brief, mod_aisoftskills {{/str}}</label>
-            <textarea id="ss-textbrief" name="brief" class="ss-textarea" rows="4" maxlength="2000" required></textarea>
-            <button type="submit" class="ss-btn ss-btn-primary">{{#str}} textdraft_submit, mod_aisoftskills {{/str}}</button>
-        </form>
-        {{/candraft}}
-        {{^candraft}}<p>{{#str}} lmslabscredentialsmissing, mod_aisoftskills {{/str}}</p>{{/candraft}}
-        {{#draftid}}
-            <p role="status">{{draftstatus}} {{#draftreference}}{{#str}} textdraft_reference, mod_aisoftskills {{/str}} {{draftreference}}{{/draftreference}} {{drafterror}}</p>
-            {{#draftpending}}
-            <form method="post" action="{{draftactionurl}}">
-                <input type="hidden" name="sesskey" value="{{draftsesskey}}">
-                <input type="hidden" name="draftaction" value="resume">
-                <input type="hidden" name="draftid" value="{{draftid}}">
-                <button type="submit" class="ss-btn ss-btn-ghost">{{#str}} textdraft_resume, mod_aisoftskills {{/str}}</button>
-            </form>
-            {{/draftpending}}
-            {{#draftcomplete}}
-            <label for="ss-textoriginal">{{#str}} textdraft_original, mod_aisoftskills {{/str}}</label>
-            <textarea id="ss-textoriginal" class="ss-textarea" rows="8" readonly>{{draftoriginal}}</textarea>
-            <form method="post" action="{{draftactionurl}}">
-                <input type="hidden" name="sesskey" value="{{draftsesskey}}">
-                <input type="hidden" name="draftaction" value="save">
-                <input type="hidden" name="draftid" value="{{draftid}}">
-                <label for="ss-textresult">{{#str}} textdraft_result, mod_aisoftskills {{/str}}</label>
-                <textarea id="ss-textresult" name="editedbody" class="ss-textarea" rows="12" maxlength="32000" required>{{draftedited}}</textarea>
-                <button type="submit" class="ss-btn ss-btn-ghost">{{#str}} textdraft_save, mod_aisoftskills {{/str}}</button>
-            </form>
-            {{/draftcomplete}}
-        {{/draftid}}
-        {{#draftlinks}}<a href="{{url}}">{{title}}</a> · {{/draftlinks}}
+    {{#canai}}
+    <fieldset class="ss-wstep ss-pathpick" data-region="pathpick">
+        <legend class="ss-wstep-title">{{#str}} path_question, mod_aisoftskills {{/str}}</legend>
+        <div class="ss-cardgrid ss-pathgrid">
+            <label class="ss-pick">
+                <input type="radio" name="ss-path" value="own">
+                <span class="ss-pick-body">
+                    <strong>{{#str}} path_own_title, mod_aisoftskills {{/str}}</strong>
+                    <span class="ss-mini">{{#str}} path_own_desc, mod_aisoftskills {{/str}}</span>
+                </span>
+            </label>
+            <label class="ss-pick">
+                <input type="radio" name="ss-path" value="assistant">
+                <span class="ss-pick-body">
+                    <strong>{{#str}} path_assistant_title, mod_aisoftskills {{/str}}</strong>
+                    <span class="ss-mini">{{#str}} path_assistant_desc, mod_aisoftskills {{/str}}</span>
+                </span>
+            </label>
+        </div>
+    </fieldset>
+
+    <div class="ss-panel ss-buildpath ss-aidraft" data-region="aidraft" data-path="own" hidden>
+        <h3>{{#str}} path_own_title, mod_aisoftskills {{/str}}</h3>
+        <label class="d-block" for="ss-aibrief"><strong>{{#str}} own_label, mod_aisoftskills {{/str}}</strong></label>
+        <ul class="ss-mini ss-guide" id="ss-aibrief-help">
+            <li>{{#str}} own_guide_length, mod_aisoftskills {{/str}}</li>
+            <li>{{#str}} own_guide_type, mod_aisoftskills {{/str}}</li>
+            <li>{{#str}} own_guide_include, mod_aisoftskills {{/str}}</li>
+            <li>{{#str}} own_guide_privacy, mod_aisoftskills {{/str}}</li>
+            <li>{{#str}} own_guide_empty, mod_aisoftskills {{/str}}</li>
+        </ul>
+        <textarea id="ss-aibrief" class="ss-textarea" rows="6" maxlength="2000" data-field="brief" data-default="{{brief}}" aria-describedby="ss-aibrief-help" placeholder="{{#str}} own_placeholder, mod_aisoftskills {{/str}}"></textarea>
+        <input type="hidden" data-field="audience" value="{{audience}}">
+        <input type="hidden" data-field="context" value="{{context}}">
+        <p class="ss-mini">{{#str}} own_cost, mod_aisoftskills, {{draftcredits}} {{/str}}</p>
+        <button type="button" class="ss-btn ss-btn-primary" data-action="aidraft">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+            <span>{{#str}} aidraft_button, mod_aisoftskills, {{draftcredits}} {{/str}}</span>
+        </button>
+        {{#hasbalance}}<p class="ss-mini mt-2">{{balance}}</p>{{/hasbalance}}
+        {{> mod_aisoftskills/aireq_list}}
     </div>
-    {{/showdraft}}
-    <div class="ss-panel ss-buildpath">
-        <h4><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>{{#str}} build_manual_title, mod_aisoftskills {{/str}}</h4>
+    {{/canai}}
+
+    <div class="ss-panel ss-buildpath" data-path="assistant" {{#canai}}hidden{{/canai}}>
+        <h3>{{#str}} path_assistant_title, mod_aisoftskills {{/str}}</h3>
+        {{^canai}}<p class="ss-mini">{{#str}} path_assistant_only, mod_aisoftskills {{/str}}</p>{{/canai}}
         <ol class="ss-aihelper-steps">
-            <li>{{#str}} build_manual_1, mod_aisoftskills {{/str}}</li>
+            <li>{{#str}} build_manual_1, mod_aisoftskills {{/str}}
+                <button type="button" class="ss-btn ss-btn-ghost ss-btn-sm ss-copy" data-target="#ss-lessonprompt" data-done="{{#str}} copied, mod_aisoftskills {{/str}}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>
+                    <span>{{#str}} copyprompt, mod_aisoftskills {{/str}}</span>
+                </button>
+            </li>
             <li>{{#str}} build_manual_2, mod_aisoftskills {{/str}}</li>
             <li>{{#str}} build_manual_3, mod_aisoftskills {{/str}}</li>
         </ol>
-        <button type="button" class="ss-btn ss-btn-ghost ss-btn-sm ss-copy" data-target="#ss-lessonprompt" data-done="{{#str}} copied, mod_aisoftskills {{/str}}">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>
-            <span>{{#str}} copyprompt, mod_aisoftskills {{/str}}</span>
-        </button>
-        <textarea id="ss-lessonprompt" class="ss-textarea ss-prompt-text" readonly rows="8" aria-label="{{#str}} build_manual_title, mod_aisoftskills {{/str}}">{{prompt}}</textarea>
-        <label class="ss-mini d-block mt-2" for="ss-lessonjson">{{#str}} build_paste, mod_aisoftskills {{/str}}</label>
+        <details class="ss-promptview">
+            <summary>{{#str}} build_showprompt, mod_aisoftskills {{/str}}</summary>
+            <textarea id="ss-lessonprompt" class="ss-textarea ss-prompt-text" readonly rows="8" aria-label="{{#str}} build_showprompt, mod_aisoftskills {{/str}}">{{prompt}}</textarea>
+        </details>
+        <label class="d-block mt-2" for="ss-lessonjson"><strong>{{#str}} build_paste, mod_aisoftskills {{/str}}</strong></label>
         <textarea id="ss-lessonjson" class="ss-textarea" rows="8" data-region="json" placeholder='{"scenes": [ ... ]}'></textarea>
         <button type="button" class="ss-btn ss-btn-primary mt-2" data-action="preview">{{#str}} build_preview, mod_aisoftskills {{/str}}</button>
-        <p class="ss-mini mt-3">{{#str}} build_ai_off, mod_aisoftskills {{/str}}</p>
-        {{#hasbalance}}<p class="ss-mini">{{balance}}</p>{{/hasbalance}}
+        <p class="ss-mini mt-3">{{#str}} path_assistant_note, mod_aisoftskills {{/str}}</p>
     </div>
     <div class="ss-review-draft" data-region="review" hidden></div>
+    {{> mod_aisoftskills/setup_nav}}
 </div>

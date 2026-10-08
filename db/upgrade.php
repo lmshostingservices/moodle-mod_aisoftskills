@@ -25,65 +25,124 @@
 /**
  * Runs the upgrade steps between the installed version and this one.
  *
- * Version 1.0.0 is the first release, so there are no steps yet; new ones go below with upgrade_mod_savepoint().
- *
  * @param int $oldversion the version being upgraded from
  * @return bool
  */
 function xmldb_aisoftskills_upgrade($oldversion) {
     global $DB;
-    if ($oldversion < 2026092802) {
-        $dbman = $DB->get_manager();
-        $image = new xmldb_table('aisoftskills_imagejob');
-        $image->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $image->add_field('aisoftskillsid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $image->add_field('sceneid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $image->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $image->add_field('intentkey', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
-        $image->add_field('requestkey', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
-        $image->add_field('siteid', XMLDB_TYPE_CHAR, '512', null, XMLDB_NOTNULL, null, null);
-        $image->add_field('requestbody', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
-        $image->add_field('requestid', XMLDB_TYPE_CHAR, '64', null, null, null, null);
-        $image->add_field('errorcode', XMLDB_TYPE_CHAR, '64', null, null, null, null);
-        $image->add_field('state', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, null);
-        $image->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $image->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $image->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
-        $image->add_key('aisoftskillsid', XMLDB_KEY_FOREIGN, ['aisoftskillsid'], 'aisoftskills', ['id']);
-        $image->add_key('sceneid', XMLDB_KEY_FOREIGN, ['sceneid'], 'aisoftskills_scene', ['id']);
-        $image->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
-        $image->add_index('userintent', XMLDB_INDEX_UNIQUE, ['userid', 'intentkey']);
-        $image->add_index('requestkey', XMLDB_INDEX_UNIQUE, ['requestkey']);
-        $image->add_index('scenerecent', XMLDB_INDEX_NOTUNIQUE, ['sceneid', 'userid', 'id']);
-        if (!$dbman->table_exists($image)) {
-            $dbman->create_table($image);
+    $dbman = $DB->get_manager();
+
+    if ($oldversion < 2026092900) {
+        // Scene lead-in dialogue and teaching note (from AI scene drafts).
+        $table = new xmldb_table('aisoftskills_scene');
+        foreach (['script', 'teachingnote'] as $name) {
+            $field = new xmldb_field($name, XMLDB_TYPE_TEXT, null, null, null, null, null);
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
         }
-        $table = new xmldb_table('aisoftskills_draft');
-        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $table->add_field('aisoftskillsid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('requestkey', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('intentkey', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('siteid', XMLDB_TYPE_CHAR, '512', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('requestbody', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
-        $table->add_field('bodyhash', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('responsebody', XMLDB_TYPE_TEXT, null, null, null, null, null);
-        $table->add_field('editedbody', XMLDB_TYPE_TEXT, null, null, null, null, null);
-        $table->add_field('requestid', XMLDB_TYPE_CHAR, '64', null, null, null, null);
-        $table->add_field('errorcode', XMLDB_TYPE_CHAR, '64', null, null, null, null);
-        $table->add_field('state', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
-        $table->add_key('aisoftskillsid', XMLDB_KEY_FOREIGN, ['aisoftskillsid'], 'aisoftskills', ['id']);
-        $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
-        $table->add_index('useractivity', XMLDB_INDEX_NOTUNIQUE, ['aisoftskillsid', 'userid', 'timecreated']);
-        $table->add_index('requestkey', XMLDB_INDEX_UNIQUE, ['requestkey']);
-        $table->add_index('userintent', XMLDB_INDEX_UNIQUE, ['userid', 'intentkey']);
+
+        // Paid LMS Labs requests, persisted before they are sent.
+        $table = new xmldb_table('aisoftskills_aireq');
         if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('aisoftskillsid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('operation', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('targetid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('idemkey', XMLDB_TYPE_CHAR, '128', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('sitehash', XMLDB_TYPE_CHAR, '40', null, null, null, null);
+            $table->add_field('body', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+            $table->add_field('status', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'pending');
+            $table->add_field('errorcode', XMLDB_TYPE_CHAR, '64', null, null, null, null);
+            $table->add_field('requestid', XMLDB_TYPE_CHAR, '64', null, null, null, null);
+            $table->add_field('result', XMLDB_TYPE_TEXT, null, null, null, null, null);
+            $table->add_field('charged', XMLDB_TYPE_INTEGER, '6', null, null, null, null);
+            $table->add_field('balance', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+            $table->add_field('tries', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_key('aisoftskillsid', XMLDB_KEY_FOREIGN, ['aisoftskillsid'], 'aisoftskills', ['id']);
+            $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+            $table->add_index('idemkey', XMLDB_INDEX_UNIQUE, ['idemkey']);
+            $table->add_index('opstatus', XMLDB_INDEX_NOTUNIQUE, ['aisoftskillsid', 'operation', 'status']);
             $dbman->create_table($table);
         }
-        upgrade_mod_savepoint(true, 2026092802, 'aisoftskills');
+        $field = new xmldb_field('sitehash', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'idemkey');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Sites on 1.0.2 or 1.0.3 kept separate tables for script drafts and picture jobs. Move them to the stored
+        // requests: an unresolved request keeps its exact key and body (so "Check again" can never charge twice),
+        // and a completed script draft becomes a scene the teacher can finish.
+        mod_aisoftskills_upgrade_move_103_requests($dbman);
+
+        upgrade_mod_savepoint(true, 2026092900, 'aisoftskills');
     }
+
     return true;
+}
+
+/**
+ * Moves 1.0.2/1.0.3 script drafts and picture jobs into aisoftskills_aireq, then drops their tables.
+ *
+ * @param database_manager $dbman
+ */
+function mod_aisoftskills_upgrade_move_103_requests(database_manager $dbman): void {
+    global $DB;
+    $now = time();
+    $drafts = new xmldb_table('aisoftskills_draft');
+    if ($dbman->table_exists($drafts)) {
+        foreach ($DB->get_recordset('aisoftskills_draft', null, 'id') as $row) {
+            $instance = $DB->get_record('aisoftskills', ['id' => $row->aisoftskillsid]);
+            if (!$instance || $DB->record_exists('aisoftskills_aireq', ['idemkey' => $row->requestkey])) {
+                continue;
+            }
+            $req = (object)[
+                'aisoftskillsid' => $instance->id, 'userid' => $row->userid, 'operation' => 'scene', 'targetid' => 0,
+                'idemkey' => $row->requestkey, 'sitehash' => sha1((string)$row->siteid),
+                'body' => (string)$row->requestbody, 'status' => 'dismissed',
+                'errorcode' => $row->errorcode, 'requestid' => $row->requestid, 'tries' => 1,
+                'timecreated' => $row->timecreated, 'timemodified' => $now,
+            ];
+            if ($row->state === 'pending' && $row->requestbody !== '' && $now - (int)$row->timecreated < DAYSECS) {
+                // Outcome unknown: keep the key and body for "Check again".
+                $req->status = 'uncertain';
+            } else if ($row->state === 'complete') {
+                $draft = \mod_aisoftskills\local\ai\requests::clean_scene_draft(json_decode((string)$row->responsebody, true));
+                if ($draft !== null) {
+                    $req->targetid = \mod_aisoftskills\local\manager::add_scene(
+                        $instance,
+                        \mod_aisoftskills\local\ai\requests::scene_fields($draft)
+                    );
+                    $req->status = 'completed';
+                    $req->result = json_encode($draft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                }
+            }
+            if ($req->body === '') {
+                $req->body = '{}';
+            }
+            $DB->insert_record('aisoftskills_aireq', $req);
+        }
+        $dbman->drop_table($drafts);
+    }
+    $jobs = new xmldb_table('aisoftskills_imagejob');
+    if ($dbman->table_exists($jobs)) {
+        foreach ($DB->get_recordset_select('aisoftskills_imagejob', "state IN ('pending', 'saving')", null, 'id') as $row) {
+            if ($DB->record_exists('aisoftskills_aireq', ['idemkey' => $row->requestkey]) || (string)$row->requestbody === '') {
+                continue;
+            }
+            $DB->insert_record('aisoftskills_aireq', (object)[
+                'aisoftskillsid' => $row->aisoftskillsid, 'userid' => $row->userid, 'operation' => 'image',
+                'targetid' => $row->sceneid, 'idemkey' => $row->requestkey, 'sitehash' => sha1((string)$row->siteid),
+                'body' => (string)$row->requestbody,
+                // A picture that was being saved may have been charged and cannot be fetched again.
+                'status' => $row->state === 'pending' ? 'uncertain' : 'lost',
+                'errorcode' => $row->errorcode, 'requestid' => $row->requestid, 'tries' => 1,
+                'timecreated' => $row->timecreated, 'timemodified' => $now,
+            ]);
+        }
+        $dbman->drop_table($jobs);
+    }
 }

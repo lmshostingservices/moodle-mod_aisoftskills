@@ -21,13 +21,13 @@ use core_external\external_value;
 use mod_aisoftskills\local\ai\requests;
 
 /**
- * Creates a scene picture with LMS Labs (5 credits per delivered picture; the request is stored first, never retried).
+ * Drafts one scene with LMS Labs (3 credits per delivered draft; the request is stored first and never retried).
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class generate_image extends base {
+class draft_scene extends base {
     /**
      * Parameters.
      *
@@ -35,22 +35,31 @@ class generate_image extends base {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
-            'sceneid' => new external_value(PARAM_INT, 'Scene id'),
+            'cmid' => new external_value(PARAM_INT, 'Course module id'),
+            'brief' => new external_value(PARAM_TEXT, 'What the scene should be about (at most 2,000 characters)'),
+            'audience' => new external_value(PARAM_TEXT, 'Who the learners are (at most 500 characters)', VALUE_DEFAULT, ''),
+            'context' => new external_value(PARAM_TEXT, 'The workplace (at most 500 characters)', VALUE_DEFAULT, ''),
         ]);
     }
 
     /**
-     * Generates.
+     * Drafts.
      *
-     * @param int $sceneid
+     * @param int $cmid
+     * @param string $brief
+     * @param string $audience
+     * @param string $context
      * @return array
      */
-    public static function execute(int $sceneid): array {
+    public static function execute(int $cmid, string $brief, string $audience = '', string $context = ''): array {
         global $USER;
-        $params = self::validate_parameters(self::execute_parameters(), ['sceneid' => $sceneid]);
-        [, , $instance, $context, $scene] = self::load_scene($params['sceneid'], 'useai');
-        $row = requests::start_image($instance, (int)$USER->id, $scene);
-        return requests::export($row, $context);
+        $params = self::validate_parameters(
+            self::execute_parameters(),
+            ['cmid' => $cmid, 'brief' => $brief, 'audience' => $audience, 'context' => $context]
+        );
+        [, , $instance, $modcontext] = self::load_ai($params['cmid']);
+        $row = requests::start_scene($instance, (int)$USER->id, $params['brief'], $params['audience'], $params['context']);
+        return requests::export($row, $modcontext);
     }
 
     /**

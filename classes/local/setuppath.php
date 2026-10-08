@@ -1,0 +1,147 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace mod_aisoftskills\local;
+
+use moodle_url;
+use stdClass;
+
+/**
+ * The teacher's set-up path: eight steps in a fixed order, with Back and Next only.
+ *
+ * 1 workplace, 2 level, 3 skills, 4 language and size, 5 create the scenes, 6 pictures, 7 check each scene, 8 finish.
+ *
+ * @package    mod_aisoftskills
+ * @copyright  2026 LMS Hosting Services
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class setuppath {
+    /** @var string[] step names, in order (string keys setupstep_<name>). */
+    public const STEPS = ['workplace', 'level', 'skills', 'language', 'create', 'pictures', 'check', 'finish'];
+
+    /** @var int The create step. */
+    public const CREATE = 5;
+
+    /** @var int The pictures step. */
+    public const PICTURES = 6;
+
+    /** @var int The check step. */
+    public const CHECK = 7;
+
+    /** @var int The finish step. */
+    public const FINISH = 8;
+
+    /**
+     * The page for a step.
+     *
+     * @param int $cmid
+     * @param int $step 1 to 8
+     * @return moodle_url
+     */
+    public static function url(int $cmid, int $step): moodle_url {
+        $builder = '/mod/aisoftskills/builder.php';
+        $scenes = '/mod/aisoftskills/scenes.php';
+        if ($step <= 4) {
+            return new moodle_url($builder, ['id' => $cmid, 'start' => max(1, $step)]);
+        }
+        return match ($step) {
+            self::CREATE => new moodle_url($builder, ['id' => $cmid, 'step' => 'build']),
+            self::PICTURES => new moodle_url($scenes, ['id' => $cmid, 'step' => 'pictures']),
+            self::CHECK => new moodle_url($scenes, ['id' => $cmid, 'step' => 'check']),
+            default => new moodle_url($builder, ['id' => $cmid, 'step' => 'finish']),
+        };
+    }
+
+    /**
+     * Template data for the step bar. The bar only shows progress: steps are reached with Back and Next.
+     *
+     * @param int $current 1 to 8
+     * @return array
+     */
+    public static function bar(int $current): array {
+        $steps = [];
+        foreach (self::STEPS as $i => $name) {
+            $n = $i + 1;
+            $steps[] = [
+                'number' => $n,
+                'name' => get_string('setupstep_' . $name, 'mod_aisoftskills'),
+                'done' => $n < $current,
+                'current' => $n === $current,
+                'dot' => $n <= 4 ? $n : 0,
+            ];
+        }
+        return ['steps' => $steps, 'current' => $current, 'total' => count(self::STEPS)];
+    }
+
+    /**
+     * Where the set-up path is up to.
+     *
+     * @param array $state from {@see self::state()}
+     * @param bool $choicessaved whether the builder choices have been saved at least once
+     * @return int step 1 to 8
+     */
+    public static function resume_step(array $state, bool $choicessaved): int {
+        if (!$state['scenes']) {
+            return $choicessaved ? self::CREATE : 1;
+        }
+        if ($state['nopicture']) {
+            return self::PICTURES;
+        }
+        if ($state['noresponses']) {
+            return self::CHECK;
+        }
+        return self::FINISH;
+    }
+
+    /**
+     * Counts what is still missing.
+     *
+     * @param stdClass $instance
+     * @param \context $context
+     * @return array scenes, nopicture (scene ids without a picture), noresponses (scene ids without two usable
+     *     responses, exactly one better), ready (number playable)
+     */
+    public static function state(stdClass $instance, \context $context): array {
+        $scenes = manager::get_scenes((int)$instance->id);
+        $options = manager::get_options(array_keys($scenes));
+        $nopicture = [];
+        $noresponses = [];
+        $ready = 0;
+        foreach ($scenes as $scene) {
+            $haspicture = manager::get_scene_image($context, (int)$scene->id)[0] !== null;
+            $hasresponses = self::responses_ok($options[$scene->id] ?? []);
+            if (!$haspicture) {
+                $nopicture[] = (int)$scene->id;
+            }
+            if (!$hasresponses) {
+                $noresponses[] = (int)$scene->id;
+            }
+            $ready += $haspicture && $hasresponses ? 1 : 0;
+        }
+        return ['scenes' => count($scenes), 'nopicture' => $nopicture, 'noresponses' => $noresponses, 'ready' => $ready];
+    }
+
+    /**
+     * Whether a scene's responses are complete: exactly two with text, exactly one of them the better one.
+     *
+     * @param stdClass[] $options
+     * @return bool
+     */
+    public static function responses_ok(array $options): bool {
+        $list = array_values(array_filter($options, fn($o) => trim((string)$o->text) !== ''));
+        return count($list) === manager::OPTIONS && count(array_filter($list, fn($o) => (int)$o->best === 1)) === 1;
+    }
+}

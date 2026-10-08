@@ -70,20 +70,17 @@ final class provider_test extends provider_testcase {
 
     /**
      * Metadata lists every learner table and the grades link.
-     * @covers \mod_aisoftskills\privacy\provider
      */
     public function test_metadata(): void {
         $items = provider::get_metadata(new collection('mod_aisoftskills'))->get_collection();
         $names = array_map(fn($i) => $i->get_name(), $items);
-        foreach (['aisoftskills_attempt', 'aisoftskills_choice', 'aisoftskills_ailog',
-            'aisoftskills_draft', 'aisoftskills_imagejob', 'core_grades'] as $name) {
+        foreach (['aisoftskills_attempt', 'aisoftskills_choice', 'aisoftskills_ailog', 'core_grades'] as $name) {
             $this->assertContains($name, $names);
         }
     }
 
     /**
      * Contexts, users and export.
-     * @covers \mod_aisoftskills\privacy\provider
      */
     public function test_export(): void {
         $contexts = provider::get_contexts_for_userid((int)$this->u1->id);
@@ -101,7 +98,6 @@ final class provider_test extends provider_testcase {
 
     /**
      * Deleting one user, a list of users and the whole context keeps the scenes.
-     * @covers \mod_aisoftskills\privacy\provider
      */
     public function test_delete(): void {
         global $DB;

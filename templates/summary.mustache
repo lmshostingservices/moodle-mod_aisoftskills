@@ -24,7 +24,10 @@
         "score": 75, "tone": "good", "headline": "Strong", "message": "6 of 8 best first choices",
         "levelline": "You are showing the habits of a Manager.",
         "kpis": [{"kpi": "morale", "name": "Morale", "value": 70, "start": 50, "up": true, "change": "+20"}],
-        "canretake": true, "attemptsleft": ""
+        "canretake": true, "attemptsleft": "", "hastakeaways": true,
+        "takeaways": [{"title": "Behind on the target", "skill": "Motivating others",
+            "better": "Is there anything I can get you to help you reach the goal faster?",
+            "reason": "Offering help shows trust and removes blockers."}]
     }
 }}
 <section class="ss-summary ss-summary-{{tone}}" tabindex="-1" aria-labelledby="ss-summary-title">
@@ -43,12 +46,24 @@
         {{#kpis}}
         <li class="ss-finalkpi">
             <span class="ss-finalkpi-name">{{name}}</span>
-            <span class="ss-finalkpi-bar" role="img" aria-label="{{name}}: {{value}} / 100 (0–100)"><span style="width: {{value}}%;"></span></span>
+            <span class="ss-finalkpi-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{value}}" aria-label="{{name}}"><span style="width: {{value}}%;"></span></span>
             <span class="ss-finalkpi-value">{{value}}</span>
             <span class="ss-delta {{#up}}is-up{{/up}}{{^up}}is-down{{/up}}">{{change}}</span>
         </li>
         {{/kpis}}
     </ul>
+    {{#hastakeaways}}
+    <h4 class="ss-panel-title">{{#str}} takeaways, mod_aisoftskills {{/str}}</h4>
+    <ul class="ss-takeaways">
+        {{#takeaways}}
+        <li class="ss-takeaway">
+            <strong dir="auto">{{title}}</strong>{{#skill}} <span class="ss-skillchip" dir="auto">{{skill}}</span>{{/skill}}
+            <p class="mb-1" dir="auto">{{#str}} takeaway_better, mod_aisoftskills {{/str}} “{{better}}”</p>
+            {{#reason}}<p class="ss-mini mb-0" dir="auto">{{reason}}</p>{{/reason}}
+        </li>
+        {{/takeaways}}
+    </ul>
+    {{/hastakeaways}}
     <div class="ss-summary-actions">
         {{#canretake}}<button type="button" class="ss-btn ss-btn-ghost" data-action="retake">{{#str}} tryagainactivity, mod_aisoftskills {{/str}}</button>{{/canretake}}
         <button type="button" class="ss-btn ss-btn-primary" data-action="home">{{#str}} backtohome, mod_aisoftskills {{/str}}</button>

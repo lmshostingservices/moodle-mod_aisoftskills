@@ -29,7 +29,7 @@
             {"key": "manager", "name": "Manager", "number": 3, "current": true, "below": false}],
         "skills": ["Motivating others"], "hasskills": true, "scenes": 8, "bestscore": 75, "hasbest": true,
         "history": [{"number": 1, "score": 75, "date": "27/09/26, 10:00"}], "hashistory": true, "attemptsinfo": "",
-        "builderurl": "#", "scenesurl": "#", "reporturl": "#", "dir": "ltr", "contentlang": "en"
+        "setupurl": "#", "reporturl": "#", "dir": "ltr", "contentlang": "en"
     }
 }}
 <div id="{{uniqid}}" class="ss-app" data-config="{{config}}">
@@ -79,8 +79,7 @@
         {{/hashistory}}
         {{#canmanage}}
         <nav class="ss-teacherbar" aria-label="{{#str}} teachertools, mod_aisoftskills {{/str}}">
-            <a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{builderurl}}">{{#str}} buildlesson, mod_aisoftskills {{/str}}</a>
-            <a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{scenesurl}}">{{#str}} managescenes, mod_aisoftskills {{/str}}</a>
+            <a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{setupurl}}">{{#str}} setup_title, mod_aisoftskills {{/str}}</a>
             {{#reporturl}}<a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{reporturl}}">{{#str}} reports, mod_aisoftskills {{/str}}</a>{{/reporturl}}
         </nav>
         {{/canmanage}}

@@ -17,15 +17,20 @@
 {{!
     @template mod_aisoftskills/editor
 
-    Scene editor: the picture and the scene form.
+    Set-up step 7, one scene: the picture and the scene form. Saving or cancelling returns to step 7.
 
     Example context (json):
-    {"title": "Behind on the target", "image": "", "backurl": "#", "replaceurl": "#", "form": "<form></form>"}
+    {"title": "Behind on the target", "image": "", "backurl": "#", "replaceurl": "#", "form": "<form></form>",
+     "bar": {"current": 7, "total": 8, "steps": [{"number": 7, "name": "Check the scenes", "done": false, "current": true, "dot": 0}]}}
 }}
 <div class="ss-editor">
+    <div class="ss-setup-head">
+        <h2 class="h3">{{#str}} setup_title, mod_aisoftskills {{/str}}</h2>
+        {{#bar}}{{> mod_aisoftskills/setup_steps}}{{/bar}}
+    </div>
     <div class="ss-ed-toolbar">
         <a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{backurl}}">{{#str}} backtoscenes, mod_aisoftskills {{/str}}</a>
-        <h2 class="h3 mb-0 ss-grow" dir="auto">{{title}}</h2>
+        <h3 class="h4 mb-0 ss-grow" dir="auto">{{title}}</h3>
         <a class="ss-btn ss-btn-ghost ss-btn-sm" href="{{replaceurl}}">{{#str}} uploadimage, mod_aisoftskills {{/str}}</a>
     </div>
     <div class="ss-editor-grid">

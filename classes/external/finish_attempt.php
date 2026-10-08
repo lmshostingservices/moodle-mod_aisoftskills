@@ -71,6 +71,12 @@ class finish_attempt extends base {
                 'start' => new external_value(PARAM_INT, 'Starting value'),
             ])),
             'level' => new external_value(PARAM_ALPHA, 'Career level'),
+            'takeaways' => new external_multiple_structure(new external_single_structure([
+                'title' => new external_value(PARAM_TEXT, 'Scene'),
+                'skill' => new external_value(PARAM_TEXT, 'Soft skill'),
+                'better' => new external_value(PARAM_TEXT, 'The better response'),
+                'reason' => new external_value(PARAM_TEXT, 'Why it works'),
+            ]), 'Scenes to learn from: the first choice was the poorer response'),
             'canretake' => new external_value(PARAM_BOOL, 'Another attempt is allowed'),
             'attemptsleft' => new external_value(PARAM_INT, 'Attempts left, -1 unlimited'),
         ]);

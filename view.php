@@ -120,8 +120,7 @@ $templatedata = [
     'attemptsinfo' => $instance->maxattempts
         ? get_string('attemptsused', 'mod_aisoftskills', ['used' => count($finished), 'max' => $instance->maxattempts])
         : '',
-    'builderurl' => (new moodle_url('/mod/aisoftskills/builder.php', ['id' => $cm->id]))->out(false),
-    'scenesurl' => (new moodle_url('/mod/aisoftskills/scenes.php', ['id' => $cm->id]))->out(false),
+    'setupurl' => (new moodle_url('/mod/aisoftskills/builder.php', ['id' => $cm->id, 'step' => 'resume']))->out(false),
     'reporturl' => has_capability('mod/aisoftskills:viewreports', $context)
         ? (new moodle_url('/mod/aisoftskills/report.php', ['id' => $cm->id]))->out(false) : null,
     'dir' => catalogue::is_rtl((string)$instance->contentlang) ? 'rtl' : 'ltr',

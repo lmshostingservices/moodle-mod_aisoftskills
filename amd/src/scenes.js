@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Scene manager: copy picture prompts and create pictures with AI.
+ * Scene manager: create scene pictures with LMS Labs AI, one at a time or all missing pictures at once.
  *
  * @module     mod_aisoftskills/scenes
  * @copyright  2026 LMS Hosting Services
@@ -23,8 +23,7 @@
 
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
-import {add as addToast} from 'core/toast';
-import {init as initCopy} from 'mod_aisoftskills/copy';
+import * as Requests from 'mod_aisoftskills/requests';
 import {loadStrings, fmt} from 'mod_aisoftskills/ui';
 
 /**
@@ -37,12 +36,27 @@ export const init = async(selector) => {
     if (!root) {
         return;
     }
-    initCopy('.ss-copy');
-    const S = await loadStrings(['generating', 'imagecreated', 'imagecreatedbalance',
-        'imageintent_confirm', 'imageintent_replayed']);
+    const S = await loadStrings(['generating', 'genone_confirm', 'genone_confirm_replace', 'genall_confirm',
+        'genall_progress', 'confirm_title', 'confirm_create']);
+    const region = root.querySelector('[data-region="aireqs"]');
+    // A delivered picture is already saved: show it by reloading the page.
+    const done = (request) => {
+        Requests.toast(request);
+        window.setTimeout(() => window.location.reload(), 2500);
+    };
+    Requests.init(region, done);
+
+    // Every paid request is confirmed first; the credits are named in the question.
+    const confirm = (question) => new Promise((resolve) => {
+        Notification.saveCancel(S.confirm_title, question, S.confirm_create, () => resolve(true), () => resolve(false));
+    });
+    // One intentional, stored request (a new key); it is never resent automatically.
+    const create = (sceneid) => Ajax.call([{methodname: 'mod_aisoftskills_generate_image',
+        args: {sceneid}}], true, true, false, 180000)[0];
+
     root.querySelectorAll('[data-action="genimage"]').forEach((btn) => {
         btn.addEventListener('click', async() => {
-            if (btn.dataset.pending !== '1' && !window.confirm(S.imageintent_confirm)) {
+            if (!await confirm(btn.dataset.replace === '1' ? S.genone_confirm_replace : S.genone_confirm)) {
                 return;
             }
             const label = btn.querySelector('span');
@@ -50,21 +64,54 @@ export const init = async(selector) => {
             btn.disabled = true;
             label.textContent = S.generating;
             try {
-                // The server persists the key/body before sending; pending checks reuse the same operation.
-                const res = await Ajax.call([{methodname: 'mod_aisoftskills_generate_image',
-                    args: {sceneid: parseInt(btn.dataset.scene, 10), intent: btn.dataset.intent}}], true, true, false, 180000)[0];
-                const message = res.replayed ? S.imageintent_replayed : res.balance >= 0 ?
-                    fmt(S.imagecreatedbalance, {charged: res.charged, balance: res.balance})
-                    : fmt(S.imagecreated, res.charged);
-                await addToast(message, {type: 'success'});
-                window.setTimeout(() => window.location.reload(), 2500);
+                const request = await create(parseInt(btn.dataset.scene, 10));
+                await Requests.show(region, request, done);
+                if (request.status !== 'completed') {
+                    btn.disabled = false;
+                    label.textContent = original;
+                    region.scrollIntoView({behavior: 'smooth', block: 'start'});
+                }
             } catch (err) {
                 btn.disabled = false;
                 label.textContent = original;
                 Notification.exception(err);
-                // Refresh the durable state: pending remains resumable, 410 explicitly needs a new intent.
-                window.setTimeout(() => window.location.reload(), 3000);
             }
         });
     });
+
+    const all = root.querySelector('[data-action="genall"]');
+    if (all) {
+        all.addEventListener('click', async() => {
+            const ids = all.dataset.scenes.split(',').map((v) => parseInt(v, 10)).filter((v) => v > 0);
+            const credits = ids.length * parseInt(all.dataset.credits, 10);
+            if (!ids.length || !await confirm(fmt(S.genall_confirm, {count: ids.length, credits}))) {
+                return;
+            }
+            const label = all.querySelector('span');
+            const original = label.textContent;
+            all.disabled = true;
+            let made = 0;
+            try {
+                // One after another; the run stops at the first picture that is not delivered.
+                for (const id of ids) {
+                    label.textContent = fmt(S.genall_progress, {done: made + 1, count: ids.length});
+                    const request = await create(id);
+                    if (request.status !== 'completed') {
+                        await Requests.show(region, request, null);
+                        region.scrollIntoView({behavior: 'smooth', block: 'start'});
+                        break;
+                    }
+                    made++;
+                }
+            } catch (err) {
+                Notification.exception(err);
+            }
+            if (made > 0) {
+                window.location.reload();
+                return;
+            }
+            all.disabled = false;
+            label.textContent = original;
+        });
+    }
 };

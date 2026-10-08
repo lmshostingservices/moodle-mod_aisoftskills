@@ -53,6 +53,9 @@ class scene_form extends \moodleform {
         $mform->addElement('textarea', 'context', get_string('scenecontext', $c), ['rows' => 3, 'cols' => 60] + $dir);
         $mform->setType('context', PARAM_TEXT);
         $mform->addHelpButton('context', 'scenecontext', $c);
+        $mform->addElement('textarea', 'scripttext', get_string('scenescript', $c), ['rows' => 5, 'cols' => 60] + $dir);
+        $mform->setType('scripttext', PARAM_TEXT);
+        $mform->addHelpButton('scripttext', 'scenescript', $c);
         $mform->addElement('text', 'speaker', get_string('scenespeaker', $c), ['size' => 40] + $dir);
         $mform->setType('speaker', PARAM_TEXT);
         $mform->addElement('text', 'question', get_string('scenequestion', $c), ['size' => 60] + $dir);
@@ -60,6 +63,9 @@ class scene_form extends \moodleform {
         $mform->addElement('textarea', 'imageprompt', get_string('sceneimageprompt', $c), ['rows' => 3, 'cols' => 60]);
         $mform->setType('imageprompt', PARAM_TEXT);
         $mform->addHelpButton('imageprompt', 'sceneimageprompt', $c);
+        $mform->addElement('textarea', 'teachingnote', get_string('sceneteachingnote', $c), ['rows' => 3, 'cols' => 60] + $dir);
+        $mform->setType('teachingnote', PARAM_TEXT);
+        $mform->addHelpButton('teachingnote', 'sceneteachingnote', $c);
 
         $kpis = catalogue::kpi_options();
         for ($i = 0; $i < manager::OPTIONS; $i++) {

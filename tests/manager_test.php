@@ -32,7 +32,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 final class manager_test extends \advanced_testcase {
     /**
      * A scene must have exactly two responses with one better response.
-     * @covers \mod_aisoftskills\local\manager
      */
     public function test_save_scene_rules(): void {
         global $DB;
@@ -69,7 +68,6 @@ final class manager_test extends \advanced_testcase {
 
     /**
      * A scene is ready with a picture and valid responses; deleting it removes its data.
-     * @covers \mod_aisoftskills\local\manager
      */
     public function test_ready_and_delete(): void {
         global $DB;
@@ -92,7 +90,6 @@ final class manager_test extends \advanced_testcase {
 
     /**
      * Settings are normalised.
-     * @covers \mod_aisoftskills\local\manager
      */
     public function test_prepare_instance_data(): void {
         $data = manager::prepare_instance_data((object)['industry' => 'space', 'level' => 'king', 'contentlang' => 'xx',

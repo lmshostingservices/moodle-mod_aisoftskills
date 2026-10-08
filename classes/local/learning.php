@@ -223,6 +223,8 @@ class learning {
                 'title' => self::line($scene->title, $context),
                 'skill' => self::line(catalogue::skill_name((string)$scene->skill), $context),
                 'context' => self::para($scene->context, $context),
+                'dialogue' => array_map(fn($d) => ['speaker' => self::line($d['speaker'], $context),
+                    'line' => self::para($d['line'], $context)], manager::dialogue($scene->script)),
                 'speaker' => self::line($scene->speaker, $context),
                 'question' => self::line($scene->question, $context),
                 'image' => (string)$image,
@@ -425,7 +427,24 @@ class learning {
             $rating = 'beginning';
         }
         $finished = count(self::finished_attempts($instance, (int)$attempt->userid));
+        // Debrief: where the first choice was the poorer one, what the better response was and why it works.
+        $takeaways = [];
+        $sql = 'SELECT ch.id, s.id AS sceneid, s.title, s.skill, o.text, o.reason
+                  FROM {aisoftskills_choice} ch
+                  JOIN {aisoftskills_scene} s ON s.id = ch.sceneid
+                  JOIN {aisoftskills_option} o ON o.sceneid = s.id AND o.best = 1
+                 WHERE ch.attemptid = :attemptid AND ch.best = 0
+              ORDER BY s.sortorder, ch.id';
+        foreach ($DB->get_records_sql($sql, ['attemptid' => $attempt->id]) as $row) {
+            $takeaways[] = [
+                'title' => self::line($row->title, $context),
+                'skill' => self::line(catalogue::skill_name((string)$row->skill), $context),
+                'better' => self::para($row->text, $context),
+                'reason' => self::para($row->reason, $context),
+            ];
+        }
         return [
+            'takeaways' => $takeaways,
             'score' => $score,
             'best' => $best,
             'total' => $total,
@@ -512,8 +531,7 @@ class learning {
             $DB->delete_records_select('aisoftskills_attempt', "id $insql", $params);
         }
         $DB->delete_records('aisoftskills_ailog', ['aisoftskillsid' => $aid, 'userid' => $userid]);
-        $DB->delete_records('aisoftskills_draft', ['aisoftskillsid' => $aid, 'userid' => $userid]);
-        $DB->delete_records('aisoftskills_imagejob', ['aisoftskillsid' => $aid, 'userid' => $userid]);
+        $DB->delete_records('aisoftskills_aireq', ['aisoftskillsid' => $aid, 'userid' => $userid]);
     }
 
     /**

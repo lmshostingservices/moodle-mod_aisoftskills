@@ -21,13 +21,13 @@ use core_external\external_value;
 use mod_aisoftskills\local\ai\requests;
 
 /**
- * Creates a scene picture with LMS Labs (5 credits per delivered picture; the request is stored first, never retried).
+ * Asks LMS Labs again about a stored request, with the same Idempotency-Key and body (never charged twice).
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class generate_image extends base {
+class check_request extends base {
     /**
      * Parameters.
      *
@@ -35,22 +35,23 @@ class generate_image extends base {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
-            'sceneid' => new external_value(PARAM_INT, 'Scene id'),
+            'cmid' => new external_value(PARAM_INT, 'Course module id'),
+            'requestid' => new external_value(PARAM_INT, 'Request id in this site'),
         ]);
     }
 
     /**
-     * Generates.
+     * Checks.
      *
-     * @param int $sceneid
+     * @param int $cmid
+     * @param int $requestid
      * @return array
      */
-    public static function execute(int $sceneid): array {
-        global $USER;
-        $params = self::validate_parameters(self::execute_parameters(), ['sceneid' => $sceneid]);
-        [, , $instance, $context, $scene] = self::load_scene($params['sceneid'], 'useai');
-        $row = requests::start_image($instance, (int)$USER->id, $scene);
-        return requests::export($row, $context);
+    public static function execute(int $cmid, int $requestid): array {
+        $params = self::validate_parameters(self::execute_parameters(), ['cmid' => $cmid, 'requestid' => $requestid]);
+        [, , $instance, $modcontext] = self::load_ai($params['cmid']);
+        $row = requests::check(requests::get((int)$instance->id, $params['requestid']), $instance);
+        return requests::export($row, $modcontext);
     }
 
     /**
