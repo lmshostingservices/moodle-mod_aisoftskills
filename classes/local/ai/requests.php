@@ -70,6 +70,10 @@ class requests {
     /** @var string[] Text error codes that leave the outcome unknown: the key is kept for "Check again". */
     protected const TEXT_UNCERTAIN = ['settlement_unconfirmed', 'deadline_exceeded'];
 
+    /** @var string[] Documented 5xx codes LMS Labs uses when the provider failed before anything was charged. */
+    protected const PROVIDER_REFUSED = ['provider_unavailable', 'provider_failed', 'provider_rate_limited',
+        'invalid_provider_result', 'image_failed', 'unusable_image'];
+
     /** @var string[] Picture error codes that leave the outcome unknown: the key is kept for "Check again". */
     protected const IMAGE_UNCERTAIN = ['settlement_unconfirmed', 'deadline_exceeded', 'image_unavailable'];
 
@@ -185,11 +189,12 @@ class requests {
         if (count($scenes) > self::MAX_IMPORT) {
             throw new moodle_exception('import_toomany', 'mod_aisoftskills', '', self::MAX_IMPORT);
         }
-        $titles = array_map(fn($s) => \core_text::substr(
-            str_replace(['<', '>'], '', self::clean_input((string)$s['title'])),
-            0,
-            200
-        ), $scenes);
+        $titles = [];
+        foreach (array_values($scenes) as $i => $scene) {
+            $title = trim(\core_text::substr(str_replace(['<', '>'], '', self::clean_input((string)$scene['title'])), 0, 200));
+            // LMS Labs needs a title with text for every scene.
+            $titles[] = $title !== '' ? $title : get_string('scenex', 'mod_aisoftskills', $i + 1);
+        }
         return self::start(
             $instance,
             $userid,
@@ -600,7 +605,13 @@ class requests {
     ): void {
         $row->balance = $balance ?? $row->balance;
         $row->errorcode = $code !== '' ? $code : ($status === 0 ? 'network' : 'http_' . $status);
-        $unknown = $status === 0 || in_array($code, $uncertain, true) || ($status >= 500 && $status !== 502 && $code === '');
+        if ($status === 404) {
+            // The route is not deployed at LMS Labs (yet): nothing was done, whatever the body says.
+            $row->errorcode = 'http_404';
+        }
+        // An unexpected server error is never taken as "not charged": only documented provider refusals are a no.
+        $unknown = $status === 0 || in_array($code, $uncertain, true) ||
+            ($status >= 500 && !in_array($code, self::PROVIDER_REFUSED, true));
         $map = [202 => 'pending', 409 => 'conflict', 410 => $gone];
         $row->status = $map[$status] ?? ($unknown ? 'uncertain' : 'failed');
     }

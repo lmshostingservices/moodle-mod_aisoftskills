@@ -340,11 +340,17 @@ final class requests_test extends \advanced_testcase {
         );
         $this->assertStringContainsString('need 6 and 2 are left', requests::export($row, $context)['message']);
 
-        // Not live yet at LMS Labs.
-        $this->answers = [[404, [], '']];
+        // Not deployed at LMS Labs yet, whatever error code the 404 carries.
+        $this->answers = [[404, ['content-type' => 'application/json'], json_encode(['error' => ['code' => 'NOT_FOUND']])]];
         $row = requests::start_import($this->instance, (int)$this->teacher->id, $draft);
-        $this->assertStringContainsString('not available from LMS Labs yet', requests::export($row, $context)['message']);
+        $this->assertStringContainsString('not switched on at LMS Labs yet', requests::export($row, $context)['message']);
         $this->assertSame($start, $scenes());
+
+        // An unexpected server error is never taken as "not charged": the key is kept for "Check again".
+        $this->answers = [[500, ['content-type' => 'application/json'], json_encode(['error' => ['code' => 'INTERNAL']])]];
+        $row = requests::start_import($this->instance, (int)$this->teacher->id, $draft);
+        $this->assertSame('uncertain', $row->status);
+        requests::dismiss($row);
 
         // No answer: nothing is created yet; "Check again" uses the same key and creates the scenes once.
         $this->answers = [[0, [], '']];
@@ -355,14 +361,14 @@ final class requests_test extends \advanced_testcase {
             'creditsCharged' => 6, 'creditsBalance' => 44])]];
         $row = requests::check($row, $this->instance);
         $this->assertSame('completed', $row->status);
-        $this->assertSame($this->sent[2][3], $this->sent[3][3]);
-        $this->assertSame($this->sent[2][2], $this->sent[3][2]);
+        $this->assertSame($this->sent[3][3], $this->sent[4][3]);
+        $this->assertSame($this->sent[3][2], $this->sent[4][2]);
         $this->assertSame($start + 2, $scenes());
         $this->assertSame(6, (int)$row->charged);
         $this->assertStringContainsString('6 LMS Labs credits used; 44 left', requests::export($row, $context)['message']);
         // Checking a completed import again sends nothing and creates nothing.
         requests::check($row, $this->instance);
-        $this->assertCount(4, $this->sent);
+        $this->assertCount(5, $this->sent);
         $this->assertSame($start + 2, $scenes());
     }
 

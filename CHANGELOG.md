@@ -2,6 +2,17 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.3.1] - 2026-10-09
+
+Builds on 1.3.0, which it replaces. It follows the LMS Labs handover of 9 Oct 2026 for the scene import route. No tariff or database changes.
+
+### Changed
+
+- **A 404 from LMS Labs always means "not switched on at LMS Labs yet"**, whatever error code it carries. 1.3.0 showed the vague "could not confirm these scenes" message when the import route was not yet deployed.
+- **An unexpected server error (5xx) is never taken as "not charged".** The request is kept for "Check again" with the same key. Only LMS Labs' documented provider failures count as a definite no.
+- **"Already used with different content" (409) no longer says "create it again".** It now says the earlier request may still have been charged and to contact LMS Labs support first.
+- **Every scene sent for charging has a title.** An empty title becomes "Scene N", because LMS Labs rejects empty titles.
+
 ## [v1.3.0] - 2026-10-08
 
 Builds on 1.2.1, which it replaces. The owner approved both changes on 8 Oct 2026. The tariffs are unchanged: 50 credits to unlock, 3 per scene, 5 per picture.
