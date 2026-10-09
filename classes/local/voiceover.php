@@ -99,7 +99,8 @@ class voiceover {
      */
     public static function catalog(): array {
         $cache = \cache::make('mod_aisoftskills', 'voicecatalog');
-        $key = sha1((string)(credentials::find()['siteid'] ?? ''));
+        // The key names the catalogue format: a new format (1.4.4: the tariff) is read again, never a stale copy.
+        $key = sha1('tariff|' . (string)(credentials::find()['siteid'] ?? ''));
         $cached = $cache->get($key);
         $kept = json_decode((string)get_config('mod_aisoftskills', 'voicecatalog'), true);
         $kept = is_array($kept) ? $kept : [];

@@ -152,7 +152,6 @@ function xmldb_aisoftskills_upgrade($oldversion) {
     if ($oldversion < 2026101001) {
         // The voice catalogue now carries the LMS Labs tariff: forget any copy kept before.
         unset_config('voicecatalog', 'mod_aisoftskills');
-        \cache_helper::purge_by_definition('mod_aisoftskills', 'voicecatalog');
         $table = new xmldb_table('aisoftskills');
         $fields = [
             new xmldb_field('kpiamber', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '40', 'passmark'),
@@ -187,8 +186,8 @@ function xmldb_aisoftskills_upgrade($oldversion) {
     }
 
     if ($oldversion < 2026101004) {
-        // Free voiceover remakes: read the catalogue again so its tariff (clipRefSupported) is known.
-        \cache_helper::purge_by_definition('mod_aisoftskills', 'voicecatalog');
+        // Free voiceover remakes: the catalogue is read again (its cache key changed) so its tariff is known.
+        // Caches are never touched here: during an upgrade a cache definition may not be registered yet.
         unset_config('voiceremakes', 'mod_aisoftskills');
         upgrade_mod_savepoint(true, 2026101004, 'aisoftskills');
     }
