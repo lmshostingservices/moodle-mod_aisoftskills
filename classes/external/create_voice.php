@@ -21,7 +21,7 @@ use core_external\external_value;
 use mod_aisoftskills\local\ai\requests;
 
 /**
- * Creates one voiceover clip of a scene with LMS Labs (stored first, never retried; 1 credit per delivered clip).
+ * Creates one voiceover clip of a scene with LMS Labs (stored first, never retried; 5 credits per clip LMS Labs settles).
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services

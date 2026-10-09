@@ -57,7 +57,7 @@ Scene content is written in the language chosen for the activity and shown with 
 
 - **AI scene drafts:** "Create a scene (5 credits)" in the lesson builder.
   - It calls the dedicated LMS Labs route `POST https://lms-labs.com/api/moodle/ai-softskills/scenes/draft` with the teacher's own text (at most 2,000 characters; if left empty, a brief built from the builder choices), plus the level and workplace from the builder choices.
-  - The delivered title, setting, lead-in conversation and teaching note become a new scene at once. The teacher writes the responses and adds a picture.
+  - The delivered title, setting, lead-in conversation, teaching note, who the learner is, question and three responses (better, poorer, very poor) become a new scene at once; the teacher checks it and adds a picture. Older script-only drafts arrive without responses, for the teacher to write.
   - Each draft LMS Labs makes costs 5 LMS Labs credits, charged by LMS Labs only. Failed drafts are not charged.
   - Site administrators can switch it off ("AI scene drafts").
 - **Stored requests:** every draft or picture request is saved in Moodle, with its own Idempotency-Key and exact body, before it is sent. "Check again" asks LMS Labs about the same request and can never be charged twice. Requests that are still in progress, unconfirmed, conflicting, expired or lost stay listed until dismissed. Only requests LMS Labs reports as in progress are checked again automatically (after `Retry-After`, a limited number of times); nothing else is resent. A delivered draft can be replayed for 24 hours; a picture cannot (LMS Labs keeps no picture), so an undelivered picture is shown as lost, with the reference, and never requested again automatically.

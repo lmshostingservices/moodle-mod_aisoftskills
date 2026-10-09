@@ -21,7 +21,7 @@ use core_external\external_value;
 use mod_aisoftskills\local\ai\requests;
 
 /**
- * Drafts one scene with LMS Labs (3 credits per delivered draft; the request is stored first and never retried).
+ * Drafts one scene with LMS Labs (5 credits per draft LMS Labs settles; the request is stored first and never retried).
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services

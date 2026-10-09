@@ -52,7 +52,7 @@ class import_lesson extends base {
         global $USER;
         $params = self::validate_parameters(self::execute_parameters(), ['cmid' => $cmid, 'draft' => $draft]);
         [, , $instance, $modcontext] = self::load_ai($params['cmid']);
-        // Charged like an LMS Labs scene draft (3 credits per scene); the scenes are created only once LMS Labs
+        // Charged like an LMS Labs scene draft (5 credits per scene); the scenes are created only once LMS Labs
         // confirms the charge.
         $row = requests::start_import($instance, (int)$USER->id, lesson::parse($params['draft']));
         return requests::export($row, $modcontext);

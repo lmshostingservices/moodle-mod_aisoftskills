@@ -22,8 +22,9 @@ use moodle_exception;
  * LMS Labs account connection.
  *
  * AI Soft Skills uses two dedicated LMS Labs routes (owner-approved tariffs, charged by LMS Labs only):
- * POST /api/moodle/ai-softskills/scenes/draft (3 credits per delivered scene draft) and
- * POST /api/moodle/ai-softskills/images (5 credits per delivered picture). Credentials go in headers only. Each
+ * POST /api/moodle/ai-softskills/scenes/draft (5 credits per scene LMS Labs settles) and
+ * POST /api/moodle/ai-softskills/images (5 credits per picture LMS Labs settles); also the scene import charge and
+ * speech routes. Credentials go in headers only. Each
  * intentional request gets a new Idempotency-Key that is stored with its exact body before sending (see requests), and
  * nothing is retried automatically. The balance check (GET /api/credits) is read-only and advisory.
  *
@@ -38,7 +39,7 @@ class lmslabs implements provider {
     /** @var string Dedicated AI Soft Skills scene draft route. */
     public const TEXT_ROUTE = '/api/moodle/ai-softskills/scenes/draft';
 
-    /** @var int Credits LMS Labs charges per delivered scene draft (owner-approved tariff). */
+    /** @var int Credits LMS Labs charges per scene draft it settles (owner-approved tariff). */
     public const TEXT_CREDITS = 5;
 
     /**
@@ -54,7 +55,7 @@ class lmslabs implements provider {
     /** @var string AI Soft Skills voiceover route: one MP3 clip of at most 200 characters per request. */
     public const VOICE_ROUTE = '/api/moodle/ai-softskills/speech/tts';
 
-    /** @var int Credits LMS Labs charges per delivered voiceover clip (owner-approved tariff, 8 Oct 2026). */
+    /** @var int Credits LMS Labs charges per voiceover clip it settles (owner-approved tariff, 8 Oct 2026). */
     public const VOICE_CREDITS = 5;
 
     /** @var string Dedicated AI Soft Skills picture route. */

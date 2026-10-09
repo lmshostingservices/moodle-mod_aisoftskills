@@ -2,6 +2,15 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.2] - 2026-10-11
+
+Follows the LMS Labs handover "AI Soft Skills: complete three-response drafts" (9 Oct 2026, option A). No tariff change: 5 credits per scene.
+
+### Changed
+
+- **"Use your own text" makes complete scenes**: `scenes/draft` now also returns who the learner is, the question and three responses (better, poorer, very poor). Moodle saves them with the scene (wire `kpiDelta` becomes `kpidelta`; the very poor drop is kept at least double). Script-only drafts, including old receipts replayed as they were, still arrive without responses for the teacher to write, as before; nothing is asked for again.
+- Developer comments no longer mention old prices or "per delivered" charging.
+
 ## [v1.4.1] - 2026-10-11
 
 Follows the LMS Labs release response of 9 Oct 2026 (speech enabled for AI Soft Skills, 5 credits per scene and per clip in development), and Jamie's requests of 9 Oct. No tariff change.

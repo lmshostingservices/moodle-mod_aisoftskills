@@ -21,7 +21,7 @@ use core_external\external_value;
 use mod_aisoftskills\local\ai\requests;
 
 /**
- * Creates a scene picture with LMS Labs (5 credits per delivered picture; the request is stored first, never retried).
+ * Creates a scene picture with LMS Labs (5 credits per picture LMS Labs settles; the request is stored first, never retried).
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services

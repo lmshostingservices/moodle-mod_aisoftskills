@@ -47,10 +47,10 @@ class requests {
     /** @var string Scene picture operation. */
     public const IMAGE = 'image';
 
-    /** @var string Charge for scenes made with the teacher's own AI assistant (3 credits per scene, like a draft). */
+    /** @var string Charge for scenes made with the teacher's own AI assistant (5 credits per scene, like a draft). */
     public const IMPORT = 'import';
 
-    /** @var string One voiceover clip of a scene (1 credit per delivered clip, when the owner approves it). */
+    /** @var string One voiceover clip of a scene (5 credits per clip LMS Labs makes). */
     public const VOICE = 'voice';
 
     /** @var int Most voiceover clips one teacher may ask for in an hour. */
@@ -550,6 +550,10 @@ class requests {
             }
             $transaction = $DB->start_delegated_transaction();
             $row->targetid = manager::add_scene($instance, self::scene_fields($draft));
+            if (!empty($draft['options'])) {
+                $scene = $DB->get_record('aisoftskills_scene', ['id' => $row->targetid], '*', MUST_EXIST);
+                manager::save_scene($scene, [], $draft['options']);
+            }
             $row->status = 'completed';
             $row->errorcode = null;
             $row->result = json_encode($draft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -800,11 +804,45 @@ class requests {
         ];
         $ok = $clean['title'] !== '' && $clean['setting'] !== '' && $clean['teachingNote'] !== ''
             && count($characters) >= 2 && count($characters) <= 6 && count($dialogue) >= 2 && count($dialogue) <= 20;
-        return $ok ? $clean : null;
+        if (!$ok) {
+            return null;
+        }
+        // Complete drafts (9 Oct 2026) also bring who the learner is, the question and three responses. Older or
+        // script-only drafts (and old receipts replayed as they were) leave them for the teacher to write.
+        $clean['speaker'] = $line($draft['speaker'] ?? '', 255);
+        $clean['question'] = $line($draft['question'] ?? '', 255);
+        $clean['options'] = self::clean_draft_options($draft['options'] ?? null);
+        return $clean;
     }
 
     /**
-     * Scene fields from a cleaned draft. The two responses are left for the teacher to write.
+     * The responses of a complete draft, or [] when there are none or they cannot be used as they are.
+     *
+     * Wire kpiDelta becomes kpidelta; with three, exactly one is very poor and does at least double the harm.
+     *
+     * @param mixed $options
+     * @return array[] responses as manager::save_scene() takes them
+     */
+    public static function clean_draft_options($options): array {
+        if (!is_array($options) || count($options) < manager::OPTIONS || count($options) > manager::MAX_OPTIONS) {
+            return [];
+        }
+        $clean = [];
+        foreach (array_values($options) as $option) {
+            if (!is_array($option) || !is_string($option['text'] ?? null)) {
+                return [];
+            }
+            $option['kpidelta'] = $option['kpiDelta'] ?? ($option['kpidelta'] ?? null);
+            $option['best'] = ($option['best'] ?? false) === true;
+            $option['worst'] = ($option['worst'] ?? false) === true;
+            $clean[] = manager::clean_option($option);
+        }
+        $clean = manager::mark_worst($clean);
+        return manager::options_ok($clean) ? array_map(fn($o) => (array)$o, $clean) : [];
+    }
+
+    /**
+     * Scene fields from a cleaned draft. The responses are saved separately ({@see self::scene_outcome()}).
      *
      * @param array $draft
      * @return array
@@ -824,6 +862,8 @@ class requests {
             ),
             'teachingnote' => $draft['teachingNote'],
             'imageprompt' => \core_text::substr($imageprompt, 0, 2000),
+            'speaker' => $draft['speaker'] ?? '',
+            'question' => $draft['question'] ?? '',
         ];
     }
 

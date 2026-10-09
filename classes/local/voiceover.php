@@ -32,8 +32,8 @@ use stdClass;
  * The voices follow the picture: each name label says whether the person is female or male, and the label marked as
  * the learner gives the responses' voice. Nobody but the narrator uses the narrator's voice, and each named person
  * keeps the same voice in every scene.
- * Each clip is at most 200 characters (longer text is split at sentence ends), and each delivered clip costs 1 LMS
- * Labs credit. A clip is identified by its locale, voice and exact text, so it is made once and reused, and changing
+ * Each clip is at most 200 characters (longer text is split at sentence ends), and each clip LMS Labs makes costs 5
+ * LMS Labs credits. A clip is identified by its locale, voice and exact text, so it is made once and reused, and changing
  * a line only makes that line again.
  *
  * @package    mod_aisoftskills

@@ -100,6 +100,69 @@ final class requests_test extends \advanced_testcase {
     }
 
     /**
+     * A complete draft (9 Oct 2026 contract): who the learner is, the question and three responses.
+     *
+     * @param array $options replacement responses, or null for the documented example
+     * @return array
+     */
+    protected function complete_draft(?array $options = null): array {
+        return ['speaker' => 'You are the shift lead.', 'question' => 'How do you respond?', 'options' => $options ?? [
+            ['text' => 'Review the handover together.', 'best' => true, 'worst' => false, 'kpi' => 'trust', 'kpiDelta' => 20,
+                'consequence' => 'Both colleagues feel heard.', 'reason' => 'Checking facts builds trust.'],
+            ['text' => 'End the discussion without checking.', 'best' => false, 'worst' => false, 'kpi' => 'trust',
+                'kpiDelta' => -15, 'consequence' => 'Uncertainty remains.', 'reason' => 'Avoidance leaves it unresolved.'],
+            ['text' => 'Blame Alex in front of the team.', 'best' => false, 'worst' => true, 'kpi' => 'trust', 'kpiDelta' => -30,
+                'consequence' => 'Alex becomes defensive.', 'reason' => 'Public blame undermines trust.'],
+        ]];
+    }
+
+    /**
+     * A complete draft becomes a scene with its role, question and three responses, ready apart from the picture.
+     */
+    public function test_complete_draft_has_three_responses(): void {
+        global $DB;
+        $this->answers = [$this->draft_ok($this->complete_draft())];
+        $row = requests::start_scene($this->instance, (int)$this->teacher->id, 'A handover goes wrong.', '', '');
+        $this->assertSame('completed', $row->status);
+        $scene = $DB->get_record('aisoftskills_scene', ['id' => $row->targetid], '*', MUST_EXIST);
+        $this->assertSame('You are the shift lead.', $scene->speaker);
+        $this->assertSame('How do you respond?', $scene->question);
+        $options = array_values($DB->get_records('aisoftskills_option', ['sceneid' => $scene->id], 'sortorder'));
+        $this->assertCount(3, $options);
+        $this->assertSame(['1', '0', '0'], array_column($options, 'best'));
+        $this->assertSame(['0', '0', '1'], array_column($options, 'worst'));
+        $this->assertSame(['20', '-15', '-30'], array_column($options, 'kpidelta'));
+        $this->assertSame('Public blame undermines trust.', $options[2]->reason);
+        $this->assertTrue(\mod_aisoftskills\local\setuppath::responses_ok($options));
+    }
+
+    /**
+     * Script-only drafts (old receipts) and responses that cannot be used as they are keep the scene without
+     * responses, for the teacher to write; nothing is asked for again.
+     */
+    public function test_script_only_and_unusable_responses(): void {
+        global $DB;
+        $bad = $this->complete_draft();
+        $bad['options'][2]['best'] = true;
+        $flags = $this->complete_draft();
+        $flags['options'][0]['best'] = 'yes';
+        foreach ([[], $bad, $flags, ['options' => 'none']] as $i => $extra) {
+            $this->answers = [$this->draft_ok($extra)];
+            $row = requests::start_scene($this->instance, (int)$this->teacher->id, 'Scene ' . $i, '', '');
+            $this->assertSame('completed', $row->status, (string)$i);
+            $this->assertSame(0, $DB->count_records('aisoftskills_option', ['sceneid' => $row->targetid]), (string)$i);
+        }
+        $this->assertCount(4, $this->sent);
+        // An unmarked very poor response is found from the larger drop, and its drop is made double.
+        $draft = $this->complete_draft();
+        unset($draft['options'][2]['worst']);
+        $draft['options'][2]['kpiDelta'] = -20;
+        $out = requests::clean_draft_options($draft['options']);
+        $this->assertSame([0, 0, 1], array_column($out, 'worst'));
+        $this->assertSame(-30, $out[2]['kpidelta']);
+    }
+
+    /**
      * A text error response.
      *
      * @param int $status
