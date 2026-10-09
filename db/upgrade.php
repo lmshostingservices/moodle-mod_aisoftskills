@@ -176,6 +176,23 @@ function xmldb_aisoftskills_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026101001, 'aisoftskills');
     }
 
+    if ($oldversion < 2026101003) {
+        // Labels suggested by earlier versions: "Priya - Quietly mentions" becomes "Priya", "Mrs - Resident" gets the name.
+        $rs = $DB->get_recordset_select('aisoftskills_scene', 'labels IS NOT NULL', null, 'id', 'id, context, labels');
+        foreach ($rs as $scene) {
+            \mod_aisoftskills\local\labels::repair($scene);
+        }
+        $rs->close();
+        upgrade_mod_savepoint(true, 2026101003, 'aisoftskills');
+    }
+
+    if ($oldversion < 2026101004) {
+        // Free voiceover remakes: read the catalogue again so its tariff (clipRefSupported) is known.
+        \cache_helper::purge_by_definition('mod_aisoftskills', 'voicecatalog');
+        unset_config('voiceremakes', 'mod_aisoftskills');
+        upgrade_mod_savepoint(true, 2026101004, 'aisoftskills');
+    }
+
     return true;
 }
 

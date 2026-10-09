@@ -50,8 +50,8 @@
                 {{#labels.0}}<figcaption class="sr-only">{{#str}} labels_inpicture, mod_aisoftskills {{/str}} {{#labels}}{{text}}. {{/labels}}</figcaption>{{/labels.0}}
             </figure>
             {{#hasvoice}}
-            <button type="button" class="ss-listen" data-action="listen" aria-pressed="false">
-                <svg class="ss-listen-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            <button type="button" class="ss-listen" data-action="listen" aria-pressed="false" title="{{#str}} listen_scene, mod_aisoftskills {{/str}}">
+                <svg class="ss-listen-play ss-listen-speaker" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
                 <svg class="ss-listen-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
                 <span class="ss-listen-label">{{#str}} listen_scene, mod_aisoftskills {{/str}}</span>
             </button>

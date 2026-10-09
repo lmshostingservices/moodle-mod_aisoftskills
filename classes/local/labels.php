@@ -46,8 +46,8 @@ class labels {
     /**
      * Cleans labels from the page or the database: text, and a position kept inside the picture.
      *
-     * @param mixed $labels list of {text, x, y, gender (f, m or ''), you}
-     * @return array list of {text, x, y, gender, you}
+     * @param mixed $labels list of {text, x, y, gender (f, m or ''), voice (a voice type or ''), you}
+     * @return array list of {text, x, y, gender, voice, you}
      */
     public static function clean($labels): array {
         $out = [];
@@ -62,10 +62,15 @@ class labels {
             }
             $pos = fn($v) => round(max(2.0, min(98.0, is_numeric($v) ? (float)$v : 50.0)), 1);
             $gender = in_array($label['gender'] ?? '', ['f', 'm'], true) ? $label['gender'] : '';
+            // A voice the teacher chose for this person; it decides how they sound.
+            $voice = in_array($label['voice'] ?? '', voiceover::VOICETYPES, true) ? $label['voice'] : '';
+            if ($voice !== '') {
+                $gender = in_array($voice, voiceover::GENDERS['f'], true) ? 'f' : 'm';
+            }
             // Only one label can be the learner.
             $you = !empty($label['you']) && !in_array(true, array_column($out, 'you'), true);
             $out[] = ['text' => $text, 'x' => $pos($label['x'] ?? 50), 'y' => $pos($label['y'] ?? self::DEFAULT_Y),
-                'gender' => $gender, 'you' => $you];
+                'gender' => $gender, 'voice' => $voice, 'you' => $you];
             if (count($out) === self::MAX) {
                 break;
             }
@@ -96,6 +101,41 @@ class labels {
         $DB->update_record('aisoftskills_scene', (object)['id' => $scene->id, 'timemodified' => time(),
             'labels' => $clean ? json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null]);
         $scene->labels = $clean ? json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null;
+        // A person has one voice in the whole activity: a voice chosen here is given to their labels in other scenes.
+        $voices = [];
+        foreach ($clean as $label) {
+            if (!$label['you'] && $label['voice'] !== '' && self::person($label['text']) !== '') {
+                $voices[self::person($label['text'])] = [$label['voice'], $label['gender']];
+            }
+        }
+        if ($voices && !empty($scene->aisoftskillsid)) {
+            $others = $DB->get_records_select(
+                'aisoftskills_scene',
+                'aisoftskillsid = :aid AND id <> :id',
+                ['aid' => $scene->aisoftskillsid, 'id' => $scene->id],
+                '',
+                'id, labels'
+            );
+            foreach ($others as $other) {
+                $list = self::get($other);
+                $changed = false;
+                foreach ($list as $k => $label) {
+                    $person = self::person($label['text']);
+                    if (!$label['you'] && isset($voices[$person]) && $label['voice'] !== $voices[$person][0]) {
+                        [$list[$k]['voice'], $list[$k]['gender']] = $voices[$person];
+                        $changed = true;
+                    }
+                }
+                if ($changed) {
+                    $DB->set_field(
+                        'aisoftskills_scene',
+                        'labels',
+                        json_encode($list, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                        ['id' => $other->id]
+                    );
+                }
+            }
+        }
         return $clean;
     }
 
@@ -109,20 +149,20 @@ class labels {
      */
     public static function suggest(stdClass $scene): array {
         $names = [];
-        foreach (manager::dialogue($scene->script) as $line) {
+        foreach (manager::dialogue((string)($scene->script ?? '')) as $line) {
             $name = trim((string)$line['speaker']);
             if ($name !== '' && !in_array($name, $names, true)) {
                 $names[] = $name;
             }
         }
-        $script = json_decode((string)$scene->script, true);
+        $script = json_decode((string)($scene->script ?? ''), true);
         foreach ((array)($script['characters'] ?? []) as $name) {
             $name = is_string($name) ? trim($name) : '';
             if ($name !== '' && !in_array($name, $names, true)) {
                 $names[] = $name;
             }
         }
-        $text = (string)$scene->context;
+        $text = (string)($scene->context ?? '');
         foreach (self::named($text) as $name) {
             if (!in_array($name, $names, true)) {
                 $names[] = $name;
@@ -135,7 +175,7 @@ class labels {
                 'you' => false];
         }
         // The learner: the person who answers, such as "You, the shift supervisor".
-        $speaker = trim((string)$scene->speaker);
+        $speaker = trim((string)($scene->speaker ?? ''));
         $role = learning::role_name($speaker, 'en');
         $you = $role !== '' ? get_string('label_you', 'mod_aisoftskills') . ' - '
             . \core_text::strtoupper(\core_text::substr($role, 0, 1)) . \core_text::substr($role, 1) : $speaker;
@@ -150,13 +190,67 @@ class labels {
     }
 
     /**
+     * Repairs labels suggested by earlier versions: a role that is really an adverb or verb ("Priya - Quietly
+     * mentions" becomes "Priya") and a title without its name ("Mrs - Resident" becomes "Mrs Tanaka - Resident" when
+     * the scene text names Mrs Tanaka). Positions, voices and the learner are kept.
+     *
+     * @param stdClass $scene
+     * @return bool whether anything changed (and was saved)
+     */
+    public static function repair(stdClass $scene): bool {
+        global $DB;
+        $list = self::get($scene);
+        $text = (string)($scene->context ?? '');
+        $changed = false;
+        foreach ($list as $k => $label) {
+            if ($label['you']) {
+                continue;
+            }
+            $parts = array_map('trim', preg_split('/\s+[-–—]\s+/u', $label['text'], 2));
+            $name = $parts[0];
+            $role = $parts[1] ?? '';
+            if (
+                preg_match('/^(Mrs|Mr|Ms|Miss|Mx|Dr|Prof)\.?$/u', $name)
+                    && preg_match('/\b' . preg_quote($name, '/') . '\.?\s+(\p{Lu}\p{Ll}+)\b/u', $text, $m)
+            ) {
+                $name .= ' ' . $m[1];
+            }
+            if ($role !== '') {
+                $words = explode(' ', \core_text::strtolower($role));
+                $fixed = self::role(implode(' ', $words) . ' ' . $name, $name);
+                $role = $fixed;
+            }
+            $new = $role !== '' ? $name . ' - ' . $role : $name;
+            if ($new !== $label['text']) {
+                $list[$k]['text'] = $new;
+                if ($list[$k]['gender'] === '' && $list[$k]['voice'] === '') {
+                    $list[$k]['gender'] = self::gender($text, $name);
+                }
+                $changed = true;
+            }
+        }
+        if ($changed) {
+            $DB->set_field('aisoftskills_scene', 'labels', json_encode(
+                self::clean($list),
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            ), ['id' => $scene->id]);
+        }
+        return $changed;
+    }
+
+    /**
      * People named with a role in the scene text, such as Leo in "bartender Leo".
      *
      * @param string $text
      * @return string[]
      */
     public static function named(string $text): array {
-        preg_match_all('/(?:^|[\s,(])[a-z][a-z-]{2,}\s+(\p{Lu}\p{Ll}+)\b/u', $text, $m);
+        // A title belongs to the name that follows it: "resident Mrs Tanaka" names Mrs Tanaka, not "Mrs".
+        preg_match_all(
+            '/(?:^|[\s,(])[a-z][a-z-]{2,}\s+((?:(?:Mrs|Mr|Ms|Miss|Mx|Dr|Prof)\.?\s+)?\p{Lu}\p{Ll}+)\b/u',
+            $text,
+            $m
+        );
         $out = [];
         foreach (array_unique($m[1]) as $name) {
             if (self::role($text, $name) !== '') {
@@ -174,6 +268,12 @@ class labels {
      * @return string f, m or '' when the text does not say
      */
     public static function gender(string $text, string $name): string {
+        if (preg_match('/^(Mrs|Ms|Miss)\b/u', $name)) {
+            return 'f';
+        }
+        if (preg_match('/^Mr\b/u', $name)) {
+            return 'm';
+        }
         $he = 0;
         $she = 0;
         $sentences = preg_split('/(?<=[.!?])\s+/u', $text);
@@ -218,11 +318,14 @@ class labels {
             'call', 'calls', 'see', 'sees', 'meet', 'meets', 'help', 'helps', 'thank', 'thanks', 'when', 'while', 'that',
             'says', 'said', 'than', 'then', 'where', 'who', 'about', 'after', 'before', 'because', 'into', 'onto', 'your',
             'their', 'his', 'her', 'our', 'its', 'are', 'was', 'were', 'has', 'have', 'had', 'you', 'not', 'new'];
+        // Adverbs and verb forms are never part of a role: "quietly mentions Priya" has none, "nurse Priya" has one.
+        $verbish = fn($w) => in_array($w, $notroles, true) || preg_match('/(ly|ed|ing)$/', $w)
+            || (preg_match('/[^s]s$/', $w) && !in_array($w, ['boss', 'chef'], true));
         // Drop leading words that are not part of a role ("ask bartender" -> "bartender").
-        while ($words && in_array($words[0], $notroles, true)) {
+        while ($words && $verbish($words[0])) {
             array_shift($words);
         }
-        if (!$words || in_array(end($words), $notroles, true)) {
+        if (!$words || $verbish(end($words))) {
             return '';
         }
         $role = implode(' ', $words);

@@ -111,7 +111,7 @@ $string['aidrafterror_not_live'] = 'The LMS Labs scene draft service is not avai
 $string['aidrafterror_provider_failed'] = 'The AI service could not draft this scene. You have not been charged. Try again later. (LMS Labs reference: {$a->requestid})';
 $string['aidrafterror_rate_limited'] = 'Too many drafts requested at once. Wait a moment and try again. You have not been charged. (LMS Labs reference: {$a->requestid})';
 $string['aidrafterror_rejected'] = 'LMS Labs did not accept this request. Check the text and try again. You have not been charged. (LMS Labs reference: {$a->requestid})';
-$string['aidrafterror_unusable_draft'] = 'LMS Labs delivered a draft this site could not use, and may have charged {$a->charged} credits. Contact LMS Labs support with the reference before drafting again. (LMS Labs reference: {$a->requestid})';
+$string['aidrafterror_unusable_draft'] = 'LMS Labs delivered a draft this site could not use, and may have charged up to {$a->charged} credits. Contact LMS Labs support with the reference before drafting again. (LMS Labs reference: {$a->requestid})';
 $string['aidrafts'] = 'AI scene drafts';
 $string['aidrafts_desc'] = 'Let teachers draft a complete scene (title, setting, lead-in conversation, teaching note, question and three responses) with LMS Labs AI in the lesson builder. Each draft LMS Labs creates costs 5 LMS Labs credits; a draft it could not create is not charged. Teachers need the "Use LMS Labs AI" capability.';
 $string['aierror_body_too_large'] = 'The picture request is too large. Shorten the scene\'s picture description. (LMS Labs reference: {$a->requestid})';
@@ -297,10 +297,14 @@ Scene: {$a->description}
 
 Industry: {$a->industry}. The workplace, uniforms, equipment and people should look typical of this industry.
 
+People in the picture: {$a->people}
+
+Show every named person clearly and make them easy to tell apart. Cast each one so they match their name and role: the gender the scene gives them, an age that suits the role, and an appearance that is plausible for their name (for example, a person called Priya looks South Asian, a person called Mei looks East Asian). Do not add extra people in the foreground.
+
 Rules:
 - Landscape, 16:10 (for example 1600 × 1000 pixels).
 - Show the people involved clearly; faces, gestures and body language make the moment obvious.
-- The moment is shown just before anyone responds, so the picture suits both possible responses.
+- The moment is shown just before anyone responds, so the picture suits every possible response.
 - No text, letters, numbers, captions, signs, logos or speech bubbles.';
 $string['imagereplaced'] = 'Picture saved.';
 $string['imagestyle'] = 'Picture style';
@@ -398,7 +402,7 @@ For every scene give:
 - context: two or three short sentences, at most 70 words: who is involved, what has just happened, and what is at stake
 - speaker: who the learner is in this moment, for example "You, the shift supervisor"
 - question: the decision the learner faces, in at most 20 words, for example "What do you say to Maria right now?"
-- imageprompt: an English description of one {$a->style} of this moment in a {$a->industry} workplace, showing the people involved, their body language and expressions, and the setting. No text, letters, captions, signs or speech bubbles. Do not describe real people.
+- imageprompt: an English description of one {$a->style} of this moment in a {$a->industry} workplace, showing the people involved, their body language and expressions, and the setting. Name each person and give their role, gender, approximate age and an appearance that fits their name (for example "Priya, a South Asian nurse in her thirties"), and say where each one stands (left, centre or right). No text, letters, captions, signs or speech bubbles. Do not describe real people.
 
 Put the three responses in a random order in each scene, so the better response is not always first.
 
@@ -685,17 +689,17 @@ $string['ctx_action'] = 'What you do';
 $string['ctx_context'] = 'Good to know';
 $string['ctx_situation'] = 'The situation';
 $string['label_add'] = 'Add a label';
-$string['label_female'] = 'Female voice';
-$string['label_male'] = 'Male voice';
+$string['label_female'] = 'Automatic female voice';
+$string['label_male'] = 'Automatic male voice';
 $string['label_remove'] = 'Remove label';
 $string['label_text'] = 'Label';
-$string['label_unknownvoice'] = 'Choose a voice';
+$string['label_unknownvoice'] = 'Automatic voice';
 $string['label_you'] = 'You';
 $string['label_youlearner'] = 'This is the learner (the responses are read in this voice)';
 $string['labels_button'] = 'Name labels';
 $string['labels_count'] = '{$a} name labels';
 $string['labels_dialog'] = 'Name labels: {$a}';
-$string['labels_help'] = 'Drag each label onto the person it names, for example onto Leo\'s chest. Choose whether each person has a female or male voice, so the voiceover matches the picture, and mark the learner. Labels are shown on top of the picture, so they stay sharp and can be moved at any time.';
+$string['labels_help'] = 'Drag each label onto the person it names, for example onto Leo\'s chest. Choose each person\'s voice, so the voiceover matches the picture: one of the 8 voices, or an automatic female or male voice (each person gets a different one, never the narrator\'s). Then mark the learner. Labels are shown on top of the picture, so they stay sharp and can be moved at any time.';
 $string['labels_inpicture'] = 'In the picture:';
 $string['labels_none'] = 'No name labels yet';
 $string['labels_one'] = '1 name label';
@@ -805,3 +809,32 @@ $string['kpibands_range'] = 'Use two numbers from 1 to 100, the amber number low
 $string['kpitone_red'] = 'red';
 $string['kpitone_amber'] = 'amber';
 $string['kpitone_green'] = 'green';
+$string['label_auto_is'] = '{$a->kind}: {$a->voice}';
+$string['label_voice'] = 'Voice';
+$string['label_voice_narrator'] = '{$a} (narrator)';
+$string['label_voices_female'] = 'Female voices';
+$string['label_voices_male'] = 'Male voices';
+$string['label_voice_same'] = 'Two people in this scene have the voice {$a}, so they will sound alike. Choose a different voice for one of them.';
+$string['labels_scenario'] = 'The scenario (names in it are marked)';
+$string['voice_busy'] = 'The voiceover is being made. Wait until it finishes, or press Stop.';
+$string['genall_busy'] = 'The pictures are being made. Wait until they finish.';
+$string['voice_stop'] = 'Stop';
+$string['voice_stopping'] = 'Stopping after this clip…';
+$string['scenesaved_voice'] = 'The voiceover of {$a} changed sentences needs making again: until then that part of the scene is not read out. Make it in the Voiceover step; sentences you did not change keep their voiceover.';
+$string['aivoiceerror_price_changed'] = 'This clip is no longer free: its free remakes for now are used up, so LMS Labs did not make it and nothing was charged. Press "Create the missing voiceover" again to see the new price. (LMS Labs reference: {$a->requestid})';
+$string['voice_quoting'] = 'Checking the price of each clip…';
+$string['voice_button_remakes'] = 'Create the missing voiceover: {$a} to make';
+$string['voice_remakes'] = 'A clip made again after you edit a sentence or change a voice is free, up to {$a->limit} times in {$a->days} days for each clip; the price of every clip is shown before anything is made.';
+$string['scenesaved_voice_free'] = 'The voiceover of {$a} changed sentences needs making again: until then that part of the scene is not read out. Make it in the Voiceover step; clips made again after an edit are free (within the free remake allowance), and sentences you did not change keep their voiceover.';
+$string['voice_confirm_head'] = 'Create {$a} voiceover clips?';
+$string['voice_confirm_headone'] = 'Create 1 voiceover clip?';
+$string['voice_confirm_new'] = '{$a->paid} are new: {$a->each} credits each, {$a->credits} credits in all.';
+$string['voice_confirm_newone'] = '1 is new: {$a->credits} credits.';
+$string['voice_confirm_free'] = '{$a} are made again after an edit: free.';
+$string['voice_confirm_freeone'] = '1 is made again after an edit: free.';
+$string['voice_confirm_note'] = 'A clip LMS Labs has made is charged even if this page is closed before it arrives.';
+$string['aireq_completed_unknown'] = '{$a->what} LMS Labs did not say what it charged: at most {$a->credits} credits, as you confirmed. Your LMS Labs account shows the exact amount.';
+$string['aireq_image_done'] = 'Picture created.';
+$string['aireq_import_done'] = 'Scenes created.';
+$string['aireq_scene_done'] = 'Scene created.';
+$string['aireq_voice_done'] = 'Voiceover clip created.';

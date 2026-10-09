@@ -2,6 +2,44 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.5] - 2026-10-11
+
+Follows the LMS Labs review of 9 Oct 2026 of the free-remake integration.
+
+### Fixed
+
+- A missing charge (no `X-Credits-Charged` header, or no `creditsCharged` in a text or import answer) is no longer recorded as a charge. It is kept as not known, and the teacher sees "LMS Labs did not say what it charged: at most N credits, as you confirmed". The confirmed ceiling stays with the stored request (`maxCredits`).
+- Dialogue lines now have stable ids, kept through edits (unchanged and edited lines keep theirs, new lines get new ones). A clip's place (`clipRef`) uses the line's id, so deleting or adding a line no longer moves other lines onto a neighbour's free-remake allowance.
+
+## [v1.4.4] - 2026-10-11
+
+Follows the LMS Labs response of 9 Oct 2026 on free voiceover remakes (approved by Jamie: 10 free remakes per clip in a rolling 30 days).
+
+### Added
+
+- **Free voiceover remakes after an edit.** Once the LMS Labs catalogue says `clipRefSupported`, every clip is sent with `clipRef` (a stable SHA-256 of the clip's place: JSON array of component, site, activity, scene, part, line and clip number; no text or voice) and `maxCredits` (the price the teacher confirmed: 0 or 5).
+- Before anything is made, each missing clip is priced with the free `speech/quote` route. The confirmation shows the split, for example "Create 9 voiceover clips? 2 are new: 10 credits. 7 are made again after an edit: free."
+- A free clip whose price has gone up is refused by LMS Labs (409 `PRICE_CHANGED`) before anything is made or charged; Moodle says so and asks the teacher to confirm the new price.
+- Until LMS Labs supports the new fields, clips are sent exactly as before.
+
+## [v1.4.3] - 2026-10-11
+
+### Added
+
+- **Choose any of the 8 voices for each name label**, grouped female and male. "Automatic" shows the voice it gives (for example "Automatic female voice: Leda"). The narrator's voice is shown but can't be chosen. The learner's label can have a voice too, and nobody else then gets it.
+- The label editor warns when two people in the scene would sound alike.
+- **The scenario in the label editor**, with the names in it marked, so the teacher can check who is who.
+- While the voiceover (or the pictures) is being made, Back and Next are locked, leaving the page asks first, and a **Stop** button stops after the clip being made.
+- After editing a scene that had voiceover, Moodle says how many changed sentences need a new clip. Unchanged sentences keep theirs.
+
+### Fixed
+
+- Suggested labels no longer take words such as "quietly mentions" for a role ("Priya - Quietly mentions" is now "Priya"), and titles stay with their name ("Mrs Tanaka - Resident", a woman).
+
+### Changed
+
+- **Pictures match the names in the scene**: the picture request lists every labelled person with their role and voice gender, and asks for each to look like their name and role suggest (for example, Priya looks South Asian). The AI-assistant prompt asks for the same in each picture description, plus where each person stands.
+
 ## [v1.4.2] - 2026-10-11
 
 Follows the LMS Labs handover "AI Soft Skills: complete three-response drafts" (9 Oct 2026, option A). No tariff change: 5 credits per scene.

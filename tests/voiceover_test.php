@@ -111,6 +111,39 @@ final class voiceover_test extends \advanced_testcase {
     }
 
     /**
+     * A voice the teacher chose on a label wins: the person gets it, the learner's default moves away from it, and the
+     * editor is told which voice each label really has.
+     */
+    public function test_chosen_voices(): void {
+        global $DB;
+        set_config('narratorvoice', 'Kore', 'mod_aisoftskills');
+        labels::save($this->scene, [
+            ['text' => 'You - Shift supervisor', 'x' => 60, 'y' => 50, 'gender' => 'f', 'you' => true],
+            ['text' => 'Leo - Bartender', 'x' => 30, 'y' => 50, 'gender' => 'm', 'voice' => 'Orus', 'you' => false],
+            ['text' => 'Priya - Nurse', 'x' => 80, 'y' => 50, 'voice' => 'Aoede', 'you' => false],
+            ['text' => 'Ana', 'x' => 10, 'y' => 50, 'gender' => 'f', 'you' => false],
+        ]);
+        $scene = $DB->get_record('aisoftskills_scene', ['id' => $this->scene->id]);
+        $config = voiceover::config($this->instance);
+        $this->assertSame('en-AU-Chirp3-HD-Orus', $config['people']['leo']);
+        $this->assertSame('en-AU-Chirp3-HD-Aoede', $config['people']['priya']);
+        // Aoede was the learner's female default; it is taken, so the learner gets the next female voice.
+        $this->assertSame('en-AU-Chirp3-HD-Leda', voiceover::learner_voice($scene, $config));
+        $voices = voiceover::label_voices($scene, $config);
+        $this->assertSame(['Leda', 'Orus', 'Aoede'], array_slice($voices, 0, 3));
+        $this->assertNotContains($voices[3], ['Leda', 'Aoede', 'Kore', ''], 'Ana gets a voice nobody else has.');
+        // The learner can be given a voice too; the narrator's voice can never be chosen.
+        labels::save($scene, [['text' => 'You', 'x' => 50, 'y' => 50, 'voice' => 'Zephyr', 'you' => true],
+            ['text' => 'Leo', 'x' => 30, 'y' => 50, 'voice' => 'Kore', 'you' => false]]);
+        $scene = $DB->get_record('aisoftskills_scene', ['id' => $this->scene->id]);
+        $instance = $DB->get_record('aisoftskills', ['id' => $this->instance->id]);
+        $config = voiceover::config($instance);
+        $this->assertSame('en-AU-Chirp3-HD-Zephyr', voiceover::learner_voice($scene, $config));
+        $this->assertNotContains('en-AU-Chirp3-HD-Zephyr', $config['people'], 'Nobody else gets the learner\'s voice.');
+        $this->assertNotSame('en-AU-Chirp3-HD-Kore', $config['people']['leo']);
+    }
+
+    /**
      * A person keeps their voice when someone new appears earlier in the activity, so made clips stay valid.
      */
     public function test_voices_are_kept(): void {
@@ -190,7 +223,12 @@ final class voiceover_test extends \advanced_testcase {
         $this->answers = [[200, ['content-type' => 'audio/mpeg', 'x-request-id' => 'v1'], $mp3]];
         $row = requests::start_voice($this->instance, (int)$USER->id, $this->scene, 0);
         $this->assertSame('completed', $row->status);
-        $this->assertSame(lmslabs::VOICE_CREDITS, (int)$row->charged);
+        // No x-credits-charged header: the charge is not known, and is never assumed.
+        $this->assertNull($row->charged);
+        $this->assertStringContainsString(
+            'did not say what it charged: at most 5 credits',
+            requests::export($row, $this->context)['message']
+        );
         $this->assertSame(['text', 'locale', 'speed', 'voice'], array_keys($this->sent[0]));
         $this->assertSame('normal', $this->sent[0]['speed']);
         $this->assertCount(7, voiceover::missing($this->instance, $this->context));
@@ -242,6 +280,105 @@ final class voiceover_test extends \advanced_testcase {
                 $this->assertStringContainsString($text, requests::export($row, $this->context)['message'], $code);
             }
         }
+    }
+
+    /**
+     * Free remakes: once LMS Labs says it supports them, every clip carries its place (clipRef) and the price the
+     * teacher confirmed (maxCredits); the place stays the same when the text changes; a price that went up is refused.
+     */
+    public function test_free_remakes(): void {
+        global $DB, $USER;
+        $mp3 = "ID3\x03\x00" . str_repeat("\x00", 64);
+        // Not supported yet: the body is as before.
+        $this->answers = [[200, ['content-type' => 'audio/mpeg'], $mp3]];
+        requests::start_voice($this->instance, (int)$USER->id, $this->scene, 0, 0);
+        $this->assertSame(['text', 'locale', 'speed', 'voice'], array_keys($this->sent[0]));
+        // The catalogue says LMS Labs takes clipRef and maxCredits.
+        $voices = array_map(fn($t) => ['name' => 'en-AU-Chirp3-HD-' . $t], voiceover::VOICETYPES);
+        lmslabs::$transport = fn() => [200, json_encode(['locales' => [['locale' => 'en-AU', 'ttsLanguageCode' => 'en-AU',
+            'voices' => $voices]], 'tariff' => ['tts' => 5, 'ttsRemake' => 0, 'ttsRemakeLimit' => 10,
+            'ttsRemakeWindowDays' => 30, 'clipRefSupported' => true, 'maxCreditsRequired' => true]])];
+        \cache::make('mod_aisoftskills', 'voicecatalog')->purge();
+        voiceover::catalog();
+        $this->assertSame(['limit' => 10, 'days' => 30], voiceover::remakes());
+        $this->answers = [[200, ['content-type' => 'audio/mpeg', 'x-credits-charged' => '0'], $mp3]];
+        $row = requests::start_voice($this->instance, (int)$USER->id, $this->scene, 1, 0);
+        $this->assertSame('completed', $row->status);
+        $this->assertSame(0, (int)$row->charged);
+        $body = $this->sent[1];
+        $this->assertSame(['text', 'locale', 'speed', 'voice', 'clipRef', 'maxCredits'], array_keys($body));
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $body['clipRef']);
+        $this->assertSame(0, $body['maxCredits']);
+        // The same place keeps its reference when its text changes; other places differ.
+        $config = voiceover::config($this->instance);
+        $options = manager::get_options([$this->scene->id])[$this->scene->id];
+        $before = voiceover::segments($this->scene, $config, $options);
+        $DB->set_field('aisoftskills_scene', 'question', 'What do you say to Leo now?', ['id' => $this->scene->id]);
+        $scene = $DB->get_record('aisoftskills_scene', ['id' => $this->scene->id]);
+        $after = voiceover::segments($scene, $config, $options);
+        $this->assertNotSame($before[1]['text'], $after[1]['text']);
+        $this->assertSame(
+            voiceover::clipref($this->instance, (int)$scene->id, $before[1]),
+            voiceover::clipref($this->instance, (int)$scene->id, $after[1])
+        );
+        $this->assertNotSame(
+            voiceover::clipref($this->instance, (int)$scene->id, $after[0]),
+            voiceover::clipref($this->instance, (int)$scene->id, $after[1])
+        );
+        // A dialogue line's place follows its stable id: deleting an earlier line does not move it.
+        $DB->set_field(
+            'aisoftskills_scene',
+            'script',
+            manager::text_to_script("Leo: First line.\nLeo: Second line."),
+            ['id' => $scene->id]
+        );
+        $scene = $DB->get_record('aisoftskills_scene', ['id' => $scene->id]);
+        $line = fn($s) => array_values(array_filter(voiceover::segments($s, $config, $options), fn($g) => $g['part'] === 'line'));
+        $second = voiceover::clipref($this->instance, (int)$scene->id, $line($scene)[1]);
+        $DB->set_field(
+            'aisoftskills_scene',
+            'script',
+            manager::text_to_script('Leo: Second line.', (string)$scene->script),
+            ['id' => $scene->id]
+        );
+        $scene = $DB->get_record('aisoftskills_scene', ['id' => $scene->id]);
+        $this->assertSame($second, voiceover::clipref($this->instance, (int)$scene->id, $line($scene)[0]));
+        // A free clip that became paid: refused before anything was made; the teacher is asked again.
+        $this->answers = [[409, ['content-type' => 'application/json'],
+            json_encode(['requestId' => 'r9', 'error' => ['code' => 'PRICE_CHANGED', 'message' => 'x']])]];
+        $row = requests::start_voice($this->instance, (int)$USER->id, $scene, 1, 0);
+        $this->assertSame('failed', $row->status);
+        $this->assertStringContainsString('no longer free', requests::export($row, $this->context)['message']);
+        // Without a confirmed price the ceiling is the full price.
+        $this->answers = [[200, ['content-type' => 'audio/mpeg', 'x-credits-charged' => '5'], $mp3]];
+        requests::start_voice($this->instance, (int)$USER->id, $scene, 2);
+        $this->assertSame(5, end($this->sent)['maxCredits']);
+    }
+
+    /**
+     * Prices come from the free quote route; no price means the full price.
+     */
+    public function test_quote(): void {
+        $voices = array_map(fn($t) => ['name' => 'en-AU-Chirp3-HD-' . $t], voiceover::VOICETYPES);
+        lmslabs::$transport = fn() => [200, json_encode(['locales' => [['locale' => 'en-AU', 'ttsLanguageCode' => 'en-AU',
+            'voices' => $voices]], 'tariff' => ['clipRefSupported' => true, 'maxCreditsRequired' => true]])];
+        \cache::make('mod_aisoftskills', 'voicecatalog')->purge();
+        voiceover::catalog();
+        $quotes = [];
+        lmslabs::$posttransport = function ($url, $headers, $body) use (&$quotes) {
+            $this->assertStringEndsWith(lmslabs::VOICE_QUOTE_ROUTE, $url);
+            $quotes[] = json_decode($body, true);
+            return count($quotes) === 1
+                ? [200, ['content-type' => 'application/json'], json_encode(['requestId' => 'q', 'credits' => 0,
+                    'firstClip' => false, 'freeRemakesRemaining' => 7, 'windowDays' => 30, 'freeRemakeLimit' => 10])]
+                : [503, ['content-type' => 'application/json'], '{}'];
+        };
+        $this->assertSame(0, requests::quote_voice($this->instance, $this->scene, 0));
+        $this->assertSame(5, requests::quote_voice($this->instance, $this->scene, 1));
+        $this->assertSame(['clipRef'], array_keys($quotes[0]));
+        set_config('voiceremakes', '', 'mod_aisoftskills');
+        $this->assertSame(5, requests::quote_voice($this->instance, $this->scene, 0));
+        $this->assertCount(2, $quotes, 'No quote is asked for while LMS Labs does not support remakes.');
     }
 
     /**

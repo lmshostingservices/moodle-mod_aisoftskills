@@ -55,6 +55,12 @@ class lmslabs implements provider {
     /** @var string AI Soft Skills voiceover route: one MP3 clip of at most 200 characters per request. */
     public const VOICE_ROUTE = '/api/moodle/ai-softskills/speech/tts';
 
+    /** @var string Free price check for one clip (remakes, 9 Oct 2026): {clipRef} -> {credits, firstClip, ...}. */
+    public const VOICE_QUOTE_ROUTE = '/api/moodle/ai-softskills/speech/quote';
+
+    /** @var array|null The tariff of the last voice catalogue read, kept for {@see self::voice_catalog()} callers. */
+    public static $lasttariff = null;
+
     /** @var int Credits LMS Labs charges per voiceover clip it settles (owner-approved tariff, 8 Oct 2026). */
     public const VOICE_CREDITS = 5;
 
@@ -116,15 +122,17 @@ class lmslabs implements provider {
      * @param string $body exact JSON body
      * @param string $key Idempotency-Key
      * @param string $accept Accept header value
+     * @param int $timeout seconds to wait for the answer
      * @return array [status (0 when LMS Labs could not be reached or did not answer), lower-case headers, body]
      */
-    public static function post(string $route, string $body, string $key, string $accept): array {
+    public static function post(string $route, string $body, string $key, string $accept, int $timeout = 100): array {
         global $CFG;
         $credentials = \mod_aisoftskills\local\credentials::find();
         if ($credentials === null) {
             throw new moodle_exception('ainotavailable', 'mod_aisoftskills');
         }
-        if (!in_array($route, [self::TEXT_ROUTE, self::IMPORT_ROUTE, self::IMAGE_ROUTE, self::VOICE_ROUTE], true)) {
+        $routes = [self::TEXT_ROUTE, self::IMPORT_ROUTE, self::IMAGE_ROUTE, self::VOICE_ROUTE, self::VOICE_QUOTE_ROUTE];
+        if (!in_array($route, $routes, true)) {
             throw new \coding_exception('Unknown LMS Labs route');
         }
         $url = self::BASE_URL . $route;
@@ -144,7 +152,7 @@ class lmslabs implements provider {
             $response = $curl->post($url, $body, [
                 'CURLOPT_CONNECTTIMEOUT' => 10,
                 // Both routes finish within 85 to 90 seconds.
-                'CURLOPT_TIMEOUT' => 100,
+                'CURLOPT_TIMEOUT' => $timeout,
                 'CURLOPT_FOLLOWLOCATION' => false,
             ]);
             if ($curl->get_errno()) {
@@ -190,7 +198,36 @@ class lmslabs implements provider {
         if ((int)$status !== 200 || !is_array($data) || empty($data['locales']) || !is_array($data['locales'])) {
             return null;
         }
+        self::$lasttariff = is_array($data['tariff'] ?? null) ? $data['tariff'] : [];
         return array_values(array_filter($data['locales'], 'is_array'));
+    }
+
+    /**
+     * The current price of one clip (free; nothing is made, charged or reserved). The price can change before the
+     * clip is made, so the clip is then sent with the price the teacher confirmed as its ceiling.
+     *
+     * @param string $clipref 64 lower-case hex characters
+     * @return array|null {credits (0 or 5), first (bool), remaining (int|null)}, or null when LMS Labs gave no price
+     */
+    public static function voice_quote(string $clipref): ?array {
+        try {
+            // A price check is quick and free: a slow one is not waited for (the clip then counts as full price).
+            [$status, , $body] = self::post(
+                self::VOICE_QUOTE_ROUTE,
+                json_encode(['clipRef' => $clipref]),
+                \core\uuid::generate(),
+                'application/json',
+                8
+            );
+        } catch (\moodle_exception $e) {
+            return null;
+        }
+        $data = json_decode($body, true);
+        if ($status !== 200 || !is_array($data) || !in_array($data['credits'] ?? null, [0, self::VOICE_CREDITS], true)) {
+            return null;
+        }
+        return ['credits' => (int)$data['credits'], 'first' => !empty($data['firstClip']),
+            'remaining' => is_int($data['freeRemakesRemaining'] ?? null) ? $data['freeRemakesRemaining'] : null];
     }
 
     /**

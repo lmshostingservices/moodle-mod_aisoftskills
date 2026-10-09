@@ -37,6 +37,12 @@ class create_voice extends base {
         return new external_function_parameters([
             'sceneid' => new external_value(PARAM_INT, 'Scene id'),
             'index' => new external_value(PARAM_INT, 'Clip number in the scene, from the voiceover step'),
+            'maxcredits' => new external_value(
+                PARAM_INT,
+                'The most the teacher confirmed for this clip (0 or 5)',
+                VALUE_DEFAULT,
+                5
+            ),
         ]);
     }
 
@@ -45,13 +51,15 @@ class create_voice extends base {
      *
      * @param int $sceneid
      * @param int $index
+     * @param int $maxcredits
      * @return array
      */
-    public static function execute(int $sceneid, int $index): array {
+    public static function execute(int $sceneid, int $index, int $maxcredits = 5): array {
         global $USER;
-        $params = self::validate_parameters(self::execute_parameters(), ['sceneid' => $sceneid, 'index' => $index]);
+        $params = self::validate_parameters(self::execute_parameters(), ['sceneid' => $sceneid, 'index' => $index,
+            'maxcredits' => $maxcredits]);
         [, , $instance, $context, $scene] = self::load_scene($params['sceneid'], 'useai');
-        $row = requests::start_voice($instance, (int)$USER->id, $scene, $params['index']);
+        $row = requests::start_voice($instance, (int)$USER->id, $scene, $params['index'], $params['maxcredits']);
         return requests::export($row, $context);
     }
 

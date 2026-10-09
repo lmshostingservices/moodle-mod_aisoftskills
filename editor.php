@@ -81,10 +81,23 @@ if ($form->is_cancelled()) {
         'speaker' => $data->speaker,
         'question' => $data->question,
         'imageprompt' => $data->imageprompt,
-        'script' => manager::text_to_script((string)$data->scripttext),
+        'script' => manager::text_to_script((string)$data->scripttext, (string)$scene->script),
         'teachingnote' => $data->teachingnote,
     ], $options);
-    redirect($backurl, get_string('scenesaved', 'mod_aisoftskills'), null, \core\output\notification::NOTIFY_SUCCESS);
+    $message = get_string('scenesaved', 'mod_aisoftskills');
+    // Clips are made once per exact sentence and voice: say how many sentences of this scene now need a new clip.
+    if (\mod_aisoftskills\local\voiceover::enabled()) {
+        $hadclips = get_file_storage()->get_area_files($context->id, 'mod_aisoftskills', 'voiceover', $scene->id, '', false);
+        $todo = array_filter(
+            \mod_aisoftskills\local\voiceover::missing($instance, $context),
+            fn($k) => (int)explode(':', $k)[0] === (int)$scene->id
+        );
+        if ($hadclips && $todo) {
+            $key = \mod_aisoftskills\local\voiceover::remakes() ? 'scenesaved_voice_free' : 'scenesaved_voice';
+            $message .= ' ' . get_string($key, 'mod_aisoftskills', count($todo));
+        }
+    }
+    redirect($backurl, $message, null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
 $defaults = ['id' => $cm->id, 'sceneid' => $scene->id, 'title' => $scene->title, 'skill' => $scene->skill,

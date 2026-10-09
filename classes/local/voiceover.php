@@ -109,12 +109,49 @@ class voiceover {
         if (is_array($cached) && ($cached['time'] ?? 0) > time() - ($cached['locales'] ? self::CATALOG_TTL : self::CATALOG_RETRY)) {
             return $cached['locales'] ?: $kept;
         }
+        lmslabs::$lasttariff = null;
         $locales = lmslabs::voice_catalog() ?? [];
         $cache->set($key, ['time' => time(), 'locales' => $locales]);
         if ($locales && $locales !== $kept) {
             set_config('voicecatalog', json_encode($locales, JSON_UNESCAPED_SLASHES), 'mod_aisoftskills');
         }
+        if ($locales && lmslabs::$lasttariff !== null) {
+            // Free remakes are used only once LMS Labs says it takes the new fields (until then it refuses them).
+            $remakes = !empty(lmslabs::$lasttariff['clipRefSupported']) && !empty(lmslabs::$lasttariff['maxCreditsRequired']);
+            set_config('voiceremakes', $remakes ? json_encode([
+                'on' => 1,
+                'limit' => (int)(lmslabs::$lasttariff['ttsRemakeLimit'] ?? 10),
+                'days' => (int)(lmslabs::$lasttariff['ttsRemakeWindowDays'] ?? 30),
+            ]) : '', 'mod_aisoftskills');
+        }
         return $locales ?: $kept;
+    }
+
+    /**
+     * The free remake rule when LMS Labs supports it (clips are then sent with clipRef and maxCredits).
+     *
+     * @return array|null {limit, days}, or null when LMS Labs has not said it supports remakes
+     */
+    public static function remakes(): ?array {
+        $rule = json_decode((string)get_config('mod_aisoftskills', 'voiceremakes'), true);
+        return is_array($rule) && !empty($rule['on'])
+            ? ['limit' => (int)($rule['limit'] ?? 0), 'days' => (int)($rule['days'] ?? 0)] : null;
+    }
+
+    /**
+     * The stable reference of one place in a scene, sent with each clip so LMS Labs can make a clip again for free
+     * after an edit. It never contains text or voice, and its serialisation must never change: a JSON array of the
+     * component, this site, the activity, the scene, the part, the line (the dialogue line's stable id, the response
+     * id, or -1 for none) and the clip number within that text.
+     *
+     * @param stdClass $instance
+     * @param int $sceneid
+     * @param array $segment from {@see self::segments()}
+     * @return string 64 lower-case hex characters
+     */
+    public static function clipref(stdClass $instance, int $sceneid, array $segment): string {
+        return hash('sha256', json_encode(['mod_aisoftskills', (string)get_site_identifier(), (int)$instance->id, $sceneid,
+            (string)$segment['part'], (int)($segment['ref'] ?? $segment['line']), (int)($segment['clip'] ?? 0)]));
     }
 
     /**
@@ -219,7 +256,11 @@ class voiceover {
         foreach ($pool as $g => $list) {
             $pool[$g] = $list ?: [$narrator];
         }
-        $learner = ['f' => $types[$pool['f'][0]], 'm' => $types[$pool['m'][0]], '' => $types[$pool[''][0]]];
+        // Voices the teacher chose for people on the name labels come first; the learner's default voices avoid them.
+        $chosen = array_filter(self::chosen_voices($instance), fn($t) => isset($types[$t]) && $t !== $narrator);
+        $free = fn($list) => array_values(array_diff($list, $chosen)) ?: $list;
+        $learner = ['f' => $types[$free($pool['f'])[0]], 'm' => $types[$free($pool['m'])[0]],
+            '' => $types[$free($pool[''])[0]]];
         // Named people keep the voice they were first given, so clips already made stay valid when people are added
         // or scenes are moved; a new person gets the least used voice of their kind, never the narrator's.
         $stored = json_decode((string)($instance->voicemap ?? ''), true);
@@ -229,12 +270,32 @@ class voiceover {
         foreach ($learner as $voice) {
             $used[preg_replace('/^.*-Chirp3-HD-/', '', $voice)]++;
         }
+        // A voice chosen for the learner on a label is kept away from everyone else.
+        $learnerchosen = array_values(array_filter(
+            self::chosen_voices($instance, true),
+            fn($t) => isset($types[$t]) && $t !== $narrator
+        ));
+        foreach ($learnerchosen as $type) {
+            $used[$type] += 100;
+        }
         $everyone = self::people($instance);
         $people = [];
+        foreach ($chosen as $person => $type) {
+            if (isset($everyone[$person])) {
+                $used[$type]++;
+                $people[$person] = $types[$type];
+                $kept[$person] = $type;
+            }
+        }
         // First everyone who keeps their voice, so a newcomer never takes a voice that is in use.
         foreach ($everyone as $person => $gender) {
+            if (isset($people[$person])) {
+                continue;
+            }
             $type = (string)($kept[$person] ?? '');
             $fits = isset($types[$type]) && $type !== $narrator && !in_array($types[$type], $learner, true)
+                && !in_array($type, $learnerchosen, true)
+                && !in_array($type, $chosen, true)
                 && ($gender === '' || in_array($type, self::GENDERS[$gender], true));
             if ($fits) {
                 $used[$type]++;
@@ -263,6 +324,52 @@ class voiceover {
         }
         return ['locale' => $locale, 'narrator' => $types[$narrator], 'types' => $types, 'people' => $people,
             'learner' => $learner, 'lang' => (string)$instance->contentlang];
+    }
+
+    /**
+     * The voice type each saved name label of a scene really gets, in label order ('' when not known yet).
+     *
+     * @param stdClass $scene
+     * @param array $config from {@see self::config()}
+     * @return string[]
+     */
+    public static function label_voices(stdClass $scene, array $config): array {
+        $out = [];
+        $type = fn($name) => (string)preg_replace('/^.*-Chirp3-HD-/', '', $name);
+        foreach (labels::get($scene) as $label) {
+            if ($label['you']) {
+                $out[] = $type(self::learner_voice($scene, $config));
+            } else {
+                $out[] = $type($config['people'][labels::person($label['text'])] ?? '');
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * The voice types the teacher chose on name labels, by person (the first choice for a person wins).
+     *
+     * @param stdClass $instance
+     * @param bool $learner true for the voices chosen for the learner instead (scene id => voice type)
+     * @return string[] person => voice type
+     */
+    public static function chosen_voices(stdClass $instance, bool $learner = false): array {
+        $out = [];
+        foreach (manager::get_scenes((int)$instance->id) as $scene) {
+            foreach (labels::get($scene) as $label) {
+                if ($learner) {
+                    if ($label['you'] && $label['voice'] !== '') {
+                        $out[(int)$scene->id] = $label['voice'];
+                    }
+                    continue;
+                }
+                $person = labels::person($label['text']);
+                if (!$label['you'] && $person !== '' && $label['voice'] !== '' && !isset($out[$person])) {
+                    $out[$person] = $label['voice'];
+                }
+            }
+        }
+        return $out;
     }
 
     /**
@@ -301,6 +408,10 @@ class voiceover {
     public static function learner_voice(stdClass $scene, array $config): string {
         foreach (labels::get($scene) as $label) {
             if ($label['you']) {
+                $chosen = $config['types'][$label['voice']] ?? '';
+                if ($chosen !== '' && $chosen !== $config['narrator']) {
+                    return $chosen;
+                }
                 return $config['learner'][$label['gender']];
             }
         }
@@ -370,7 +481,7 @@ class voiceover {
      * @param stdClass[] $options the scene's responses (read in the learner's voice)
      * @param string[]|null $parts what to read (default: all)
      * @return array list of {index, text, voice, locale, part (context, line, question, option, consequence or reason),
-     *     line (dialogue index, option id, or -1)}
+     *     line (dialogue index, option id, or -1), clip (number of the clip within that text, from 0)}
      */
     public static function segments(stdClass $scene, array $config, array $options = [], ?array $parts = null): array {
         if ($config['locale'] === '') {
@@ -378,16 +489,24 @@ class voiceover {
         }
         $parts = $parts ?? self::PARTS;
         $out = [];
-        $add = function (string $text, string $voice, string $part, int $line) use (&$out): void {
-            foreach (self::chunks($text) as $chunk) {
-                $out[] = ['text' => $chunk, 'voice' => $voice, 'part' => $part, 'line' => $line];
+        $add = function (string $text, string $voice, string $part, int $line, ?int $ref = null) use (&$out): void {
+            foreach (self::chunks($text) as $clip => $chunk) {
+                $out[] = ['text' => $chunk, 'voice' => $voice, 'part' => $part, 'line' => $line, 'clip' => $clip,
+                    'ref' => $ref ?? $line];
             }
         };
         if (in_array('scenario', $parts, true)) {
             $add((string)$scene->context, $config['narrator'], 'context', -1);
             foreach (manager::dialogue($scene->script) as $i => $line) {
                 $person = labels::person((string)$line['speaker']);
-                $add((string)$line['line'], $config['people'][$person] ?? $config['learner'][''], 'line', $i);
+                // Dialogue clips are placed by the line's stable id, so removing a line never moves another's place.
+                $add(
+                    (string)$line['line'],
+                    $config['people'][$person] ?? $config['learner'][''],
+                    'line',
+                    $i,
+                    (int)($line['id'] ?? $i + 1)
+                );
             }
         }
         if (in_array('question', $parts, true)) {
@@ -420,10 +539,17 @@ class voiceover {
      * The request body for one clip, exactly as sent.
      *
      * @param array $segment
+     * @param string|null $clipref the clip's place ({@see self::clipref()}), when LMS Labs supports free remakes
+     * @param int|null $maxcredits the most the teacher confirmed for this clip: 0 or 5
      * @return array
      */
-    public static function body(array $segment): array {
-        return ['text' => $segment['text'], 'locale' => $segment['locale'], 'speed' => 'normal', 'voice' => $segment['voice']];
+    public static function body(array $segment, ?string $clipref = null, ?int $maxcredits = null): array {
+        $body = ['text' => $segment['text'], 'locale' => $segment['locale'], 'speed' => 'normal', 'voice' => $segment['voice']];
+        if ($clipref !== null && $maxcredits !== null) {
+            // Both or neither: LMS Labs refuses one without the other.
+            $body += ['clipRef' => $clipref, 'maxCredits' => $maxcredits];
+        }
+        return $body;
     }
 
     /**

@@ -108,6 +108,32 @@ class lesson {
     }
 
     /**
+     * The people a scene's picture must show, from its name labels (or the labels suggested from the scene text):
+     * "Priya, the nurse, a woman; the bar shift supervisor (the person the learner plays)".
+     *
+     * @param stdClass $scene
+     * @return string English, '' when the scene names nobody
+     */
+    public static function picture_people(stdClass $scene): string {
+        $labels = labels::get($scene) ?: labels::suggest($scene);
+        $out = [];
+        foreach (array_slice($labels, 0, labels::MAX) as $label) {
+            $parts = array_map('trim', preg_split('/\s+[-–—]\s+/u', (string)$label['text'], 2));
+            $name = $parts[0];
+            $role = isset($parts[1]) && $parts[1] !== '' ? \core_text::strtolower($parts[1]) : '';
+            $gender = ['f' => 'a woman', 'm' => 'a man'][$label['gender'] ?? ''] ?? '';
+            if (!empty($label['you'])) {
+                if ($role !== '') {
+                    $out[] = 'the ' . $role . ($gender !== '' ? ', ' . $gender : '') . ' (the person the learner plays)';
+                }
+                continue;
+            }
+            $out[] = implode(', ', array_filter([$name, $role !== '' ? 'the ' . $role : '', $gender]));
+        }
+        return $out ? implode('; ', $out) : 'the people the scene describes';
+    }
+
+    /**
      * The full picture prompt for a scene.
      *
      * @param stdClass $instance
@@ -117,8 +143,10 @@ class lesson {
     public static function image_prompt(stdClass $instance, stdClass $scene): string {
         $description = trim((string)$scene->imageprompt) !== '' ? trim((string)$scene->imageprompt) : trim((string)$scene->title);
         $sm = get_string_manager();
+        $people = self::picture_people($scene);
         $build = fn($d) => $sm->get_string('imageprompt_full', 'mod_aisoftskills', (object)[
             'description' => $d,
+            'people' => $people,
             'industry' => self::industry_english($instance),
             'style' => $sm->get_string('imagestyle_' . $instance->imagestyle, 'mod_aisoftskills', null, 'en'),
         ], 'en');

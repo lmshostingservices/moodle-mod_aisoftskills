@@ -14,8 +14,9 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Name labels editor: drag each label ("Leo - Bartender") onto the person in the picture, say whether the person has a
- * female or male voice, and mark the learner. Saving is free: nothing is sent to LMS Labs.
+ * Name labels editor: drag each label ("Leo - Bartender") onto the person in the picture, choose the person's voice (one
+ * of the 8 voices, or an automatic female or male voice, which shows the voice it gives), and mark the learner.
+ * Saving is free: nothing is sent to LMS Labs.
  *
  * @module     mod_aisoftskills/labels
  * @copyright  2026 LMS Hosting Services
@@ -29,6 +30,16 @@ import {loadStrings, fmt} from 'mod_aisoftskills/ui';
 
 const MAX = 6;
 let S = {};
+let NARRATOR = '';
+let GENDERS = {f: [], m: []};
+
+/**
+ * The select value of a label: a voice type ("v:Leda"), an automatic voice of a kind ("f", "m") or anything ("").
+ *
+ * @param {object} label
+ * @returns {string}
+ */
+const voiceValue = (label) => (label.voice ? 'v:' + label.voice : label.gender);
 
 /**
  * Makes an element.
@@ -59,11 +70,47 @@ const el = (tag, attrs = {}, children = []) => {
  * @param {HTMLButtonElement} btn
  */
 const open = async(btn) => {
-    let labels = JSON.parse(btn.dataset.labels || '[]').map((l) => Object.assign({gender: '', you: false}, l));
+    let labels = JSON.parse(btn.dataset.labels || '[]').map((l) => Object.assign({gender: '', voice: '', you: false}, l));
+    // The voice each saved label really gets, so "Automatic" can say which one it is.
+    const resolved = JSON.parse(btn.dataset.voices || '[]');
+    labels.forEach((l, i) => {
+        l.resolved = resolved[i] || '';
+        l.start = voiceValue(l);
+    });
     const body = el('div', {class: 'ss-labeleditor'});
     body.append(el('p', {class: 'ss-mini', text: S.labels_help}));
     if (btn.dataset.suggested === '1' && labels.length) {
         body.append(el('p', {class: 'ss-note', text: S.labels_suggested}));
+    }
+    // The scenario, with the names in it marked, so the teacher can check who is who.
+    const scenario = JSON.parse(btn.dataset.scenario || '{}');
+    const names = labels.map((l) => l.text.split(/\s+[-–—]\s+/)[0].trim()).filter((n) => n && n.toLowerCase() !== 'you');
+    const marked = (text) => {
+        const node = el('span');
+        const pattern = names.length ? new RegExp('(' + names.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+            .join('|') + ')', 'gi') : null;
+        const lower = names.map((n) => n.toLowerCase());
+        const parts = pattern ? String(text).split(pattern) : [String(text)];
+        // A name is marked only as a whole word ("Leo", not the start of "Leonard").
+        const letter = /\p{L}/u;
+        parts.forEach((part, k) => {
+            const whole = !letter.test((parts[k - 1] || ' ').slice(-1)) && !letter.test((parts[k + 1] || ' ').charAt(0));
+            node.append(lower.includes(part.toLowerCase()) && whole ? el('mark', {text: part})
+                : document.createTextNode(part));
+        });
+        return node;
+    };
+    if (scenario.context || (scenario.lines || []).length) {
+        const box = el('details', {class: 'ss-labelscenario', open: 'open'}, [el('summary', {text: S.labels_scenario})]);
+        if (scenario.speaker) {
+            box.append(el('p', {class: 'ss-mini', text: scenario.speaker}));
+        }
+        if (scenario.context) {
+            box.append(el('p', {}, [marked(scenario.context)]));
+        }
+        (scenario.lines || []).forEach((l) => box.append(el('p', {class: 'ss-labelscenario-line'},
+            [el('strong', {}, [marked(l.speaker)]), document.createTextNode(' '), marked(l.line)])));
+        body.append(box);
     }
     const stage = el('div', {class: 'ss-labeleditor-stage'}, [el('img', {src: btn.dataset.image, alt: '', draggable: 'false'})]);
     const list = el('div', {class: 'ss-labeleditor-list'});
@@ -117,12 +164,28 @@ const open = async(btn) => {
                 pin.textContent = text.value || '…';
                 pin.setAttribute('aria-label', text.value || S.label_text);
             });
-            const voice = el('select', {class: 'custom-select form-select form-select-sm', 'aria-label': S.label_unknownvoice},
-                [['', S.label_unknownvoice], ['f', S.label_female], ['m', S.label_male]].map(([v, t]) =>
-                    el('option', {value: v, text: t})));
-            voice.value = label.gender;
+            // The automatic choices say which voice they give while the choice is unchanged since the last save.
+            const auto = (value, text) => {
+                const same = label.resolved && label.start === value;
+                return el('option', {value, text: same ? fmt(S.label_auto_is, {kind: text, voice: label.resolved}) : text});
+            };
+            const group = (kind, title) => el('optgroup', {label: title}, GENDERS[kind].map((type) => {
+                const option = el('option', {value: 'v:' + type, text: type === NARRATOR
+                    ? fmt(S.label_voice_narrator, type) : type});
+                if (type === NARRATOR) {
+                    option.disabled = true;
+                }
+                return option;
+            }));
+            const voice = el('select', {class: 'custom-select form-select form-select-sm', 'aria-label': S.label_voice}, [
+                auto('', S.label_unknownvoice), auto('f', S.label_female), auto('m', S.label_male),
+                group('f', S.label_voices_female), group('m', S.label_voices_male)]);
+            voice.value = voiceValue(label);
             voice.addEventListener('change', () => {
-                label.gender = voice.value;
+                const value = voice.value;
+                label.voice = value.startsWith('v:') ? value.slice(2) : '';
+                label.gender = label.voice ? (GENDERS.f.includes(label.voice) ? 'f' : 'm') : value;
+                warnSame();
             });
             const you = el('input', {type: 'radio', name: 'ss-label-you', id: `ss-label-you-${i}`});
             you.checked = !!label.you;
@@ -139,14 +202,25 @@ const open = async(btn) => {
                 labels.splice(i, 1);
                 draw();
             });
-            list.append(el('div', {class: 'ss-labelrow'}, [text, voice,
+            list.append(el('div', {class: 'ss-labelrow', 'data-row': String(i)}, [text, voice,
                 el('label', {class: 'ss-labelrow-you', for: `ss-label-you-${i}`}, [you, el('span', {text: S.label_youlearner})]),
                 remove]));
         });
         add.disabled = labels.length >= MAX;
+        warnSame();
+    };
+
+    // Two people in this scene with the same voice would sound alike: say so (saving is still allowed).
+    const note = el('p', {class: 'ss-note ss-labelvoice-note', role: 'status', hidden: 'hidden'});
+    list.after(note);
+    const warnSame = () => {
+        const heard = labels.map((l) => l.voice || (l.resolved && l.start === voiceValue(l) ? l.resolved : ''));
+        const twice = heard.filter((v, i) => v && heard.indexOf(v) !== i);
+        note.hidden = twice.length === 0;
+        note.textContent = twice.length ? fmt(S.label_voice_same, twice[0]) : '';
     };
     add.addEventListener('click', () => {
-        labels.push({text: '', x: 50, y: 50, gender: '', you: false});
+        labels.push({text: '', x: 50, y: 50, gender: '', voice: '', you: false, resolved: '', start: ''});
         draw();
         list.querySelector('.ss-labelrow:last-child input[type="text"]').focus();
     });
@@ -160,7 +234,8 @@ const open = async(btn) => {
         try {
             await Ajax.call([{methodname: 'mod_aisoftskills_save_labels', args: {sceneid: Number(btn.dataset.scene),
                 labels: labels.filter((l) => l.text.trim() !== '').map((l) => ({text: l.text.trim(),
-                    x: Math.round(l.x * 10) / 10, y: Math.round(l.y * 10) / 10, gender: l.gender, you: !!l.you}))}}])[0];
+                    x: Math.round(l.x * 10) / 10, y: Math.round(l.y * 10) / 10, gender: l.gender, voice: l.voice || '',
+                    you: !!l.you}))}}])[0];
             modal.destroy();
             window.location.reload();
         } catch (err) {
@@ -174,13 +249,18 @@ const open = async(btn) => {
  * Initialises the "Name labels" buttons of the pictures step.
  *
  * @param {string} selector
+ * @param {string} narrator the narrator's voice type, which people can't have
+ * @param {object} genders voice types by kind: {f: [...], m: [...]}
  */
-export const init = async(selector) => {
+export const init = async(selector, narrator = '', genders = null) => {
     const root = document.querySelector(selector);
     if (!root) {
         return;
     }
+    NARRATOR = narrator;
+    GENDERS = genders || GENDERS;
     S = await loadStrings(['labels_help', 'labels_suggested', 'label_add', 'label_text', 'label_unknownvoice',
-        'label_female', 'label_male', 'label_youlearner', 'label_remove', 'labels_save', 'labels_dialog']);
+        'label_female', 'label_male', 'label_youlearner', 'label_remove', 'labels_save', 'labels_dialog', 'label_auto_is',
+        'label_voice', 'label_voice_narrator', 'label_voices_female', 'label_voices_male', 'label_voice_same', 'labels_scenario']);
     root.querySelectorAll('[data-action="labels"]').forEach((btn) => btn.addEventListener('click', () => open(btn)));
 };

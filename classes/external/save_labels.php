@@ -41,6 +41,12 @@ class save_labels extends base {
             'x' => new external_value(PARAM_FLOAT, 'Centre, percent of the picture width'),
             'y' => new external_value(PARAM_FLOAT, 'Centre, percent of the picture height'),
             'gender' => new external_value(PARAM_ALPHA, 'Voice: f, m or empty'),
+            'voice' => new external_value(
+                PARAM_ALPHA,
+                'The voice type chosen for this person, empty for automatic',
+                VALUE_DEFAULT,
+                ''
+            ),
             'you' => new external_value(PARAM_BOOL, 'This person is the learner'),
         ]);
     }

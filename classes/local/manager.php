@@ -854,11 +854,28 @@ class manager {
             }
             $line = self::clean_text($entry['line'] ?? '', 1000);
             if ($line !== '') {
-                $dialogue[] = ['speaker' => self::clean_line($entry['speaker'] ?? '', 100), 'line' => $line];
+                $id = isset($entry['id']) && is_numeric($entry['id']) ? (int)$entry['id'] : 0;
+                $dialogue[] = ['speaker' => self::clean_line($entry['speaker'] ?? '', 100), 'line' => $line, 'id' => $id];
             }
         }
         if (!$dialogue) {
             return '';
+        }
+        // Every line keeps a stable id (for the voiceover's free remakes): kept when valid and unique, otherwise the
+        // next free number. A script from before ids gets 1, 2, 3... in order, the same every time it is read.
+        $used = [];
+        foreach ($dialogue as $k => $entry) {
+            if ($entry['id'] < 1 || isset($used[$entry['id']])) {
+                $dialogue[$k]['id'] = 0;
+            } else {
+                $used[$entry['id']] = true;
+            }
+        }
+        $next = $used ? max(array_keys($used)) + 1 : 1;
+        foreach ($dialogue as $k => $entry) {
+            if ($entry['id'] === 0) {
+                $dialogue[$k]['id'] = $next++;
+            }
         }
         $characters = [];
         foreach (array_merge((array)($data['characters'] ?? []), array_column($dialogue, 'speaker')) as $name) {
@@ -900,10 +917,14 @@ class manager {
     /**
      * Reads "Speaker: line" text back into dialogue JSON.
      *
+     * With the scene's script before the edit, unchanged and edited lines keep their ids and new lines get new ones,
+     * so deleting or adding a line never moves another line's id.
+     *
      * @param string $text
+     * @param string|null $before the script before the edit
      * @return string JSON, or '' when empty
      */
-    public static function text_to_script(string $text): string {
+    public static function text_to_script(string $text, ?string $before = null): string {
         $dialogue = [];
         foreach (preg_split('/\R/u', $text) as $row) {
             $row = trim($row);
@@ -916,6 +937,50 @@ class manager {
                 $dialogue[] = ['speaker' => '', 'line' => $row];
             }
         }
+        if ($before !== null) {
+            $dialogue = self::keep_line_ids(self::dialogue($before), $dialogue);
+        }
         return self::clean_script(['dialogue' => $dialogue]);
+    }
+
+    /**
+     * Gives edited dialogue the ids of the lines it came from. Lines found unchanged (in order) keep their id; between
+     * them, changed lines take the ids of the removed lines in the same place, in order; lines added beyond those get
+     * new ids (never an id another line had).
+     *
+     * @param array $old lines with ids
+     * @param array $new lines without ids
+     * @return array new lines with ids
+     */
+    public static function keep_line_ids(array $old, array $new): array {
+        $key = fn($l) => $l['speaker'] . "\0" . $l['line'];
+        $n = count($old);
+        $m = count($new);
+        // Longest common subsequence of unchanged lines.
+        $len = array_fill(0, $n + 1, array_fill(0, $m + 1, 0));
+        for ($i = $n - 1; $i >= 0; $i--) {
+            for ($j = $m - 1; $j >= 0; $j--) {
+                $len[$i][$j] = $key($old[$i]) === $key($new[$j]) ? $len[$i + 1][$j + 1] + 1
+                    : max($len[$i + 1][$j], $len[$i][$j + 1]);
+            }
+        }
+        $next = $old ? max(array_map(fn($l) => (int)$l['id'], $old)) + 1 : 1;
+        $out = [];
+        $i = 0;
+        $j = 0;
+        $gone = [];
+        while ($i < $n || $j < $m) {
+            if ($i < $n && $j < $m && $key($old[$i]) === $key($new[$j])) {
+                $gone = [];
+                $out[] = $new[$j++] + ['id' => (int)$old[$i++]['id']];
+            } else if ($i < $n && ($j >= $m || $len[$i + 1][$j] >= $len[$i][$j + 1])) {
+                // A line removed (or changed) here: its id can go to a changed line in the same place.
+                $gone[] = (int)$old[$i++]['id'];
+            } else {
+                $id = $gone ? array_shift($gone) : $next++;
+                $out[] = $new[$j++] + ['id' => $id];
+            }
+        }
+        return $out;
     }
 }

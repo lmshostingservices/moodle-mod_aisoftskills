@@ -61,6 +61,12 @@ $functions = [
         'type' => 'write',
         'ajax' => true,
     ],
+    'mod_aisoftskills_quote_voices' => [
+        'classname' => \mod_aisoftskills\external\quote_voices::class,
+        'description' => 'Prices voiceover clips before the teacher confirms (free; nothing is made).',
+        'type' => 'read',
+        'ajax' => true,
+    ],
     'mod_aisoftskills_save_labels' => [
         'classname' => \mod_aisoftskills\external\save_labels::class,
         'description' => 'Saves the name labels placed on a scene picture.',

@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_aisoftskills';
-$plugin->version   = 2026101002;
-$plugin->release   = '1.4.2';
+$plugin->version   = 2026101005;
+$plugin->release   = '1.4.5';
 $plugin->requires  = 2024042200; // Moodle 4.4.
 $plugin->supported = [404, 503];
 $plugin->maturity  = MATURITY_STABLE;

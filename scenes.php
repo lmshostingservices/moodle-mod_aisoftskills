@@ -141,6 +141,9 @@ $noresponses = 0;
 $voicestep = $step === setuppath::VOICES;
 $canvoice = $voicestep && voiceover::enabled() && has_capability('mod/aisoftskills:useai', $context);
 $voiceconfig = $canvoice ? voiceover::config($instance) : null;
+// The name labels editor shows the voice each person really gets (free: the catalogue is cached).
+$labelvoices = $step === setuppath::PICTURES && voiceover::enabled() ? voiceover::config($instance) : null;
+$labelvoices = $labelvoices && $labelvoices['locale'] !== '' ? $labelvoices : null;
 $clips = [];
 foreach ($scenes as $s) {
     $i++;
@@ -179,6 +182,17 @@ foreach ($scenes as $s) {
         'deleteurl' => (new moodle_url($baseurl, ['action' => 'delete', 'sceneid' => $s->id]))->out(false),
         'labelsjson' => json_encode($saved ?: labels::suggest($s), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'labelssuggested' => $saved ? 0 : 1,
+        // The scenario, so the teacher can read who is who while placing the labels.
+        'scenariojson' => json_encode([
+            // Shown with textContent, never as HTML: plain text, not escaped twice.
+            'context' => format_string((string)$s->context, true, ['context' => $context, 'escape' => false]),
+            'lines' => array_map(fn($l) => [
+                'speaker' => format_string((string)$l['speaker'], true, ['context' => $context, 'escape' => false]),
+                'line' => format_string((string)$l['line'], true, ['context' => $context, 'escape' => false]),
+            ], manager::dialogue($s->script)),
+            'speaker' => format_string((string)$s->speaker, true, ['context' => $context, 'escape' => false]),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        'labelvoicesjson' => json_encode($labelvoices ? voiceover::label_voices($s, $labelvoices) : []),
         'labelcount' => count($saved),
         'labelsline' => $saved ? (count($saved) === 1 ? get_string('labels_one', 'mod_aisoftskills')
             : get_string('labels_count', 'mod_aisoftskills', count($saved))) : get_string('labels_none', 'mod_aisoftskills'),
@@ -210,7 +224,12 @@ $next = $step + 1;
 
 $PAGE->requires->js_call_amd('mod_aisoftskills/scenes', 'init', ['#ss-scenes']);
 if ($step === setuppath::PICTURES) {
-    $PAGE->requires->js_call_amd('mod_aisoftskills/labels', 'init', ['#ss-scenes']);
+    $narrator = $labelvoices ? preg_replace('/^.*-Chirp3-HD-/', '', $labelvoices['narrator'])
+        : ((string)get_config('mod_aisoftskills', 'narratorvoice') ?: voiceover::DEFAULT_NARRATOR);
+    // Only the voices LMS Labs offers for this activity's language (all 8 while the catalogue is not known).
+    $offered = $labelvoices ? array_keys($labelvoices['types']) : voiceover::VOICETYPES;
+    $genders = array_map(fn($list) => array_values(array_intersect($list, $offered)), voiceover::GENDERS);
+    $PAGE->requires->js_call_amd('mod_aisoftskills/labels', 'init', ['#ss-scenes', $narrator, $genders]);
 }
 
 // Who sounds like what, for the voiceover step.
@@ -249,6 +268,9 @@ echo $OUTPUT->render_from_template('mod_aisoftskills/scenes', [
     'clipids' => implode(',', $clips),
     'clipcredits' => count($clips) * \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS,
     'voicecredits' => \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS,
+    // Free remakes (when LMS Labs supports them): each clip is priced before the teacher confirms.
+    'remakes' => voiceover::remakes() ? 1 : 0,
+    'remakesline' => voiceover::remakes() ? get_string('voice_remakes', 'mod_aisoftskills', (object)voiceover::remakes()) : '',
     'check' => $step === setuppath::CHECK,
     'cards' => $cards,
     'hasscenes' => $total > 0,

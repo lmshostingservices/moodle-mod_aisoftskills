@@ -220,7 +220,7 @@ final class requests_test extends \advanced_testcase {
         $this->assertSame('Office', $scene->context);
         $this->assertSame('Listen to both sides.', $scene->teachingnote);
         $this->assertSame(
-            [['speaker' => 'Pat', 'line' => 'Let\'s talk.'], ['speaker' => 'Alex', 'line' => 'I agree.']],
+            [['speaker' => 'Pat', 'line' => 'Let\'s talk.', 'id' => 1], ['speaker' => 'Alex', 'line' => 'I agree.', 'id' => 2]],
             local\manager::dialogue($scene->script)
         );
         $this->assertStringContainsString('Pat, Alex', $scene->imageprompt);
@@ -322,7 +322,7 @@ final class requests_test extends \advanced_testcase {
             [$this->text_error(503, 'PROVIDER_UNAVAILABLE'), 'provider_unavailable', 'could not draft'],
             [[404, [], 'Not found'], 'http_404', 'not available yet'],
             [$this->draft_ok(['dialogue' => [['speaker' => 'Sam', 'line' => 'Hi'], ['speaker' => 'Pat', 'line' => 'Hi']]]),
-                'unusable_draft', 'may have charged 5'],
+                'unusable_draft', 'may have charged up to 5'],
         ];
         foreach ($cases as [$answer, $code, $text]) {
             $this->answers = [$answer];

@@ -188,7 +188,13 @@ class requests {
      * @param int $index clip number in the scene's playing order
      * @return stdClass the stored request
      */
-    public static function start_voice(stdClass $instance, int $userid, stdClass $scene, int $index): stdClass {
+    public static function start_voice(
+        stdClass $instance,
+        int $userid,
+        stdClass $scene,
+        int $index,
+        ?int $maxcredits = null
+    ): stdClass {
         if (!voiceover::enabled()) {
             throw new moodle_exception('ainotavailable', 'mod_aisoftskills');
         }
@@ -202,7 +208,38 @@ class requests {
             // Already made (another page or tab made it): never buy the same clip twice.
             throw new moodle_exception('voice_alreadymade', 'mod_aisoftskills');
         }
-        return self::start($instance, $userid, self::VOICE, (int)$scene->id, voiceover::body($segments[$index]));
+        $body = voiceover::body($segments[$index]);
+        if (voiceover::remakes() !== null) {
+            // Free remakes: the clip's place, and the most the teacher confirmed (LMS Labs refuses a higher price).
+            $max = $maxcredits === 0 ? 0 : lmslabs::VOICE_CREDITS;
+            $body = voiceover::body($segments[$index], voiceover::clipref($instance, (int)$scene->id, $segments[$index]), $max);
+        }
+        return self::start($instance, $userid, self::VOICE, (int)$scene->id, $body);
+    }
+
+    /**
+     * The current price of clips (free; nothing is made). A clip with no price from LMS Labs counts as a full-price
+     * clip, so the teacher never confirms less than a clip can cost.
+     *
+     * @param stdClass $instance
+     * @param stdClass $scene
+     * @param int $index
+     * @param array|null $segments the scene's clips, when already worked out
+     * @return int 0 or 5
+     */
+    public static function quote_voice(stdClass $instance, stdClass $scene, int $index, ?array $segments = null): int {
+        if (voiceover::remakes() === null) {
+            return lmslabs::VOICE_CREDITS;
+        }
+        if ($segments === null) {
+            $options = manager::get_options([(int)$scene->id])[$scene->id] ?? [];
+            $segments = voiceover::segments($scene, voiceover::config($instance), $options, voiceover::parts($instance));
+        }
+        if (!isset($segments[$index])) {
+            throw new moodle_exception('voice_nolocale', 'mod_aisoftskills');
+        }
+        $quote = lmslabs::voice_quote(voiceover::clipref($instance, (int)$scene->id, $segments[$index]));
+        return $quote === null ? lmslabs::VOICE_CREDITS : $quote['credits'];
     }
 
     /**
@@ -537,7 +574,8 @@ class requests {
         $row->requestid = $requestid !== '' ? $requestid : $row->requestid;
         if ($status === 200) {
             $data = json_decode($body, true);
-            $row->charged = (int)($data['creditsCharged'] ?? lmslabs::TEXT_CREDITS);
+            // What LMS Labs reports it charged; not reported means not known (never assumed).
+            $row->charged = self::reported($data['creditsCharged'] ?? null);
             $row->balance = isset($data['creditsBalance']) && is_numeric($data['creditsBalance'])
                 ? (int)$data['creditsBalance'] : null;
             $draft = is_array($data) ? self::clean_scene_draft($data['draft'] ?? null) : null;
@@ -587,8 +625,7 @@ class requests {
             $data = json_decode($body, true);
             $kept = json_decode((string)$row->result, true);
             $count = count($kept['scenes'] ?? []);
-            $row->charged = is_array($data) && isset($data['creditsCharged']) && is_numeric($data['creditsCharged'])
-                ? (int)$data['creditsCharged'] : $count * lmslabs::TEXT_CREDITS;
+            $row->charged = self::reported(is_array($data) ? ($data['creditsCharged'] ?? null) : null);
             $row->balance = is_array($data) && isset($data['creditsBalance']) && is_numeric($data['creditsBalance'])
                 ? (int)$data['creditsBalance'] : null;
             $transaction = $DB->start_delegated_transaction();
@@ -624,7 +661,7 @@ class requests {
         $row->requestid = $requestid !== '' ? $requestid : $row->requestid;
         $type = strtolower(trim(explode(';', (string)($headers['content-type'] ?? ''))[0]));
         if ($status === 200) {
-            $row->charged = (int)($headers['x-credits-charged'] ?? lmslabs::IMAGE_CREDITS);
+            $row->charged = self::reported($headers['x-credits-charged'] ?? null);
             $row->balance = isset($headers['x-credits-balance']) && is_numeric($headers['x-credits-balance'])
                 ? (int)$headers['x-credits-balance'] : null;
             $scene = $DB->get_record('aisoftskills_scene', ['id' => $row->targetid, 'aisoftskillsid' => $instance->id]);
@@ -667,7 +704,9 @@ class requests {
         [$code, $requestid, $balance] = self::read_error($headers, $body);
         $row->requestid = $requestid !== '' ? $requestid : $row->requestid;
         if ($status === 200) {
-            $row->charged = (int)($headers['x-credits-charged'] ?? lmslabs::VOICE_CREDITS);
+            // What LMS Labs reports it charged. Without the header it is not known: the confirmed ceiling (maxCredits)
+            // stays in the stored body, and is never recorded as a charge.
+            $row->charged = self::reported($headers['x-credits-charged'] ?? null);
             $row->balance = isset($headers['x-credits-balance']) && is_numeric($headers['x-credits-balance'])
                 ? (int)$headers['x-credits-balance'] : null;
             $scene = $DB->get_record('aisoftskills_scene', ['id' => $row->targetid, 'aisoftskillsid' => $instance->id]);
@@ -762,6 +801,10 @@ class requests {
             ($status >= 500 && !in_array($code, self::PROVIDER_REFUSED, true));
         $map = [202 => 'pending', 409 => 'conflict', 410 => $gone];
         $row->status = $map[$status] ?? ($unknown ? 'uncertain' : 'failed');
+        if ($status === 409 && $code === 'price_changed') {
+            // A free clip has become a paid one: refused before anything was made or charged. Ask the teacher again.
+            $row->status = 'failed';
+        }
     }
 
     /**
@@ -868,6 +911,16 @@ class requests {
     }
 
     /**
+     * A charge as LMS Labs reported it, or null when it did not report one (then it is not known).
+     *
+     * @param mixed $value header or JSON value
+     * @return int|null
+     */
+    protected static function reported($value): ?int {
+        return is_numeric($value) && (int)$value >= 0 ? (int)$value : null;
+    }
+
+    /**
      * A request as shown on the page (never the key, the credentials or the raw body).
      *
      * @param stdClass $row
@@ -882,16 +935,26 @@ class requests {
         if ($row->operation === self::IMPORT) {
             $credits *= max(1, (int)((json_decode((string)$row->body, true) ?: [])['sceneCount'] ?? 1));
         }
+        $sent = json_decode((string)$row->body, true) ?: [];
+        if ($voice && isset($sent['maxCredits'])) {
+            // The most the teacher confirmed for this clip.
+            $credits = (int)$sent['maxCredits'];
+        }
+        $known = $row->charged !== null && $row->charged !== '';
         $a = (object)[
             'requestid' => $row->requestid ?: '-',
             'credits' => $credits,
-            'charged' => (int)$row->charged,
+            // Not reported: shown as "up to" the confirmed amount, never as a charge.
+            'charged' => $known ? (int)$row->charged : $credits,
             'balance' => $row->balance === null ? '-' : (int)$row->balance,
         ];
         $import = $row->operation === self::IMPORT;
         $prefix = $image ? 'aireq_image_' : ($import ? 'aireq_import_' : ($voice ? 'aireq_voice_' : 'aireq_scene_'));
         $status = (string)$row->status;
-        if ($status === 'completed') {
+        if ($status === 'completed' && !$known) {
+            $message = get_string('aireq_completed_unknown', 'mod_aisoftskills', (object)[
+                'what' => get_string($prefix . 'done', 'mod_aisoftskills'), 'credits' => $credits]);
+        } else if ($status === 'completed') {
             $message = get_string($prefix . 'completed' . ($row->balance === null ? '' : 'balance'), 'mod_aisoftskills', $a);
         } else if ($status === 'failed') {
             $message = self::failure_message($row, $a);
@@ -958,6 +1021,7 @@ class requests {
             'unexpected_fields' => 'rejected', 'body_too_large' => 'rejected', 'invalid_idempotency_key' => 'rejected',
             'http_404' => 'not_live', 'tts_failed' => 'provider_failed', 'unsupported_voice' => 'rejected',
             'tariff_not_approved' => 'voiceover_not_enabled', 'unusable_audio' => 'provider_failed',
+            'price_changed' => 'price_changed',
             'unsupported_locale' => 'rejected', 'text_too_long' => 'rejected',
         ];
         $prefixes = [self::IMPORT => 'aiimporterror_', self::VOICE => 'aivoiceerror_'];

@@ -2383,3 +2383,96 @@
     background: #fde8e6;
     color: #8f1b10;
 }
+.path-mod-aisoftskills .ss-labeleditor .ss-labelscenario {
+    margin: 0 0 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--ss-border);
+    border-left: 4px solid var(--ss-primary);
+    border-radius: 10px;
+    background: var(--ss-surface);
+    font-size: .88rem;
+}
+.path-mod-aisoftskills .ss-labeleditor .ss-labelscenario summary {
+    font-weight: 700;
+    cursor: pointer;
+}
+.path-mod-aisoftskills .ss-labeleditor .ss-labelscenario p {
+    margin: 6px 0 0;
+}
+.path-mod-aisoftskills .ss-labeleditor .ss-labelscenario mark {
+    padding: 0 2px;
+    border-radius: 3px;
+    background: #fff1b8;
+    color: inherit;
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-labeleditor .ss-labelvoice-note {
+    margin: 6px 0;
+    color: #7a4100;
+}
+
+/* 1.4.3: each response's listen button sits as a small speaker icon in the top-right corner of its card. */
+.path-mod-aisoftskills .ss-option-wrap {
+    display: block;
+}
+.path-mod-aisoftskills .ss-option-wrap .ss-option-listen {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ss-primary-soft);
+}
+.path-mod-aisoftskills [dir="rtl"] .ss-option-wrap .ss-option-listen {
+    right: auto;
+    left: 8px;
+}
+.path-mod-aisoftskills .ss-option-wrap .ss-option-listen svg {
+    width: 16px;
+    height: 16px;
+}
+.path-mod-aisoftskills .ss-option-wrap:has(.ss-option-listen) .ss-option {
+    padding-inline-end: 46px;
+}
+
+/* The scene's listen button is a round speaker icon in the top-right corner of the picture (its words stay for
+   screen readers and as the tooltip). */
+.path-mod-aisoftskills .ss-scene-main {
+    position: relative;
+}
+.path-mod-aisoftskills .ss-scene-main > .ss-listen {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    gap: 0;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, .35);
+}
+.path-mod-aisoftskills [dir="rtl"] .ss-scene-main > .ss-listen {
+    right: auto;
+    left: 10px;
+}
+.path-mod-aisoftskills .ss-scene-main > .ss-listen .ss-listen-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+.path-mod-aisoftskills .ss-scene-main > .ss-listen[aria-pressed="true"] {
+    background: var(--ss-primary-2);
+    outline: 3px solid rgba(255, 255, 255, .7);
+}
+.path-mod-aisoftskills .ss-listen .ss-listen-speaker path + path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
