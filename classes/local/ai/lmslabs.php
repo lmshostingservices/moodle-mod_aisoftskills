@@ -61,8 +61,11 @@ class lmslabs implements provider {
     /** @var array|null The tariff of the last voice catalogue read, kept for {@see self::voice_catalog()} callers. */
     public static $lasttariff = null;
 
-    /** @var int Credits LMS Labs charges per voiceover clip it settles (owner-approved tariff, 8 Oct 2026). */
-    public const VOICE_CREDITS = 5;
+    /** @var int Credits per voiceover clip (owner-approved 11 Oct 2026; was 5). LMS Labs must publish the same price. */
+    public const VOICE_CREDITS = 2;
+
+    /** @var int The price per clip before 11 Oct 2026, for clips asked for before this version. */
+    public const VOICE_CREDITS_BEFORE = 5;
 
     /** @var string Dedicated AI Soft Skills picture route. */
     public const IMAGE_ROUTE = '/api/moodle/ai-softskills/images';

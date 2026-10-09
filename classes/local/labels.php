@@ -40,6 +40,37 @@ class labels {
     /** @var int Longest label, in characters. */
     public const MAX_TEXT = 60;
 
+    /** @var string[] Capitalised words that are never a person's name (lower case). */
+    private const COMMON = ['a', 'an', 'the', 'at', 'in', 'on', 'by', 'as', 'of', 'to', 'for', 'from', 'with', 'after',
+        'before', 'during', 'when', 'while', 'if', 'but', 'and', 'or', 'so', 'yet', 'then', 'now', 'today', 'tonight',
+        'later', 'meanwhile', 'however', 'although', 'because', 'since', 'until', 'once', 'every', 'each', 'all', 'both',
+        'some', 'many', 'most', 'no', 'not', 'one', 'two', 'three', 'this', 'that', 'these', 'those', 'there', 'here',
+        'it', 'its', 'i', 'you', 'your', 'we', 'our', 'they', 'their', 'he', 'his', 'him', 'she', 'her', 'who', 'what',
+        'which', 'where', 'why', 'how', 'yes', 'please', 'thanks', 'sorry', 'hello', 'hi', 'okay', 'ok', 'monday',
+        'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'january', 'february', 'march', 'april',
+        'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december', 'english', 'christmas',
+        'easter', 'nurse', 'doctor', 'manager', 'supervisor', 'team', 'staff', 'customer', 'guest', 'patient',
+        'resident', 'client', 'learner', 'scene', 'scenario', 'situation', 'emergency', 'department', 'everyone',
+        'everybody', 'someone', 'somebody', 'anyone', 'anybody', 'nobody', 'none', 'nothing', 'something', 'everything',
+        'just', 'still', 'also', 'even', 'only', 'again', 'soon', 'suddenly', 'finally', 'instead', 'tomorrow',
+        'yesterday'];
+
+    /** @var string[] Jobs and relationships that are never a person's name on a label (lower case). */
+    private const ROLES = ['nurse', 'doctor', 'pharmacist', 'physio', 'physiotherapist', 'assistant', 'manager',
+        'supervisor', 'coordinator', 'daughter', 'son', 'wife', 'husband', 'mother', 'father', 'sister', 'brother',
+        'partner', 'guest', 'customer', 'patient', 'resident', 'client', 'chef', 'cook', 'bartender', 'waiter',
+        'waitress', 'receptionist', 'cleaner', 'director', 'officer', 'worker', 'carer', 'caregiver', 'aide',
+        'technician', 'therapist', 'surgeon', 'midwife', 'paramedic', 'porter', 'student', 'trainee', 'colleague',
+        'lead', 'leader', 'administrator', 'clerk', 'agent', 'owner', 'host', 'server', 'driver', 'guard', 'teacher',
+        'tutor', 'consultant', 'registrar', 'intern', 'specialist', 'advisor', 'adviser', 'representative', 'apprentice',
+        'volunteer', 'visitor', 'relative', 'friend', 'boss', 'employee', 'staff', 'member'];
+
+    /** @var string[] Words that make a capitalised run a place or organisation, not a person. */
+    private const PLACES = ['Hospital', 'Department', 'Ward', 'Unit', 'Clinic', 'Centre', 'Center', 'Street', 'Road',
+        'Avenue', 'Hotel', 'Bar', 'Restaurant', 'Cafe', 'Café', 'School', 'College', 'University', 'Bank', 'Group',
+        'Company', 'Ltd', 'Inc', 'Council', 'Services', 'Service', 'Team', 'Office', 'Store', 'Shop', 'Airport',
+        'Station', 'Park', 'House', 'Hall', 'Room', 'Building', 'Australia', 'Perth', 'Sydney', 'Melbourne'];
+
     /** @var float Height of the default row (percent from the top: roughly chest height in a half-body shot). */
     public const DEFAULT_Y = 55.0;
 
@@ -56,7 +87,7 @@ class labels {
                 continue;
             }
             $label = (array)$label;
-            $text = manager::clean_line((string)($label['text'] ?? ''), self::MAX_TEXT);
+            $text = self::tidy(manager::clean_line((string)($label['text'] ?? ''), self::MAX_TEXT));
             if ($text === '') {
                 continue;
             }
@@ -206,16 +237,14 @@ class labels {
             if ($label['you']) {
                 continue;
             }
-            $parts = array_map('trim', preg_split('/\s+[-–—]\s+/u', $label['text'], 2));
-            $name = $parts[0];
-            $role = $parts[1] ?? '';
+            [$name, $role] = self::split($label['text']);
             if (
                 preg_match('/^(Mrs|Mr|Ms|Miss|Mx|Dr|Prof)\.?$/u', $name)
                     && preg_match('/\b' . preg_quote($name, '/') . '\.?\s+(\p{Lu}\p{Ll}+)\b/u', $text, $m)
             ) {
                 $name .= ' ' . $m[1];
             }
-            if ($role !== '') {
+            if ($role !== '' && !preg_match('/\p{Lu}{2}/u', $role)) {
                 $words = explode(' ', \core_text::strtolower($role));
                 $fixed = self::role(implode(' ', $words) . ' ' . $name, $name);
                 $role = $fixed;
@@ -239,25 +268,60 @@ class labels {
     }
 
     /**
-     * People named with a role in the scene text, such as Leo in "bartender Leo".
+     * Every person the scene text names, in the order they first appear: "nurse Priya", "RN Fatima", "Dr Reeves",
+     * "Priya Sharma" and "Fatima says ..." at the start of a sentence.
+     *
+     * A capitalised word is a name when it is not a common word (such as "At", "She" or "Monday"), is not part of a
+     * place or organisation ("Royal Perth Hospital"), and, at the start of a sentence, is followed by a verb or is
+     * named elsewhere too. A shorter form of a name found in full ("Reeves" in "Dr Reeves") is not listed twice.
      *
      * @param string $text
      * @return string[]
      */
     public static function named(string $text): array {
-        // A title belongs to the name that follows it: "resident Mrs Tanaka" names Mrs Tanaka, not "Mrs".
-        preg_match_all(
-            '/(?:^|[\s,(])[a-z][a-z-]{2,}\s+((?:(?:Mrs|Mr|Ms|Miss|Mx|Dr|Prof)\.?\s+)?\p{Lu}\p{Ll}+)\b/u',
-            $text,
-            $m
-        );
-        $out = [];
-        foreach (array_unique($m[1]) as $name) {
-            if (self::role($text, $name) !== '') {
-                $out[] = $name;
+        $title = '(?:Mrs|Mr|Ms|Miss|Mx|Dr|Prof)\.?';
+        $word = "\\p{Lu}\\p{Ll}+(?:['’-]\\p{Lu}?\\p{Ll}+)?";
+        preg_match_all("/(?<![\\p{L}'’-])((?:$title\\s+)?$word(?:\\s+$word)*)/u", $text, $m, PREG_OFFSET_CAPTURE);
+        $found = [];
+        foreach ($m[1] as [$run, $offset]) {
+            $words = preg_split('/\\s+/u', $run);
+            $titled = (bool)preg_match("/^$title$/u", $words[0]);
+            $body = $titled ? array_slice($words, 1) : $words;
+            // A place or organisation, or a run of three or more capitalised words, is not a person.
+            if (!$body || count($body) > 2 || array_intersect($body, self::PLACES)) {
+                continue;
             }
+            // Common words at the start of a run ("At", "When Priya") are dropped.
+            while (!$titled && $body && in_array(\core_text::strtolower($body[0]), self::COMMON, true)) {
+                array_shift($body);
+                $offset = -1;
+            }
+            if (!$body || in_array(\core_text::strtolower(end($body)), self::COMMON, true)) {
+                continue;
+            }
+            $name = ($titled ? $words[0] . ' ' : '') . implode(' ', $body);
+            $before = $offset > 0 ? rtrim(substr($text, 0, $offset)) : '';
+            $start = $offset === 0 || ($offset > 0 && ($before === '' || preg_match('/[.!?:"“”]$/u', $before)));
+            if ($start && !$titled) {
+                $after = substr($text, $offset + strlen($run));
+                $verb = preg_match('/^\\s+(?:[a-z]+(?:s|ed)|is|was|has|had|can|will|would|says|tells)\\b/u', $after);
+                $again = preg_match_all('/(?<![.!?]\\s)(?<![.!?]\\s\\s)\\b' . preg_quote($name, '/') . '\\b/u', $text) > 1;
+                if (!$verb && !$again) {
+                    continue;
+                }
+            }
+            $found[$name] = true;
         }
-        return $out;
+        $names = array_keys($found);
+        // A shorter form ("Reeves", "Priya") is the same person as "Dr Reeves" or "Priya Sharma".
+        return array_values(array_filter($names, function ($name) use ($names) {
+            foreach ($names as $other) {
+                if ($other !== $name && preg_match('/(^|\\s)' . preg_quote($name, '/') . '(\\s|$)/u', $other)) {
+                    return false;
+                }
+            }
+            return true;
+        }));
     }
 
     /**
@@ -277,12 +341,29 @@ class labels {
         $he = 0;
         $she = 0;
         $sentences = preg_split('/(?<=[.!?])\s+/u', $text);
+        $others = array_diff(self::named($text), [$name]);
+        $mentions = function (string $sentence, string $who): bool {
+            return (bool)preg_match('/\b' . preg_quote($who, '/') . '\b/u', $sentence);
+        };
+        $other = function (string $sentence) use ($others, $mentions): bool {
+            foreach ($others as $who) {
+                if ($mentions($sentence, $who)) {
+                    return true;
+                }
+            }
+            return false;
+        };
         foreach ($sentences as $i => $sentence) {
-            if (!preg_match('/\b' . preg_quote($name, '/') . '\b/u', $sentence)) {
+            if (!$mentions($sentence, $name)) {
                 continue;
             }
-            // The sentence naming them, and the next one ("Leo hesitates. He says ...").
-            $near = \core_text::strtolower($sentence . ' ' . ($sentences[$i + 1] ?? ''));
+            // The sentence naming them, and the next one ("Leo hesitates. He says ..."), unless it is about someone
+            // else ("Dr Reeves waits. Fatima says she is fine." says nothing about Dr Reeves).
+            $next = (string)($sentences[$i + 1] ?? '');
+            if ($next !== '' && ($other($next) && !$mentions($next, $name))) {
+                $next = '';
+            }
+            $near = \core_text::strtolower($sentence . ' ' . $next);
             $he += preg_match_all('/\b(he|him|his|himself)\b/u', $near);
             $she += preg_match_all('/\b(she|her|hers|herself)\b/u', $near);
         }
@@ -290,14 +371,78 @@ class labels {
     }
 
     /**
-     * The person a label names, for matching voices across scenes: "Leo - Bartender" is "leo".
+     * The name and the role of a label, in either order: "Leo - Bartender" and "Bartender - Leo" are both
+     * ["Leo", "Bartender"]; "RN - Fatima" is ["Fatima", "RN"]. A role written before the name without a dash
+     * ("RN Priya", "Nurse Priya") is split off too. Titles stay with the name ("Dr Reeves").
+     *
+     * @param string $text
+     * @return array [name, role] (role '' when there is none)
+     */
+    public static function split(string $text): array {
+        $parts = array_map('trim', preg_split('/\s+[-–—]\s+|,\s*/u', trim($text), 2));
+        $name = $parts[0];
+        $role = $parts[1] ?? '';
+        if ($role !== '' && self::is_role($name) && !self::is_role($role)) {
+            [$name, $role] = [$role, $name];
+        }
+        // Such as "RN Priya" or "Nurse Priya": the leading role words are the role, the rest is the name.
+        $words = preg_split('/\s+/u', $name);
+        $lead = [];
+        while (count($words) > 1 && self::is_role($words[0])) {
+            $lead[] = array_shift($words);
+        }
+        if ($lead) {
+            $name = implode(' ', $words);
+            $role = $role !== '' ? $role : implode(' ', $lead);
+        }
+        return [$name, $role];
+    }
+
+    /**
+     * A label in the one format learners see: "Name - Role" ("RN - Fatima" and "RN Fatima" become "Fatima - RN").
+     * A label without a role, or the learner's ("You - Shift supervisor"), is kept as it is.
+     *
+     * @param string $text
+     * @return string
+     */
+    public static function tidy(string $text): string {
+        [$name, $role] = self::split($text);
+        if ($name === '' || $role === '' || \core_text::strtolower($name) === 'you') {
+            return $text;
+        }
+        $tidy = $name . ' - ' . $role;
+        return \core_text::strlen($tidy) <= self::MAX_TEXT ? $tidy : $text;
+    }
+
+    /**
+     * Whether a label part is a job or relationship rather than a name: an abbreviation such as RN or GP, or words
+     * such as "Junior nurse", "Pharmacist" or "Daughter".
+     *
+     * @param string $text
+     * @return bool
+     */
+    public static function is_role(string $text): bool {
+        $words = preg_split('/\s+/u', trim($text));
+        if ($words === [''] || preg_match('/^(Mrs|Mr|Ms|Miss|Mx|Dr|Prof)\.?$/u', $words[0])) {
+            return false;
+        }
+        foreach ($words as $word) {
+            if (preg_match('/^\p{Lu}{2,4}s?$/u', $word)) {
+                return true;
+            }
+        }
+        return in_array(\core_text::strtolower(end($words)), self::ROLES, true);
+    }
+
+    /**
+     * The person a label names, for matching voices across scenes: "Leo - Bartender", "Bartender - Leo" and
+     * "Leo" are all "leo"; "RN - Fatima" and "RN Fatima" are "fatima".
      *
      * @param string $text
      * @return string
      */
     public static function person(string $text): string {
-        $name = preg_split('/\s+[-–—]\s+|,/u', $text)[0];
-        return \core_text::strtolower(trim($name));
+        return \core_text::strtolower(trim(self::split($text)[0]));
     }
 
     /**
@@ -308,6 +453,10 @@ class labels {
      * @return string the role with a capital first letter, or ''
      */
     public static function role(string $text, string $name): string {
+        // An abbreviation right before the name, such as "RN Fatima" or "GP Lee".
+        if (preg_match('/(?:^|[\s,(])(\p{Lu}{2,4})\s+' . preg_quote($name, '/') . '\b/u', $text, $m)) {
+            return $m[1];
+        }
         // Only a lower-case word (or two, like "events manager") right before the name, never a verb such as "ask".
         $pattern = '/(?:^|[\s,(])((?:[a-z][a-z-]+ )?[a-z][a-z-]{2,})\s+' . preg_quote($name, '/') . '\b/u';
         if (!preg_match($pattern, $text, $m)) {

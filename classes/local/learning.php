@@ -311,6 +311,8 @@ class learning {
         $out = [];
         $number = 0;
         $voiceconfig = voiceover::enabled_for_learners() ? voiceover::learner_config($instance) : null;
+        // Teachers are told why a scene is silent; learners never see this.
+        $teacher = has_capability('mod/aisoftskills:manage', $context);
         foreach ($order as $item) {
             $scene = $scenes[$item['scene']] ?? null;
             if (!$scene) {
@@ -345,6 +347,8 @@ class learning {
                 'cards' => self::context_cards(self::para($scene->context, $context), (string)$instance->contentlang),
                 'labels' => $labels,
                 'voice' => $voice['scene'],
+                'voicenote' => $teacher
+                    ? voiceover::silent_reason($instance, $context, $scene, $options[$scene->id], $voiceconfig) : '',
                 'dialogue' => array_map(fn($d) => ['speaker' => self::line($d['speaker'], $context),
                     'line' => self::para($d['line'], $context)], manager::dialogue($scene->script)),
                 'speaker' => self::line($scene->speaker, $context),
@@ -719,8 +723,12 @@ class learning {
             }
             $better = null;
             $firstworst = false;
+            $yours = null;
             foreach ($options[$sceneid] as $o) {
                 $better = (int)$o->best === 1 ? $o : $better;
+                if (isset($choices[$sceneid]) && (int)$choices[$sceneid]->optionid === (int)$o->id) {
+                    $yours = $o;
+                }
                 $firstworst = $firstworst || (!empty($o->worst) && isset($choices[$sceneid])
                     && (int)$choices[$sceneid]->optionid === (int)$o->id);
             }
@@ -734,6 +742,9 @@ class learning {
                 'firstworst' => $firstworst,
                 'better' => $better ? self::para($better->text, $context) : '',
                 'reason' => $better ? self::para($better->reason, $context) : '',
+                // The learner's first response, and why it fell short when it did.
+                'yours' => $yours ? self::para($yours->text, $context) : '',
+                'yourreason' => $yours && !(int)$yours->best ? self::para($yours->reason, $context) : '',
             ];
         }
         return [

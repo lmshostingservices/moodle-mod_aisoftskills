@@ -388,7 +388,7 @@ The learner plays the {$a->level} and chooses between exactly three responses:
 - the very poor response (best: false, worst: true): a serious but believable mistake that makes things much worse, for example blaming someone in public, ignoring a safety risk, escalating the conflict or breaking a rule to make the problem go away. It does double the harm of the poorer response. It must still be something a stressed person might really do, never a cartoon.
 
 For each response give:
-- text: exactly what the person says or does, in one or two sentences and at most 45 words
+- text: the exact words the learner says out loud, spoken directly to the person in the scene, in the first person and addressing them by name, in one or two sentences and at most 45 words. For example "Fatima, I\'ll take over your handover now. Please watch how Dr Reeves and I talk it through, and we\'ll go over it together once the department is quieter." Never write a description or an instruction such as "Take over Fatima\'s handover and tell her to observe". An action the learner takes is said as they would say it ("I\'m calling the nurse manager now")
 - best: true or false (exactly one true per scene)
 - worst: true for the very poor response only, false for the other two
 - kpi: the workplace indicator the choice moves most, one of: {$a->kpis}
@@ -592,7 +592,7 @@ $string['scenex'] = 'Scene {$a}';
 $string['score'] = 'Score';
 $string['seeresults'] = 'See my results';
 $string['settings_ai'] = 'AI pictures (LMS Labs)';
-$string['settings_ai_desc'] = 'AI Soft Skills uses LMS Labs for these, each charged by LMS Labs when it is made: scenes (5 credits each, whether LMS Labs AI or your own AI assistant writes them), scene pictures (5 credits each) and voiceover (5 credits per clip). Every request is stored in Moodle before it is sent and is never retried automatically; "Check again" asks about the same request and cannot be charged twice. Teachers can still draft scenes themselves with the copy-and-paste prompt. Only teacher-written text is sent to LMS Labs; no learner data is sent.';
+$string['settings_ai_desc'] = 'AI Soft Skills uses LMS Labs for these, each charged by LMS Labs when it is made: scenes (5 credits each, whether LMS Labs AI or your own AI assistant writes them), scene pictures (5 credits each) and voiceover (2 credits per clip). Every request is stored in Moodle before it is sent and is never retried automatically; "Check again" asks about the same request and cannot be charged twice. Teachers can still draft scenes themselves with the copy-and-paste prompt. Only teacher-written text is sent to LMS Labs; no learner data is sent.';
 $string['settings_defaults'] = 'Defaults for new activities';
 $string['setup_back'] = 'Back';
 $string['setup_needpictures'] = 'Scenes still without a picture: {$a}.';
@@ -710,6 +710,10 @@ $string['listen_scene'] = 'Listen';
 $string['listen_stop'] = 'Stop';
 $string['narratorvoice'] = 'Narrator voice';
 $string['narratorvoice_desc'] = 'The Google Chirp 3 HD voice that reads what is happening and the question in every scene. The people in the pictures get other voices: female or male as their name labels say, never the narrator\'s.';
+$string['recap_correct'] = 'Correct response';
+$string['recap_right'] = 'the better response';
+$string['recap_wrong'] = 'not the better response';
+$string['recap_yours'] = 'Your response';
 $string['recap_firstbest'] = 'Better first choice';
 $string['recap_firstpoor'] = 'Learn from this one';
 $string['recap_firstworst'] = 'This one made things much worse';
@@ -744,6 +748,11 @@ $string['voices_people'] = 'Voices';
 $string['mustlisten'] = 'Listen before answering';
 $string['mustlisten_desc'] = 'Learners hear each scene\'s voiceover to the end before they can choose a response';
 $string['mustlisten_help'] = 'Stops learners from rushing through the scenes. The voiceover of a scene starts on its own, and the responses can be chosen once it has played to the end. Scenes without voiceover are not held back, and a scene already listened to is not held back again in the same attempt. Voiceover must be switched on for the site and created in the Voiceover step of the set-up.';
+$string['mustlistenfeedback'] = 'Listen to the feedback first';
+$string['mustlistenfeedback_desc'] = 'Learners hear the feedback\'s voiceover to the end before they can go to the next scene';
+$string['mustlistenfeedback_help'] = 'After each choice, the feedback ("What happened" and "Why this works") is read out on its own, and the Next scene and Try again buttons stay greyed out until it has played to the end. Feedback without voiceover is not held back. Voiceover must be switched on for the site and created in the Voiceover step of the set-up.';
+$string['mustlistenfeedback_wait'] = 'Listen to the feedback: you can go on when it ends.';
+$string['mustlistenfeedback_start'] = 'Press Listen to hear the feedback: you can go on when it ends.';
 $string['mustlisten_wait'] = 'Listen to the scene first: the responses open when the voiceover ends.';
 $string['mustlisten_start'] = 'Press Listen to hear the scene: the responses open when it ends.';
 $string['maxattempts_help'] = 'How many times a learner may play the graded mode: the test when the activity has one, otherwise practice. Practice next to a test is never limited.';
@@ -815,7 +824,12 @@ $string['label_voice_narrator'] = '{$a} (narrator)';
 $string['label_voices_female'] = 'Female voices';
 $string['label_voices_male'] = 'Male voices';
 $string['label_voice_same'] = 'Two people in this scene have the voice {$a}, so they will sound alike. Choose a different voice for one of them.';
+$string['labels_added'] = 'Added from the scenario: {$a}. Drag each label onto the right person, then save.';
 $string['labels_scenario'] = 'The scenario (names in it are marked)';
+$string['voicenote_missing'] = 'Teachers only: {$a} voiceover clips for this scene are not made yet, so the scene is silent for learners. Make them in Set up → Voiceover. If you edited the scene or changed a voice, the changed clips need making again.';
+$string['voicenote_nocatalogue'] = 'Teachers only: there is no voiceover, because LMS Labs has not sent its list of voices for this language to this site. Open Set up → Voiceover to load it, and check the LMS Labs connection.';
+$string['voicenote_off'] = 'Teachers only: voiceover is turned off in the plugin settings, so learners hear nothing.';
+$string['voice_pricehold'] = 'Voiceover is waiting for LMS Labs: it still charges {$a->published} credits per clip, and the approved price is {$a->approved}. No clip is made until LMS Labs charges {$a->approved}, so you are never charged a price you were not shown. Clips already made keep playing.';
 $string['voice_busy'] = 'The voiceover is being made. Wait until it finishes, or press Stop.';
 $string['genall_busy'] = 'The pictures are being made. Wait until they finish.';
 $string['voice_stop'] = 'Stop';

@@ -192,6 +192,19 @@ function xmldb_aisoftskills_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026101004, 'aisoftskills');
     }
 
+    if ($oldversion < 2026101009) {
+        // Voiceover now costs 2 credits per clip: clips asked for before this moment were priced at 5.
+        // Only a setting is saved here; caches are never touched during an upgrade.
+        if (!get_config('mod_aisoftskills', 'voicepricefrom')) {
+            set_config('voicepricefrom', time(), 'mod_aisoftskills');
+        }
+        // Learners can be asked to hear the feedback to the end before they go on.
+        $field = new xmldb_field('mustlistenfeedback', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'mustlisten');
+        if (!$dbman->field_exists(new xmldb_table('aisoftskills'), $field)) {
+            $dbman->add_field(new xmldb_table('aisoftskills'), $field);
+        }
+        upgrade_mod_savepoint(true, 2026101009, 'aisoftskills');
+    }
     return true;
 }
 

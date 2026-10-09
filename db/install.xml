@@ -27,6 +27,7 @@
         <FIELD NAME="sounds" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="voiceparts" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="scenario,question,responses,consequence,why" SEQUENCE="false" COMMENT="What the voiceover reads, comma-separated"/>
         <FIELD NAME="mustlisten" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Learners hear a scene's voiceover to the end before they can answer"/>
+        <FIELD NAME="mustlistenfeedback" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Learners hear the feedback's voiceover to the end before they can go on"/>
         <FIELD NAME="voicemap" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Voice type given to each person, kept so made clips stay valid (JSON)"/>
         <FIELD NAME="grade" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="100" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="grademethod" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 highest, 2 average, 3 first, 4 last"/>

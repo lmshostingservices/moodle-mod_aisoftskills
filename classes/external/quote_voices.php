@@ -89,7 +89,7 @@ class quote_voices extends base {
         return new external_multiple_structure(new external_single_structure([
             'sceneid' => new external_value(PARAM_INT, 'Scene id'),
             'index' => new external_value(PARAM_INT, 'Clip number in the scene'),
-            'credits' => new external_value(PARAM_INT, 'Current price: 0 (a free remake) or 5'),
+            'credits' => new external_value(PARAM_INT, 'Current price: 0 (a free remake) or the price per clip'),
         ]));
     }
 }

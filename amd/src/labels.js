@@ -77,14 +77,35 @@ const open = async(btn) => {
         l.resolved = resolved[i] || '';
         l.start = voiceValue(l);
     });
+    const scenario = JSON.parse(btn.dataset.scenario || '{}');
+    const person = (text) => String(text).split(/\s+[-–—]\s+|,/)[0].trim();
+    const people = scenario.people || [];
+    // Everyone the scenario names gets a label: people missing from labels saved earlier are added here, spread
+    // along the top of the picture, so the teacher only drags each one onto the right person.
+    const added = [];
+    if (btn.dataset.suggested !== '1') {
+        const have = labels.map((l) => person(l.text).toLowerCase());
+        people.filter((p) => !have.includes(person(p.text).toLowerCase())).forEach((p) => {
+            if (labels.length >= MAX) {
+                return;
+            }
+            const used = labels.map((l) => l.x);
+            const x = [20, 80, 50, 35, 65, 10, 90].find((c) => used.every((u) => Math.abs(u - c) > 8)) || 50;
+            labels.push({text: p.text, x, y: 30, gender: p.gender || '', voice: '', you: false, resolved: '', start: ''});
+            added.push(p.text);
+        });
+    }
     const body = el('div', {class: 'ss-labeleditor'});
     body.append(el('p', {class: 'ss-mini', text: S.labels_help}));
     if (btn.dataset.suggested === '1' && labels.length) {
         body.append(el('p', {class: 'ss-note', text: S.labels_suggested}));
     }
+    if (added.length) {
+        body.append(el('p', {class: 'ss-note', text: fmt(S.labels_added, added.join(', '))}));
+    }
     // The scenario, with the names in it marked, so the teacher can check who is who.
-    const scenario = JSON.parse(btn.dataset.scenario || '{}');
-    const names = labels.map((l) => l.text.split(/\s+[-–—]\s+/)[0].trim()).filter((n) => n && n.toLowerCase() !== 'you');
+    const names = [...new Set(labels.map((l) => person(l.text)).concat(people.map((p) => person(p.text))))]
+        .filter((n) => n && n.toLowerCase() !== 'you');
     const marked = (text) => {
         const node = el('span');
         const pattern = names.length ? new RegExp('(' + names.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
@@ -261,6 +282,7 @@ export const init = async(selector, narrator = '', genders = null) => {
     GENDERS = genders || GENDERS;
     S = await loadStrings(['labels_help', 'labels_suggested', 'label_add', 'label_text', 'label_unknownvoice',
         'label_female', 'label_male', 'label_youlearner', 'label_remove', 'labels_save', 'labels_dialog', 'label_auto_is',
-        'label_voice', 'label_voice_narrator', 'label_voices_female', 'label_voices_male', 'label_voice_same', 'labels_scenario']);
+        'label_voice', 'label_voice_narrator', 'label_voices_female', 'label_voices_male', 'label_voice_same', 'labels_scenario',
+        'labels_added']);
     root.querySelectorAll('[data-action="labels"]').forEach((btn) => btn.addEventListener('click', () => open(btn)));
 };

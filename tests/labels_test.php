@@ -67,6 +67,28 @@ final class labels_test extends \advanced_testcase {
     }
 
     /**
+     * Everyone the scenario names is suggested: an abbreviated role, a title at the start of a sentence, full names,
+     * names at the start of a sentence; places, organisations and common words are not people; a person's voice is
+     * not read from a sentence about someone else.
+     */
+    public function test_suggest_everyone(): void {
+        $text = 'At 10:20 pm in an emergency department, newly recruited RN Fatima has been unusually quiet since a ' .
+            'senior doctor criticised her handover. She has now hesitated twice before escalating a patient\'s ' .
+            'worsening observations. Dr Reeves wants faster decisions, while the waiting room is filling. Fatima says ' .
+            'she is fine, but avoids eye contact.';
+        $this->assertSame(['Fatima', 'Dr Reeves'], labels::named($text));
+        $scene = (object)['script' => '', 'speaker' => 'You, the shift supervisor', 'context' => $text];
+        $labels = labels::suggest($scene);
+        $this->assertSame(['You - Shift supervisor', 'Fatima - RN', 'Dr Reeves'], array_column($labels, 'text'));
+        $this->assertSame(['', 'f', ''], array_column($labels, 'gender'));
+        $this->assertSame(['Priya Sharma', 'Sam', 'Ana'], labels::named('Priya Sharma joined Royal Perth Hospital on ' .
+            'Monday. Priya tells Sam that she is tired. Nurse Ana waits at St Mary Ward.'));
+        $this->assertSame(['Kenji', 'Maria'], labels::named('Kenji, the new chef, is late again. When Maria asks why, ' .
+            'Kenji shrugs.'));
+        $this->assertSame([], labels::named('The team meets on Monday. Everyone is tired. At noon the manager arrives.'));
+    }
+
+    /**
      * Roles, genders and people.
      */
     public function test_helpers(): void {
@@ -91,6 +113,16 @@ final class labels_test extends \advanced_testcase {
         $this->assertSame('f', labels::gender($text, 'Maria'));
         $this->assertSame('', labels::gender('Sam arrives.', 'Sam'));
         $this->assertSame('leo', labels::person('Leo - Bartender'));
+        // Name and role in either order: every RN is a different person, never one person called "RN".
+        $this->assertSame(['Fatima', 'RN'], labels::split('RN - Fatima'));
+        $this->assertSame(['Fatima', 'RN'], labels::split('Fatima - RN'));
+        $this->assertSame(['Eli', 'Junior RN'], labels::split('Junior RN - Eli'));
+        $this->assertSame(['Priya', 'RN'], labels::split('RN Priya'));
+        $this->assertSame(['Aisha', 'Pharmacist'], labels::split('Pharmacist - Aisha'));
+        $this->assertSame(['Dr Reeves', ''], labels::split('Dr Reeves'));
+        $this->assertSame(['Linh', 'Daughter'], labels::split('Linh - Daughter'));
+        $people = ['RN - Fatima', 'RN - Thomas', 'Junior RN - Eli', 'RN Priya'];
+        $this->assertSame(['fatima', 'thomas', 'eli', 'priya'], array_map([labels::class, 'person'], $people));
         $this->assertSame('you', labels::person('You, the supervisor'));
     }
 

@@ -191,6 +191,11 @@ foreach ($scenes as $s) {
                 'line' => format_string((string)$l['line'], true, ['context' => $context, 'escape' => false]),
             ], manager::dialogue($s->script)),
             'speaker' => format_string((string)$s->speaker, true, ['context' => $context, 'escape' => false]),
+            // Everyone the scenario names, so people without a label can be added with one click.
+            'people' => array_values(array_map(fn($l) => [
+                'text' => format_string($l['text'], true, ['context' => $context, 'escape' => false]),
+                'gender' => $l['gender'],
+            ], array_filter(labels::suggest($s), fn($l) => !$l['you']))),
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'labelvoicesjson' => json_encode($labelvoices ? voiceover::label_voices($s, $labelvoices) : []),
         'labelcount' => count($saved),
@@ -268,6 +273,9 @@ echo $OUTPUT->render_from_template('mod_aisoftskills/scenes', [
     'clipids' => implode(',', $clips),
     'clipcredits' => count($clips) * \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS,
     'voicecredits' => \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS,
+    // LMS Labs still publishes another price per clip: nothing new is made until it publishes the approved one.
+    'pricehold' => voiceover::price_hold() !== null ? get_string('voice_pricehold', 'mod_aisoftskills', [
+        'published' => voiceover::price_hold(), 'approved' => \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS]) : '',
     // Free remakes (when LMS Labs supports them): each clip is priced before the teacher confirms.
     'remakes' => voiceover::remakes() ? 1 : 0,
     'remakesline' => voiceover::remakes() ? get_string('voice_remakes', 'mod_aisoftskills', (object)voiceover::remakes()) : '',

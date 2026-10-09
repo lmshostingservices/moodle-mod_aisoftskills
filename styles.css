@@ -1355,7 +1355,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: -14px;
+    margin-top: 10px;
     line-height: 1.1;
 }
 .path-mod-aisoftskills .ss-gauge-read strong {
@@ -1884,13 +1884,30 @@
     font-weight: 800;
     line-height: 1.4;
 }
+/* 1.4.9: what is being read rises gently off the page, with a soft coloured shadow (no outline). */
+.path-mod-aisoftskills .ss-ctxcard,
+.path-mod-aisoftskills .ss-fbcard,
+.path-mod-aisoftskills .ss-question,
+.path-mod-aisoftskills .ss-option-wrap {
+    transition: transform .35s var(--ss-ease), box-shadow .35s var(--ss-ease);
+}
 .path-mod-aisoftskills .is-speaking {
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, .35), var(--ss-shadow-md);
+    position: relative;
+    z-index: 1;
+    transform: translateY(-6px) scale(1.015);
+    box-shadow: 0 24px 44px -16px rgba(79, 70, 229, .55), 0 10px 20px -8px rgba(15, 23, 42, .22);
 }
 .path-mod-aisoftskills .ss-dialogue-line.is-speaking {
+    transform: none;
     box-shadow: none;
     background: var(--ss-primary-soft);
     border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .path-mod-aisoftskills .is-speaking {
+        transform: none;
+    }
 }
 
 /* Name labels over the picture (centre at x%, y%). */
@@ -2437,6 +2454,24 @@
     padding-inline-end: 46px;
 }
 
+/* 1.4.8: the response's speaker sits under its letter (A, B, C) on the left of the card. */
+.path-mod-aisoftskills .ss-option-wrap .ss-option-listen {
+    top: 54px;
+    right: auto;
+    left: 19px;
+}
+.path-mod-aisoftskills [dir="rtl"] .ss-option-wrap .ss-option-listen {
+    right: 19px;
+    left: auto;
+}
+.path-mod-aisoftskills .ss-option-wrap:has(.ss-option-listen) .ss-option {
+    min-height: 92px;
+    padding-inline-end: 18px;
+}
+.path-mod-aisoftskills .ss-voicenote {
+    margin: 0 0 10px;
+}
+
 /* The scene's listen button is a round speaker icon in the top-right corner of the picture (its words stay for
    screen readers and as the tooltip). */
 .path-mod-aisoftskills .ss-scene-main {
@@ -2475,4 +2510,153 @@
     stroke: currentColor;
     stroke-width: 2;
     stroke-linecap: round;
+}
+
+/* 1.4.9: while the voiceover or pictures are being made, Back, Next and the step links look disabled. */
+.path-mod-aisoftskills .ss-setupnav .disabled,
+.path-mod-aisoftskills .ss-setup-steps .disabled {
+    opacity: .45;
+    cursor: not-allowed;
+    pointer-events: none;
+    filter: grayscale(.6);
+}
+
+/* 1.4.9: the speaker icon is centred in its circle (the drawing sits left of centre in its box). */
+.path-mod-aisoftskills .ss-option-wrap .ss-option-listen {
+    padding: 0;
+    line-height: 0;
+}
+.path-mod-aisoftskills .ss-option-wrap .ss-option-listen svg {
+    display: block;
+    margin: 0;
+    transform: translateX(1px);
+}
+
+/* 1.4.9: buttons waiting for the feedback to be heard are greyed out. */
+.path-mod-aisoftskills .ss-consequence .is-waiting,
+.path-mod-aisoftskills .ss-consequence .is-waiting:hover {
+    opacity: .45;
+    filter: grayscale(.7);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+.path-mod-aisoftskills .ss-consequence .ss-fbnote {
+    margin: 0 0 10px;
+}
+
+/* 1.4.9: review slides. The learner's first response on the left (green tick or red cross), the correct response on
+   the right when it differs; each card has a coloured banner so it is clear at a glance which is which. */
+.path-mod-aisoftskills .ss-slide-scene .ss-recap {
+    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+    align-items: center;
+    margin-bottom: 14px;
+}
+.path-mod-aisoftskills .ss-rcards {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+}
+.path-mod-aisoftskills .ss-rcards.is-two {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.path-mod-aisoftskills .ss-rcard {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 2px solid var(--ss-border);
+    border-radius: 16px;
+    background: var(--ss-surface);
+    box-shadow: var(--ss-shadow-sm);
+}
+.path-mod-aisoftskills .ss-rcard-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 12px 16px;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+}
+.path-mod-aisoftskills .ss-rmark {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: #fff;
+}
+.path-mod-aisoftskills .ss-rmark svg {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.path-mod-aisoftskills .ss-rcard.is-right {
+    border-color: #10b981;
+    background: #f0fdf6;
+}
+.path-mod-aisoftskills .ss-rcard.is-right .ss-rcard-title {
+    background: #0f9f6e;
+}
+.path-mod-aisoftskills .ss-rcard.is-right .ss-rmark {
+    color: #0f9f6e;
+}
+.path-mod-aisoftskills .ss-rcard.is-wrong {
+    border-color: #e0472d;
+    background: #fff5f3;
+}
+.path-mod-aisoftskills .ss-rcard.is-wrong .ss-rcard-title {
+    background: #d13a22;
+}
+.path-mod-aisoftskills .ss-rcard.is-wrong .ss-rmark {
+    color: #d13a22;
+}
+.path-mod-aisoftskills .ss-rquote {
+    margin: 0;
+    padding: 14px 16px 6px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.5;
+}
+.path-mod-aisoftskills .ss-rwhy {
+    margin: 8px 16px 16px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .75);
+}
+.path-mod-aisoftskills .ss-rwhy h6 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 4px;
+    font-size: .8rem;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ss-muted);
+}
+.path-mod-aisoftskills .ss-rwhy h6 svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+.path-mod-aisoftskills .ss-rwhy p {
+    margin: 0;
+}
+
+@media (max-width: 700px) {
+    .path-mod-aisoftskills .ss-rcards.is-two,
+    .path-mod-aisoftskills .ss-slide-scene .ss-recap {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

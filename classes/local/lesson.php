@@ -118,9 +118,9 @@ class lesson {
         $labels = labels::get($scene) ?: labels::suggest($scene);
         $out = [];
         foreach (array_slice($labels, 0, labels::MAX) as $label) {
-            $parts = array_map('trim', preg_split('/\s+[-–—]\s+/u', (string)$label['text'], 2));
-            $name = $parts[0];
-            $role = isset($parts[1]) && $parts[1] !== '' ? \core_text::strtolower($parts[1]) : '';
+            [$name, $role] = labels::split((string)$label['text']);
+            // An abbreviation such as RN stays in capitals; other roles are written in lower case.
+            $role = preg_match('/\p{Lu}{2}/u', $role) ? $role : \core_text::strtolower($role);
             $gender = ['f' => 'a woman', 'm' => 'a man'][$label['gender'] ?? ''] ?? '';
             if (!empty($label['you'])) {
                 if ($role !== '') {

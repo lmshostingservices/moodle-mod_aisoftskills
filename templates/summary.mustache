@@ -60,7 +60,7 @@
         {{#recap.0}}<p class="ss-mini mb-0">{{#str}} results_next, mod_aisoftskills {{/str}}</p>{{/recap.0}}
     </div>
     {{#recap}}
-    <div class="ss-slide ss-slide-scene" tabindex="-1" role="group" aria-roledescription="{{#str}} results_slidename, mod_aisoftskills {{/str}}" aria-labelledby="ss-recap-title-{{slide}}" hidden>
+    <div class="ss-slide ss-slide-scene" {{^onlycorrect}}data-result="{{#firstbest}}right{{/firstbest}}{{^firstbest}}wrong{{/firstbest}}" {{/onlycorrect}}tabindex="-1" role="group" aria-roledescription="{{#str}} results_slidename, mod_aisoftskills {{/str}}" aria-labelledby="ss-recap-title-{{slide}}" hidden>
         <div class="ss-recap">
             <div class="ss-recap-pic">
                 {{#image}}<img src="{{image}}" alt="" loading="lazy">{{/image}}
@@ -75,19 +75,30 @@
                     </span>
                 </div>
                 <h4 class="ss-recap-title" id="ss-recap-title-{{slide}}" dir="auto">{{title}}</h4>
-                {{#better}}
-                <section class="ss-fbcard ss-better">
-                    <h5 class="ss-fbcard-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg>{{#str}} betterresponse, mod_aisoftskills {{/str}}</h5>
-                    <p class="ss-better-text" dir="auto">“{{better}}”</p>
-                </section>
-                {{/better}}
-                {{#reasonlines.0}}
-                <section class="ss-fbcard ss-fbcard-why is-best">
-                    <h5 class="ss-fbcard-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>{{#str}} fb_whyworks, mod_aisoftskills {{/str}}</h5>
-                    {{#reasonlines}}<p dir="auto">{{.}}</p>{{/reasonlines}}
-                </section>
-                {{/reasonlines.0}}
             </div>
+        </div>
+        <div class="ss-rcards{{#wrong}} is-two{{/wrong}}">
+            {{^onlycorrect}}
+            <section class="ss-rcard {{#firstbest}}is-right{{/firstbest}}{{^firstbest}}is-wrong{{/firstbest}}">
+                <h5 class="ss-rcard-title"><span class="ss-rmark" aria-hidden="true">{{#firstbest}}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{{/firstbest}}{{^firstbest}}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>{{/firstbest}}</span>{{#str}} recap_yours, mod_aisoftskills {{/str}}<span class="sr-only">: {{#firstbest}}{{#str}} recap_right, mod_aisoftskills {{/str}}{{/firstbest}}{{^firstbest}}{{#str}} recap_wrong, mod_aisoftskills {{/str}}{{/firstbest}}</span></h5>
+                <p class="ss-rquote" dir="auto">“{{yours}}”</p>
+                {{#firstbest}}{{#reasonlines.0}}
+                <div class="ss-rwhy"><h6><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>{{#str}} fb_whyworks, mod_aisoftskills {{/str}}</h6>{{#reasonlines}}<p dir="auto">{{.}}</p>{{/reasonlines}}</div>
+                {{/reasonlines.0}}{{/firstbest}}
+                {{^firstbest}}{{#yourreasonlines.0}}
+                <div class="ss-rwhy"><h6><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>{{#str}} fb_whyfalls, mod_aisoftskills {{/str}}</h6>{{#yourreasonlines}}<p dir="auto">{{.}}</p>{{/yourreasonlines}}</div>
+                {{/yourreasonlines.0}}{{/firstbest}}
+            </section>
+            {{/onlycorrect}}
+            {{^firstbest}}{{#better}}
+            <section class="ss-rcard is-right is-correct">
+                <h5 class="ss-rcard-title"><span class="ss-rmark" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>{{#str}} recap_correct, mod_aisoftskills {{/str}}</h5>
+                <p class="ss-rquote" dir="auto">“{{better}}”</p>
+                {{#reasonlines.0}}
+                <div class="ss-rwhy"><h6><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>{{#str}} fb_whyworks, mod_aisoftskills {{/str}}</h6>{{#reasonlines}}<p dir="auto">{{.}}</p>{{/reasonlines}}</div>
+                {{/reasonlines.0}}
+            </section>
+            {{/better}}{{/firstbest}}
         </div>
     </div>
     {{/recap}}

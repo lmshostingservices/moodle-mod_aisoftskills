@@ -70,8 +70,9 @@
             <ul>{{#voices}}<li dir="auto">{{text}}</li>{{/voices}}</ul>
         </div>
         {{/voices.0}}
+        {{#pricehold}}<p class="ss-note ss-pricehold" role="status">{{pricehold}}</p>{{/pricehold}}
         {{#clipcount}}
-        <button type="button" class="ss-btn ss-btn-primary" data-action="genvoice" data-clips="{{clipids}}" data-credits="{{voicecredits}}" data-remakes="{{remakes}}">
+        <button type="button" class="ss-btn ss-btn-primary" data-action="genvoice" {{#pricehold}}disabled {{/pricehold}}data-clips="{{clipids}}" data-credits="{{voicecredits}}" data-remakes="{{remakes}}">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7"/></svg>
             <span>{{#remakes}}{{#str}} voice_button_remakes, mod_aisoftskills, {{clipcount}} {{/str}}{{/remakes}}{{^remakes}}{{#str}} voice_button, mod_aisoftskills, { "count": {{clipcount}}, "credits": {{clipcredits}} } {{/str}}{{/remakes}}</span>
         </button>

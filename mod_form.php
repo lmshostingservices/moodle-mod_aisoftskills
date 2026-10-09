@@ -115,6 +115,14 @@ class mod_aisoftskills_mod_form extends moodleform_mod {
         $mform->addElement('advcheckbox', 'mustlisten', get_string('mustlisten', $c), get_string('mustlisten_desc', $c));
         $mform->addHelpButton('mustlisten', 'mustlisten', $c);
         $mform->setDefault('mustlisten', 0);
+        $mform->addElement(
+            'advcheckbox',
+            'mustlistenfeedback',
+            get_string('mustlistenfeedback', $c),
+            get_string('mustlistenfeedback_desc', $c)
+        );
+        $mform->addHelpButton('mustlistenfeedback', 'mustlistenfeedback', $c);
+        $mform->setDefault('mustlistenfeedback', 0);
         $attemptoptions = [0 => get_string('unlimited')] + array_combine(range(1, 10), range(1, 10));
         $mform->addElement('select', 'maxattempts', get_string('maxattempts', $c), $attemptoptions);
         $mform->addHelpButton('maxattempts', 'maxattempts', $c);

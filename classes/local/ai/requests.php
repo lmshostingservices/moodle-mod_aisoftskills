@@ -50,7 +50,7 @@ class requests {
     /** @var string Charge for scenes made with the teacher's own AI assistant (5 credits per scene, like a draft). */
     public const IMPORT = 'import';
 
-    /** @var string One voiceover clip of a scene (5 credits per clip LMS Labs makes). */
+    /** @var string One voiceover clip of a scene (2 credits per clip LMS Labs makes). */
     public const VOICE = 'voice';
 
     /** @var int Most voiceover clips one teacher may ask for in an hour. */
@@ -208,6 +208,10 @@ class requests {
             // Already made (another page or tab made it): never buy the same clip twice.
             throw new moodle_exception('voice_alreadymade', 'mod_aisoftskills');
         }
+        if (($published = voiceover::price_hold()) !== null) {
+            throw new moodle_exception('voice_pricehold', 'mod_aisoftskills', '', ['published' => $published,
+                'approved' => lmslabs::VOICE_CREDITS]);
+        }
         $body = voiceover::body($segments[$index]);
         if (voiceover::remakes() !== null) {
             // Free remakes: the clip's place, and the most the teacher confirmed (LMS Labs refuses a higher price).
@@ -225,7 +229,7 @@ class requests {
      * @param stdClass $scene
      * @param int $index
      * @param array|null $segments the scene's clips, when already worked out
-     * @return int 0 or 5
+     * @return int 0 or the price per clip
      */
     public static function quote_voice(stdClass $instance, stdClass $scene, int $index, ?array $segments = null): int {
         if (voiceover::remakes() === null) {
@@ -936,6 +940,11 @@ class requests {
             $credits *= max(1, (int)((json_decode((string)$row->body, true) ?: [])['sceneCount'] ?? 1));
         }
         $sent = json_decode((string)$row->body, true) ?: [];
+        $pricefrom = (int)get_config('mod_aisoftskills', 'voicepricefrom');
+        if ($voice && !isset($sent['maxCredits']) && (int)$row->timecreated < $pricefrom) {
+            // Asked for before the price per clip became 2 credits: LMS Labs charged its earlier price.
+            $credits = lmslabs::VOICE_CREDITS_BEFORE;
+        }
         if ($voice && isset($sent['maxCredits'])) {
             // The most the teacher confirmed for this clip.
             $credits = (int)$sent['maxCredits'];

@@ -2,6 +2,46 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.9] - 2026-10-11
+
+### Changed
+
+- **Voiceover costs 2 credits per clip** (owner-approved 11 Oct 2026; was 5). Every price shown and every ceiling sent (`maxCredits`) uses 2.
+- **No clip is made at a price the teacher was not shown.** Moodle reads the price per clip that LMS Labs publishes in its voice catalogue (`tariff.tts`). While it is not 2, the Voiceover step says so and no new clip is asked for; clips already made keep playing. When LMS Labs publishes 2, voiceover works again without a new Moodle version. The catalogue is read again after this upgrade so the price is known at once (its cache key changed; no cache is purged).
+
+### Fixed
+
+- **Labels written role first are different people.** "RN - Fatima", "RN - Thomas" and "Junior RN - Eli" were all read as one person called "RN", so they shared one voice. A label is now read as name and role in either order, and a role before the name ("RN Priya", "Nurse Priya") is split off; titles stay with the name ("Dr Reeves"). The picture prompt reads labels the same way.
+- While the voiceover or pictures are being made, Back, Next and the step links now look disabled (they were already blocked).
+- The response speaker icon is centred in its circle; there is more room between the gauge needle and the number.
+
+### Added
+
+- **Headings are read out.** The voiceover reads each card after its heading, as learners see them: "The situation", "Good to know", and in the feedback "What happened" and "Why this works" (or "Why this falls short"). Each heading is one shared clip for the whole activity, so it is made once, not once per scene. Because what is happening is now read card by card, scenes whose voiceover was made before this version need their scene clips made again (the Voiceover step lists them).
+- **The card being read rises off the page** with a soft shadow, instead of an outline around both cards.
+- **Listen to the feedback first** (activity setting): the feedback is read out on its own after each choice, and Next scene and Try again stay greyed out until it has played to the end.
+- **Labels need no typing.** Every label is shown and saved as "Name - Role", and anyone the scenario names who has no label is added when the label editor opens, so the teacher only drags each label into place (they can still edit or remove one).
+- **Clearer review slides.** Each scene shows "Your response" with a big green tick or red cross, and, when it was not the better one, "Correct response" beside it with a green tick, each with why it works or falls short. Opening a slide plays a chime for a better first response and a low tone otherwise (when sounds are on).
+- **Responses are written as spoken words.** The AI-assistant prompt asks for the exact words the learner says to the person, by name ("Fatima, I'll take over your handover now..."), never a description of what to do. Existing scenes keep their wording until edited or written again.
+
+## [v1.4.8] - 2026-10-11
+
+### Changed
+
+- Each response's speaker icon now sits under its letter (A, B, C), on the left of the card.
+
+### Added
+
+- **Teachers are told why a scene is silent.** Someone who can manage the activity and tries it sees a short note, never shown to learners, when the voiceover can't play: it is turned off in the plugin settings, LMS Labs hasn't sent its list of voices to the site, or some of the scene's clips are not made yet (for example "Add voiceover" was not run, or the scene or a voice changed).
+
+## [v1.4.7] - 2026-10-11
+
+### Fixed
+
+- **Name labels now find everyone the scenario names.** Before, a person was only suggested when a lower-case job came right before the name ("nurse Priya"), so "RN Fatima" and "Dr Reeves" at the start of a sentence were missed and a scene with three people got one or two labels. Every named person is now found: titles (Dr, Mrs, Prof), full names (Priya Sharma), abbreviated roles ("RN Fatima" becomes "Fatima - RN") and names at the start of a sentence. Places and organisations (Royal Perth Hospital) and common words are not taken for people.
+- A person's voice (woman or man) is no longer read from a sentence about someone else ("Dr Reeves waits. Fatima says she is fine." says nothing about Dr Reeves).
+- **People without a label can be added with one click.** The label editor lists everyone the scenario names who has no label yet (for scenes whose labels were saved before this fix), and adds them in one click.
+
 ## [v1.4.6] - 2026-10-11
 
 ### Fixed

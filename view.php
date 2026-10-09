@@ -119,6 +119,7 @@ $config = [
     'cmid' => (int)$cm->id,
     'sounds' => (int)$instance->sounds,
     'mustlisten' => (int)$instance->mustlisten,
+    'mustlistenfeedback' => (int)($instance->mustlistenfeedback ?? 0),
     'level' => (string)$instance->level,
     'levelname' => get_string('level_' . $instance->level, 'mod_aisoftskills'),
     'contentlang' => (string)$instance->contentlang,

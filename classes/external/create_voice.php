@@ -21,7 +21,7 @@ use core_external\external_value;
 use mod_aisoftskills\local\ai\requests;
 
 /**
- * Creates one voiceover clip of a scene with LMS Labs (stored first, never retried; 5 credits per clip LMS Labs settles).
+ * Creates one voiceover clip of a scene with LMS Labs (stored first, never retried; 2 credits per clip LMS Labs settles).
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services
@@ -39,9 +39,9 @@ class create_voice extends base {
             'index' => new external_value(PARAM_INT, 'Clip number in the scene, from the voiceover step'),
             'maxcredits' => new external_value(
                 PARAM_INT,
-                'The most the teacher confirmed for this clip (0 or 5)',
+                'The most the teacher confirmed for this clip (0 or the price per clip)',
                 VALUE_DEFAULT,
-                5
+                \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS
             ),
         ]);
     }
@@ -54,7 +54,11 @@ class create_voice extends base {
      * @param int $maxcredits
      * @return array
      */
-    public static function execute(int $sceneid, int $index, int $maxcredits = 5): array {
+    public static function execute(
+        int $sceneid,
+        int $index,
+        int $maxcredits = \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS
+    ): array {
         global $USER;
         $params = self::validate_parameters(self::execute_parameters(), ['sceneid' => $sceneid, 'index' => $index,
             'maxcredits' => $maxcredits]);

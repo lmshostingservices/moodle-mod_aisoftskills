@@ -37,7 +37,7 @@ class backup_aisoftskills_activity_structure_step extends backup_activity_struct
         $root = new backup_nested_element('aisoftskills', ['id'], [
             'name', 'intro', 'introformat', 'industry', 'customindustry', 'level', 'contentlang', 'skills', 'imagestyle',
             'allowretry', 'practicemode', 'testmode', 'passmark', 'kpiamber', 'kpigreen', 'shuffleoptions', 'sounds',
-            'voiceparts', 'mustlisten', 'voicemap', 'grade',
+            'voiceparts', 'mustlisten', 'mustlistenfeedback', 'voicemap', 'grade',
             'grademethod', 'maxattempts', 'completionallscenes', 'completionpasstest',
             'timecreated', 'timemodified',
         ]);

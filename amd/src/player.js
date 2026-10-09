@@ -34,7 +34,8 @@ const KEYS = ['headline_best', 'headline_bestretry', 'headline_poor', 'headline_
     'rating_developing', 'rating_beginning', 'levelline_excellent', 'levelline_strong', 'levelline_developing',
     'levelline_beginning', 'bestfirstchoices', 'attemptsleft', 'announce_best', 'announce_poor', 'nextscene', 'seeresults',
     'listen_scene', 'listen_stop', 'results_slide', 'recap_firstbest', 'recap_firstpoor', 'mustlisten_wait',
-    'mustlisten_start', 'test_passed', 'test_failed', 'ctx_situation', 'ctx_action', 'ctx_context'];
+    'mustlisten_start', 'mustlistenfeedback_wait', 'mustlistenfeedback_start',
+    'test_passed', 'test_failed', 'ctx_situation', 'ctx_action', 'ctx_context'];
 
 let S = {};
 
@@ -301,7 +302,7 @@ class Player {
             hasvoice: scene.voice.length > 0,
             haslearnerlabel: scene.labels.some((l) => l.you),
             dialogue: scene.dialogue.map((d, i) => Object.assign({}, d, {index: i})),
-            cards: scene.cards.map((c) => Object.assign({}, c, {title: S['ctx_' + c.kind]})),
+            cards: scene.cards.map((c, i) => Object.assign({}, c, {title: S['ctx_' + c.kind], index: i})),
             options: scene.options.map((o) => Object.assign({}, o, {hasvoice: o.voice.length > 0})),
         }));
         this.stage.replaceChildren(node);
@@ -372,8 +373,14 @@ class Player {
                 clear();
                 listen.setAttribute('aria-pressed', 'true');
                 listen.querySelector('.ss-listen-label').textContent = S.listen_stop;
-                mark(clip.part === 'line' ? node.querySelector(`.ss-dialogue-line[data-line="${clip.line}"]`)
-                    : node.querySelector(`[data-part="${clip.part}"]`));
+                let target = node.querySelector(`[data-part="${clip.part}"]`);
+                if (clip.part === 'line') {
+                    target = node.querySelector(`.ss-dialogue-line[data-line="${clip.line}"]`);
+                } else if (clip.part === 'context') {
+                    // Each card (with its heading) is read on its own; older clips read them all together.
+                    target = node.querySelector(`.ss-ctxcard[data-card="${clip.line}"]`) || target;
+                }
+                mark(target);
             }, clear, () => {
                 if (hold && !scene.listened) {
                     open();
@@ -549,6 +556,35 @@ class Player {
                 label.textContent = S.listen_scene;
                 popup.querySelectorAll('.is-speaking').forEach((el) => el.classList.remove('is-speaking'));
             };
+            // "Listen to the feedback first": the buttons that go on stay greyed out until it has played to the end.
+            const holdfb = !!this.config.mustlistenfeedback && res.voice.length > 0;
+            const goon = popup.querySelectorAll('[data-action="retry"], [data-action="continue"]');
+            const fbnote = document.createElement('p');
+            fbnote.className = 'ss-listennote ss-fbnote';
+            fbnote.setAttribute('role', 'status');
+            const release = () => {
+                goon.forEach((b) => {
+                    b.disabled = false;
+                    b.classList.remove('is-waiting');
+                });
+                fbnote.remove();
+                const first = popup.querySelector('[data-action="retry"], [data-action="continue"]');
+                if (first) {
+                    first.focus();
+                }
+            };
+            if (holdfb) {
+                goon.forEach((b) => {
+                    b.disabled = true;
+                    b.classList.add('is-waiting');
+                });
+                fbnote.textContent = S.mustlistenfeedback_wait;
+                const actions = goon.length ? goon[0].parentElement : null;
+                if (actions) {
+                    actions.before(fbnote);
+                }
+                listen.focus();
+            }
             const play = () => this.voice.play(res.voice, (clip) => {
                 listen.setAttribute('aria-pressed', 'true');
                 label.textContent = S.listen_stop;
@@ -557,7 +593,22 @@ class Player {
                 if (card) {
                     card.classList.add('is-speaking');
                 }
-            }, reset);
+            }, reset, () => {
+                if (holdfb) {
+                    release();
+                }
+            }, () => {
+                // The browser would not start playing on its own: Listen starts it.
+                if (holdfb) {
+                    fbnote.textContent = S.mustlistenfeedback_start;
+                    listen.focus();
+                }
+            }, () => {
+                // A clip could not be played: never leave the learner unable to go on.
+                if (holdfb) {
+                    release();
+                }
+            });
             listen.addEventListener('click', () => {
                 if (listen.getAttribute('aria-pressed') === 'true') {
                     this.voice.stop();
@@ -565,7 +616,7 @@ class Player {
                     play();
                 }
             });
-            if (this.config.mustlisten) {
+            if (this.config.mustlisten || holdfb) {
                 // After the sound effect.
                 window.setTimeout(() => {
                     if (popup.isConnected) {
@@ -650,7 +701,8 @@ class Player {
                 const change = k.value - k.start;
                 return Object.assign({}, k, {up: change >= 0, change: change >= 0 ? `+${change}` : `−${Math.abs(change)}`});
             }),
-            recap: res.recap.map((r) => Object.assign({}, r, {slide: r.number, reasonlines: sentences(r.reason)})),
+            recap: res.recap.map((r) => Object.assign({}, r, {slide: r.number, reasonlines: sentences(r.reason),
+                yourreasonlines: sentences(r.yourreason), wrong: !!r.yours && !r.firstbest, onlycorrect: !r.yours})),
             slides: [{slide: 0, label: 1, current: true}].concat(res.recap.map((r) => ({slide: r.number, label: r.number + 1,
                 current: false}))),
             slidecount: res.recap.length + 1,
@@ -714,6 +766,11 @@ Player.prototype.slideshow = function(node) {
         }
         if (focus) {
             slides[current].focus({preventScroll: true});
+            // Heard as well as seen: a chime when the first response was the better one, a low tone when it was not.
+            const result = slides[current].dataset.result;
+            if (result) {
+                Sound.play(result === 'right' ? 'correct' : 'wrong');
+            }
         }
     };
     prev.addEventListener('click', () => go(current - 1, true));

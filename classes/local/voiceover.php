@@ -32,7 +32,7 @@ use stdClass;
  * The voices follow the picture: each name label says whether the person is female or male, and the label marked as
  * the learner gives the responses' voice. Nobody but the narrator uses the narrator's voice, and each named person
  * keeps the same voice in every scene.
- * Each clip is at most 200 characters (longer text is split at sentence ends), and each clip LMS Labs makes costs 5
+ * Each clip is at most 200 characters (longer text is split at sentence ends), and each clip LMS Labs makes costs 2
  * LMS Labs credits. A clip is identified by its locale, voice and exact text, so it is made once and reused, and changing
  * a line only makes that line again.
  *
@@ -43,6 +43,9 @@ use stdClass;
 class voiceover {
     /** @var string File area for voiceover clips (item id: scene id). */
     public const FILEAREA = 'voiceover';
+
+    /** @var string[] Headings read before their cards; the position is the heading's place in its shared clipRef. */
+    public const HEADINGS = ['ctx_situation', 'ctx_action', 'ctx_context', 'fb_whathappened', 'fb_whyworks', 'fb_whyfalls'];
 
     /** @var int Longest clip LMS Labs bills as one, in characters. */
     public const MAX_CHARS = 200;
@@ -87,6 +90,18 @@ class voiceover {
         return (bool)get_config('mod_aisoftskills', 'aivoice');
     }
 
+    /**
+     * The price LMS Labs publishes per clip when it differs from the approved price, or null when it matches (or
+     * LMS Labs publishes none). While it differs, no new clip is asked for: the teacher would be charged a price
+     * they were not shown.
+     *
+     * @return int|null
+     */
+    public static function price_hold(): ?int {
+        $price = (string)get_config('mod_aisoftskills', 'voiceprice');
+        return $price !== '' && (int)$price !== lmslabs::VOICE_CREDITS ? (int)$price : null;
+    }
+
     /** @var bool Whether {@see self::catalog()} may ask LMS Labs (false while building a learner's page). */
     protected static $fetch = true;
 
@@ -99,8 +114,9 @@ class voiceover {
      */
     public static function catalog(): array {
         $cache = \cache::make('mod_aisoftskills', 'voicecatalog');
-        // The key names the catalogue format: a new format (1.4.4: the tariff) is read again, never a stale copy.
-        $key = sha1('tariff|' . (string)(credentials::find()['siteid'] ?? ''));
+        // The key names the catalogue format, so a new format is read again, never a stale copy (1.4.4: the tariff;
+        // 1.4.9: its price per clip).
+        $key = sha1('tariff2|' . (string)(credentials::find()['siteid'] ?? ''));
         $cached = $cache->get($key);
         $kept = json_decode((string)get_config('mod_aisoftskills', 'voicecatalog'), true);
         $kept = is_array($kept) ? $kept : [];
@@ -117,6 +133,9 @@ class voiceover {
             set_config('voicecatalog', json_encode($locales, JSON_UNESCAPED_SLASHES), 'mod_aisoftskills');
         }
         if ($locales && lmslabs::$lasttariff !== null) {
+            // The price LMS Labs publishes per clip: voiceover waits while it differs from the approved price.
+            $price = lmslabs::$lasttariff['tts'] ?? null;
+            set_config('voiceprice', is_int($price) ? (string)$price : '', 'mod_aisoftskills');
             // Free remakes are used only once LMS Labs says it takes the new fields (until then it refuses them).
             $remakes = !empty(lmslabs::$lasttariff['clipRefSupported']) && !empty(lmslabs::$lasttariff['maxCreditsRequired']);
             set_config('voiceremakes', $remakes ? json_encode([
@@ -151,6 +170,8 @@ class voiceover {
      * @return string 64 lower-case hex characters
      */
     public static function clipref(stdClass $instance, int $sceneid, array $segment): string {
+        // A shared heading belongs to the activity (item 0), not to one scene.
+        $sceneid = isset($segment['item']) ? (int)$segment['item'] : $sceneid;
         return hash('sha256', json_encode(['mod_aisoftskills', (string)get_site_identifier(), (int)$instance->id, $sceneid,
             (string)$segment['part'], (int)($segment['ref'] ?? $segment['line']), (int)($segment['clip'] ?? 0)]));
     }
@@ -496,8 +517,20 @@ class voiceover {
                     'ref' => $ref ?? $line];
             }
         };
+        // A heading ("The situation", "What happened") is read before its card. Its clip is the same in every scene,
+        // so it is made once for the activity (kept with item 0) and shared: it costs one clip, not one per scene.
+        $lang = (string)($config['lang'] ?? 'en');
+        $heading = function (string $key, string $mark, int $line, string $group) use (&$out, $config, $lang): void {
+            $text = get_string_manager()->get_string($key, 'mod_aisoftskills', null, $lang);
+            $out[] = ['text' => $text, 'voice' => $config['narrator'], 'part' => 'heading', 'line' => $line, 'clip' => 0,
+                'ref' => (int)array_search($key, self::HEADINGS, true), 'item' => 0, 'mark' => $mark, 'group' => $group];
+        };
         if (in_array('scenario', $parts, true)) {
-            $add((string)$scene->context, $config['narrator'], 'context', -1);
+            // What is happening is read card by card, each after its heading, as the learner sees it.
+            foreach (learning::context_cards((string)$scene->context, $lang) as $c => $card) {
+                $heading('ctx_' . $card['kind'], 'context', $c, 'scene');
+                $add(implode(' ', array_column($card['lines'], 'text')), $config['narrator'], 'context', $c);
+            }
             foreach (manager::dialogue($scene->script) as $i => $line) {
                 $person = labels::person((string)$line['speaker']);
                 // Dialogue clips are placed by the line's stable id, so removing a line never moves another's place.
@@ -522,10 +555,13 @@ class voiceover {
                 // The responses are what the learner says, so they are read in the learner's voice.
                 $add((string)$option->text, $learner, 'option', (int)$option->id);
             }
-            if (in_array('consequence', $parts, true)) {
+            if (in_array('consequence', $parts, true) && trim((string)$option->consequence) !== '') {
+                $heading('fb_whathappened', 'consequence', (int)$option->id, 'feedback:' . (int)$option->id);
                 $add((string)$option->consequence, $config['narrator'], 'consequence', (int)$option->id);
             }
-            if (in_array('why', $parts, true)) {
+            if (in_array('why', $parts, true) && trim((string)$option->reason) !== '') {
+                $why = !empty($option->best) ? 'fb_whyworks' : 'fb_whyfalls';
+                $heading($why, 'reason', (int)$option->id, 'feedback:' . (int)$option->id);
                 $add((string)$option->reason, $config['narrator'], 'reason', (int)$option->id);
             }
         }
@@ -541,7 +577,7 @@ class voiceover {
      *
      * @param array $segment
      * @param string|null $clipref the clip's place ({@see self::clipref()}), when LMS Labs supports free remakes
-     * @param int|null $maxcredits the most the teacher confirmed for this clip: 0 or 5
+     * @param int|null $maxcredits the most the teacher confirmed for this clip: 0 or the price per clip
      * @return array
      */
     public static function body(array $segment, ?string $clipref = null, ?int $maxcredits = null): array {
@@ -572,6 +608,7 @@ class voiceover {
      * @return string
      */
     public static function url(\context $context, int $sceneid, array $segment): string {
+        $sceneid = isset($segment['item']) ? (int)$segment['item'] : $sceneid;
         $filename = self::filename($segment);
         if (!get_file_storage()->file_exists($context->id, 'mod_aisoftskills', self::FILEAREA, $sceneid, '/', $filename)) {
             return '';
@@ -592,14 +629,55 @@ class voiceover {
         $scenes = manager::get_scenes((int)$instance->id);
         $options = manager::get_options(array_keys($scenes));
         $out = [];
+        $shared = [];
         foreach ($scenes as $scene) {
             foreach (self::segments($scene, $config, $options[$scene->id] ?? [], self::parts($instance)) as $segment) {
                 if (self::url($context, (int)$scene->id, $segment) === '') {
+                    // A shared heading is made once, with the first scene that reads it.
+                    if (isset($segment['item'])) {
+                        $name = self::filename($segment);
+                        if (isset($shared[$name])) {
+                            continue;
+                        }
+                        $shared[$name] = true;
+                    }
                     $out[] = $scene->id . ':' . $segment['index'];
                 }
             }
         }
         return $out;
+    }
+
+    /**
+     * Why a scene's voiceover does not play, for the teacher trying the activity, or '' when all of it plays.
+     *
+     * @param stdClass $instance
+     * @param \context $context
+     * @param stdClass $scene
+     * @param array $options the scene's responses
+     * @param array|null $config the learner voice settings, null when voiceover is turned off
+     * @return string
+     */
+    public static function silent_reason(
+        stdClass $instance,
+        \context $context,
+        stdClass $scene,
+        array $options,
+        ?array $config
+    ): string {
+        if ($config === null) {
+            return get_string('voicenote_off', 'mod_aisoftskills');
+        }
+        if ($config['locale'] === '') {
+            return get_string('voicenote_nocatalogue', 'mod_aisoftskills');
+        }
+        $missing = 0;
+        foreach (self::segments($scene, $config, $options, self::parts($instance)) as $segment) {
+            if (self::url($context, (int)$scene->id, $segment) === '') {
+                $missing++;
+            }
+        }
+        return $missing ? get_string('voicenote_missing', 'mod_aisoftskills', $missing) : '';
     }
 
     /**
@@ -626,9 +704,10 @@ class voiceover {
         $groups = [];
         foreach (self::segments($scene, $config, $options, self::parts($instance)) as $segment) {
             $part = $segment['part'];
-            $key = in_array($part, ['context', 'line', 'question'], true) ? 'scene'
-                : ($part === 'option' ? 'option:' . $segment['line'] : 'feedback:' . $segment['line']);
-            $groups[$key][] = ['url' => self::url($context, (int)$scene->id, $segment), 'part' => $part,
+            $key = $segment['group'] ?? (in_array($part, ['context', 'line', 'question'], true) ? 'scene'
+                : ($part === 'option' ? 'option:' . $segment['line'] : 'feedback:' . $segment['line']));
+            // A heading lights up the card it introduces.
+            $groups[$key][] = ['url' => self::url($context, (int)$scene->id, $segment), 'part' => $segment['mark'] ?? $part,
                 'line' => $segment['line']];
         }
         $out = ['scene' => [], 'options' => [], 'feedback' => []];
@@ -662,11 +741,32 @@ class voiceover {
         // Paid clips are never deleted here: a clip that is not used now (a part switched off for a while, an edit
         // undone) is used again for free. They are deleted with the scene.
         $fs = get_file_storage();
-        if (!$fs->file_exists($context->id, 'mod_aisoftskills', self::FILEAREA, $scene->id, '/', self::filename($segment))) {
+        // A shared heading is kept for the whole activity (item 0); a delivered request body names only its text.
+        $itemid = isset($segment['item']) ? (int)$segment['item'] : (int)$scene->id;
+        if (!isset($segment['item']) && self::is_heading((string)($segment['text'] ?? ''), (string)$instance->contentlang)) {
+            $itemid = 0;
+        }
+        if (!$fs->file_exists($context->id, 'mod_aisoftskills', self::FILEAREA, $itemid, '/', self::filename($segment))) {
             $fs->create_file_from_string(['contextid' => $context->id, 'component' => 'mod_aisoftskills',
-                'filearea' => self::FILEAREA, 'itemid' => $scene->id, 'filepath' => '/',
+                'filearea' => self::FILEAREA, 'itemid' => $itemid, 'filepath' => '/',
                 'filename' => self::filename($segment), 'mimetype' => 'audio/mpeg'], $mp3);
         }
+    }
+
+    /**
+     * Whether a clip's text is one of the shared headings ("The situation", "What happened") in the activity's language.
+     *
+     * @param string $text
+     * @param string $lang
+     * @return bool
+     */
+    public static function is_heading(string $text, string $lang): bool {
+        foreach (self::HEADINGS as $key) {
+            if (get_string_manager()->get_string($key, 'mod_aisoftskills', null, $lang ?: 'en') === $text) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

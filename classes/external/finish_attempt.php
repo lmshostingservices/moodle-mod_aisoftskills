@@ -88,6 +88,8 @@ class finish_attempt extends base {
                 'firstworst' => new external_value(PARAM_BOOL, 'The first choice was the very poor response'),
                 'better' => new external_value(PARAM_TEXT, 'The better response'),
                 'reason' => new external_value(PARAM_TEXT, 'Why it works'),
+                'yours' => new external_value(PARAM_TEXT, 'The learner\'s first response, empty when none'),
+                'yourreason' => new external_value(PARAM_TEXT, 'Why the first response fell short, empty when it was better'),
             ]), 'Every scene of the attempt, in the order played'),
             'canretake' => new external_value(PARAM_BOOL, 'Another attempt is allowed'),
             'mode' => new external_value(PARAM_ALPHA, 'practice or test'),

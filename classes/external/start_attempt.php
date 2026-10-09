@@ -89,6 +89,7 @@ class start_attempt extends base {
                     'part' => new external_value(PARAM_ALPHA, 'context, line or question'),
                     'line' => new external_value(PARAM_INT, 'Conversation line, -1 none'),
                 ]), 'Voiceover of the scene, empty when there is none'),
+                'voicenote' => new external_value(PARAM_TEXT, 'For teachers: why the voiceover does not play, or empty'),
                 'dialogue' => new external_multiple_structure(new external_single_structure([
                     'speaker' => new external_value(PARAM_TEXT, 'Who speaks'),
                     'line' => new external_value(PARAM_TEXT, 'What they say'),

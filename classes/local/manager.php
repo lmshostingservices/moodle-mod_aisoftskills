@@ -73,8 +73,8 @@ class manager {
      * @return stdClass
      */
     public static function prepare_instance_data(stdClass $data): stdClass {
-        $flags = ['allowretry', 'practicemode', 'testmode', 'shuffleoptions', 'sounds', 'mustlisten', 'completionallscenes',
-            'completionpasstest'];
+        $flags = ['allowretry', 'practicemode', 'testmode', 'shuffleoptions', 'sounds', 'mustlisten', 'mustlistenfeedback',
+            'completionallscenes', 'completionpasstest'];
         foreach ($flags as $flag) {
             if (property_exists($data, $flag)) {
                 $data->$flag = empty($data->$flag) ? 0 : 1;
