@@ -77,7 +77,20 @@ class finish_attempt extends base {
                 'better' => new external_value(PARAM_TEXT, 'The better response'),
                 'reason' => new external_value(PARAM_TEXT, 'Why it works'),
             ]), 'Scenes to learn from: the first choice was the poorer response'),
+            'recap' => new external_multiple_structure(new external_single_structure([
+                'number' => new external_value(PARAM_INT, 'Scene number in the attempt'),
+                'title' => new external_value(PARAM_TEXT, 'Scene'),
+                'skill' => new external_value(PARAM_TEXT, 'Soft skill'),
+                'image' => new external_value(PARAM_URL, 'Picture URL'),
+                'firstbest' => new external_value(PARAM_BOOL, 'The first choice was the better response'),
+                'better' => new external_value(PARAM_TEXT, 'The better response'),
+                'reason' => new external_value(PARAM_TEXT, 'Why it works'),
+            ]), 'Every scene of the attempt, in the order played'),
             'canretake' => new external_value(PARAM_BOOL, 'Another attempt is allowed'),
+            'mode' => new external_value(PARAM_ALPHA, 'practice or test'),
+            'passmark' => new external_value(PARAM_INT, 'Test pass mark in percent, 0 none'),
+            'passed' => new external_value(PARAM_BOOL, 'The test was passed'),
+            'cantest' => new external_value(PARAM_BOOL, 'After practice: the learner can take the test'),
             'attemptsleft' => new external_value(PARAM_INT, 'Attempts left, -1 unlimited'),
         ]);
     }

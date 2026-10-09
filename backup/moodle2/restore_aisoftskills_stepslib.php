@@ -26,6 +26,9 @@
  * Restore structure step.
  */
 class restore_aisoftskills_activity_structure_step extends restore_activity_structure_step {
+    /** @var bool A backup from before 1.4.0 of an activity without a second try: its attempts were tests. */
+    protected $wastest = false;
+
     /**
      * Defines the paths.
      *
@@ -56,6 +59,13 @@ class restore_aisoftskills_activity_structure_step extends restore_activity_stru
         $data = (object)$data;
         $data->course = $this->get_courseid();
         $data->timemodified = time();
+        if (!isset($data->practicemode) && isset($data->allowretry)) {
+            // A backup from before 1.4.0: "try again" was practice, no second try was a test without a pass mark.
+            $this->wastest = empty($data->allowretry);
+            $data->practicemode = $this->wastest ? 0 : 1;
+            $data->testmode = $this->wastest ? 1 : 0;
+            $data->passmark = 0;
+        }
         $newid = $DB->insert_record('aisoftskills', $data);
         $this->apply_activity_instance($newid);
     }
@@ -98,6 +108,9 @@ class restore_aisoftskills_activity_structure_step extends restore_activity_stru
         $data = (object)$data;
         $oldid = $data->id;
         $data->aisoftskillsid = $this->get_new_parentid('aisoftskills');
+        if (!isset($data->playmode)) {
+            $data->playmode = $this->wastest ? 'test' : 'practice';
+        }
         $data->userid = $this->get_mappingid('user', $data->userid);
         if (!$data->userid) {
             return;
@@ -139,5 +152,6 @@ class restore_aisoftskills_activity_structure_step extends restore_activity_stru
     protected function after_execute() {
         $this->add_related_files('mod_aisoftskills', 'intro', null);
         $this->add_related_files('mod_aisoftskills', 'sceneimage', 'aisoftskills_scene');
+        $this->add_related_files('mod_aisoftskills', 'voiceover', 'aisoftskills_scene');
     }
 }

@@ -58,7 +58,50 @@ final class completion_test extends \advanced_testcase {
         learning::choose($instance, $context, $attempt, (int)$scene->id, $option);
         learning::finish_attempt($instance, $cm, $course, $context, $attempt);
         $this->assertSame(COMPLETION_COMPLETE, $check());
-        $this->assertSame(['completionallscenes'], custom_completion::get_defined_custom_rules());
+        $this->assertSame(['completionallscenes', 'completionpasstest'], custom_completion::get_defined_custom_rules());
         $this->assertNotEmpty((new custom_completion($cm, (int)$student->id))->get_custom_rule_descriptions());
+    }
+
+    /**
+     * "Pass the test": complete only when a test attempt reaches the pass mark; practice never counts.
+     */
+    public function test_pass_test(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course(['enablecompletion' => 1]);
+        $student = $gen->create_and_enrol($course, 'student');
+        $ss = $gen->get_plugin_generator('mod_aisoftskills');
+        $instance = $ss->create_instance(['course' => $course->id, 'completion' => COMPLETION_TRACKING_AUTOMATIC,
+            'completionpasstest' => 1, 'practicemode' => 1, 'testmode' => 1, 'passmark' => 100]);
+        $scene = $ss->create_scene($instance, 'A');
+        $cm = get_fast_modinfo($course)->get_cm(get_coursemodule_from_instance('aisoftskills', $instance->id)->id);
+        $context = \context_module::instance($cm->id);
+        $instance = $DB->get_record('aisoftskills', ['id' => $instance->id]);
+        $this->assertEquals(1, $cm->customdata['customcompletionrules']['completionpasstest']);
+        $check = fn() => (new custom_completion($cm, (int)$student->id))->get_state('completionpasstest');
+        $play = function (string $mode, bool $best) use ($instance, $context, $student, $scene, $cm, $course, $DB) {
+            $data = learning::start_attempt($instance, $context, (int)$student->id, $mode);
+            $attempt = $DB->get_record('aisoftskills_attempt', ['id' => $data['attemptid']]);
+            $option = (int)$DB->get_field('aisoftskills_option', 'id', ['sceneid' => $scene->id, 'best' => $best ? 1 : 0]);
+            learning::choose($instance, $context, $attempt, (int)$scene->id, $option);
+            if (!$best && $mode === 'practice') {
+                $better = (int)$DB->get_field('aisoftskills_option', 'id', ['sceneid' => $scene->id, 'best' => 1]);
+                learning::choose($instance, $context, $attempt, (int)$scene->id, $better);
+            }
+            learning::finish_attempt(
+                $instance,
+                $cm,
+                $course,
+                $context,
+                $DB->get_record('aisoftskills_attempt', ['id' => $attempt->id])
+            );
+        };
+        $play('practice', true);
+        $this->assertSame(COMPLETION_INCOMPLETE, $check());
+        $play('test', false);
+        $this->assertSame(COMPLETION_INCOMPLETE, $check());
+        $play('test', true);
+        $this->assertSame(COMPLETION_COMPLETE, $check());
     }
 }

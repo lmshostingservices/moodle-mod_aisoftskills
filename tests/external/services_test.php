@@ -129,6 +129,38 @@ final class services_test extends \advanced_testcase {
     }
 
     /**
+     * Teachers save name labels (free); learners and other users cannot; voiceover needs the site setting.
+     */
+    public function test_labels_and_voice_services(): void {
+        global $DB;
+        $labels = [['text' => 'Leo - Bartender', 'x' => 30.5, 'y' => 55, 'gender' => 'm', 'you' => false],
+            ['text' => 'You - Supervisor', 'x' => 70, 'y' => 55, 'gender' => 'f', 'you' => true]];
+        $saved = $this->call('editingteacher', 'save_labels', [(int)$this->scene->id, $labels]);
+        $this->assertSame(['Leo - Bartender', 'You - Supervisor'], array_column($saved, 'text'));
+        $this->assertNotNull($DB->get_field('aisoftskills_scene', 'labels', ['id' => $this->scene->id]));
+        foreach (['student', 'outsider'] as $user) {
+            try {
+                $this->call($user, 'save_labels', [(int)$this->scene->id, []]);
+                $this->fail($user . ' saved labels');
+            } catch (\moodle_exception $e) {
+                $this->assertNotEmpty($e->errorcode);
+            }
+        }
+        // The learner's page carries the labels, and no voiceover while it is off.
+        $data = $this->call('student', 'start_attempt', [(int)$this->cm->id, 'practice']);
+        $this->assertSame('practice', $data['mode']);
+        $this->assertCount(2, $data['scenes'][0]['labels']);
+        $this->assertSame([], $data['scenes'][0]['voice']);
+        $this->assertSame('As the supervisor, how would you handle this situation?', $data['scenes'][0]['roleline']);
+        try {
+            $this->call('editingteacher', 'create_voice', [(int)$this->scene->id, 0]);
+            $this->fail('A clip was created while voiceover is off');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('ainotavailable', $e->errorcode);
+        }
+    }
+
+    /**
      * Nobody else can play or finish a learner's attempt, and outsiders and teachers cannot start one.
      */
     public function test_permissions(): void {
@@ -172,7 +204,7 @@ final class services_test extends \advanced_testcase {
         \mod_aisoftskills\local\ai\lmslabs::$posttransport = function ($url, $headers, $body) use (&$sent) {
             $sent[] = [$url, json_decode($body, true)];
             return [200, ['content-type' => 'application/json'], json_encode(['requestId' => 'imp-1',
-                'creditsCharged' => 3, 'creditsBalance' => 47])];
+                'creditsCharged' => 5, 'creditsBalance' => 47])];
         };
         $before = $DB->count_records('aisoftskills_scene');
         $result = $this->call('editingteacher', 'import_lesson', [(int)$this->cm->id, $draft]);
@@ -280,7 +312,7 @@ final class services_test extends \advanced_testcase {
         $answers = [
             [202, ['retry-after' => '5'], json_encode(['requestId' => 'r1', 'error' => ['code' => 'PENDING',
                 'message' => 'PENDING']])],
-            [200, [], json_encode(['requestId' => 'r1', 'model' => 'gpt-4o-2024-08-06', 'creditsCharged' => 3,
+            [200, [], json_encode(['requestId' => 'r1', 'model' => 'gpt-4o-2024-08-06', 'creditsCharged' => 5,
                 'creditsBalance' => 97, 'draft' => ['title' => 'A clash', 'setting' => 'An office', 'characters' => ['Pat', 'Alex'],
                 'dialogue' => [['speaker' => 'Pat', 'line' => 'We need to talk.'], ['speaker' => 'Alex', 'line' => 'Now?']],
                 'teachingNote' => 'Listen first.']])],

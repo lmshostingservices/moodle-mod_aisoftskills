@@ -18,11 +18,12 @@ namespace mod_aisoftskills\local\ai;
 
 use mod_aisoftskills\local\lesson;
 use mod_aisoftskills\local\manager;
+use mod_aisoftskills\local\voiceover;
 use moodle_exception;
 use stdClass;
 
 /**
- * Paid LMS Labs requests (scene drafts and scene pictures), stored before they are sent.
+ * Paid LMS Labs requests (scene drafts, imports, pictures and voiceover clips), stored before they are sent.
  *
  * Every intentional request gets one Idempotency-Key, saved with the exact JSON body in aisoftskills_aireq before the
  * first send. "Check again" resends that same key and body, so LMS Labs can never charge twice for it; a new key is
@@ -49,6 +50,12 @@ class requests {
     /** @var string Charge for scenes made with the teacher's own AI assistant (3 credits per scene, like a draft). */
     public const IMPORT = 'import';
 
+    /** @var string One voiceover clip of a scene (1 credit per delivered clip, when the owner approves it). */
+    public const VOICE = 'voice';
+
+    /** @var int Most voiceover clips one teacher may ask for in an hour. */
+    public const VOICE_RATE = 400;
+
     /** @var int Most scenes one import may bring in. */
     public const MAX_IMPORT = lesson::MAX_SCENES;
 
@@ -73,6 +80,9 @@ class requests {
     /** @var string[] Documented 5xx codes LMS Labs uses when the provider failed before anything was charged. */
     protected const PROVIDER_REFUSED = ['provider_unavailable', 'provider_failed', 'provider_rate_limited',
         'invalid_provider_result', 'image_failed', 'unusable_image'];
+
+    /** @var string[] Voiceover error codes that leave the outcome unknown: the key is kept for "Check again". */
+    protected const VOICE_UNCERTAIN = ['settlement_unconfirmed', 'deadline_exceeded', 'tts_unavailable'];
 
     /** @var string[] Picture error codes that leave the outcome unknown: the key is kept for "Check again". */
     protected const IMAGE_UNCERTAIN = ['settlement_unconfirmed', 'deadline_exceeded', 'image_unavailable'];
@@ -166,6 +176,35 @@ class requests {
     }
 
     /**
+     * Starts one intentional voiceover clip request for a scene (a new key), stores it, then sends it once.
+     *
+     * The body is the clip's text, locale, speed and voice exactly as {@see voiceover::body()} makes it; the clip is
+     * saved under a name made from the same values, so a line that changes meanwhile never gets the old audio.
+     *
+     * @param stdClass $instance
+     * @param int $userid
+     * @param stdClass $scene
+     * @param int $index clip number in the scene's playing order
+     * @return stdClass the stored request
+     */
+    public static function start_voice(stdClass $instance, int $userid, stdClass $scene, int $index): stdClass {
+        if (!voiceover::enabled()) {
+            throw new moodle_exception('ainotavailable', 'mod_aisoftskills');
+        }
+        $options = manager::get_options([(int)$scene->id])[$scene->id] ?? [];
+        $segments = voiceover::segments($scene, voiceover::config($instance), $options, voiceover::parts($instance));
+        if (!isset($segments[$index])) {
+            throw new moodle_exception('voice_nolocale', 'mod_aisoftskills');
+        }
+        $cm = get_coursemodule_from_instance('aisoftskills', $instance->id, $instance->course, false, MUST_EXIST);
+        if (voiceover::url(\context_module::instance($cm->id), (int)$scene->id, $segments[$index]) !== '') {
+            // Already made (another page or tab made it): never buy the same clip twice.
+            throw new moodle_exception('voice_alreadymade', 'mod_aisoftskills');
+        }
+        return self::start($instance, $userid, self::VOICE, (int)$scene->id, voiceover::body($segments[$index]));
+    }
+
+    /**
      * Charges for scenes made with the teacher's own AI assistant, then creates them once LMS Labs confirms.
      *
      * The scenes are kept with the request before anything is sent; LMS Labs receives only how many there are and
@@ -225,6 +264,40 @@ class requests {
         ?string $result = null
     ): stdClass {
         global $DB;
+        // Two pages asking at the same moment must not both pass the check below.
+        $lock = \core\lock\lock_config::get_lock_factory('mod_aisoftskills_aireq')
+            ->get_lock('start' . $instance->id . $operation . $targetid, 10);
+        if (!$lock) {
+            throw new moodle_exception('aireq_busy', 'mod_aisoftskills');
+        }
+        try {
+            $row = self::start_locked($instance, $userid, $operation, $targetid, $body, $result);
+        } finally {
+            $lock->release();
+        }
+        return self::send($row, $instance);
+    }
+
+    /**
+     * Checks and stores a new request while holding the start lock.
+     *
+     * @param stdClass $instance
+     * @param int $userid
+     * @param string $operation
+     * @param int $targetid
+     * @param array $body
+     * @param string|null $result
+     * @return stdClass the stored request, not sent yet
+     */
+    protected static function start_locked(
+        stdClass $instance,
+        int $userid,
+        string $operation,
+        int $targetid,
+        array $body,
+        ?string $result
+    ): stdClass {
+        global $DB;
         // One unresolved request at a time for the same thing: check it (same key) or dismiss it first.
         [$insql, $params] = $DB->get_in_or_equal(self::CHECKABLE, SQL_PARAMS_NAMED);
         $params += ['aid' => $instance->id, 'op' => $operation, 'target' => $targetid];
@@ -237,7 +310,11 @@ class requests {
         ) {
             throw new moodle_exception('aireq_busy', 'mod_aisoftskills');
         }
-        lesson::check_ai_rate($userid);
+        if ($operation === self::VOICE) {
+            self::check_voice_rate($userid);
+        } else {
+            lesson::check_ai_rate($userid);
+        }
         $now = time();
         $row = (object)[
             'aisoftskillsid' => (int)$instance->id,
@@ -256,7 +333,25 @@ class requests {
         // Saved (and committed) before anything is sent, so the key survives a lost connection or a closed page.
         $row->id = $DB->insert_record('aisoftskills_aireq', $row);
         lesson::log_ai((int)$instance->id, $userid, $operation, 'sent');
-        return self::send($row, $instance);
+        return $row;
+    }
+
+    /**
+     * Voiceover has its own limit: one activity needs many short clips (each costing 1 credit), so it is not counted
+     * against the drafts-and-pictures limit; at most VOICE_RATE clips are asked for per teacher per hour.
+     *
+     * @param int $userid
+     */
+    protected static function check_voice_rate(int $userid): void {
+        global $DB;
+        $count = $DB->count_records_select(
+            'aisoftskills_ailog',
+            'userid = :userid AND action = :action AND status = :status AND timecreated > :since',
+            ['userid' => $userid, 'action' => self::VOICE, 'status' => 'sent', 'since' => time() - HOURSECS]
+        );
+        if ($count >= self::VOICE_RATE) {
+            throw new moodle_exception('airatelimit', 'mod_aisoftskills');
+        }
     }
 
     /**
@@ -356,17 +451,24 @@ class requests {
             $row->timemodified = time();
             $DB->update_record('aisoftskills_aireq', $row);
             $import = $row->operation === self::IMPORT;
+            $voice = $row->operation === self::VOICE;
+            $routes = [self::IMAGE => lmslabs::IMAGE_ROUTE, self::IMPORT => lmslabs::IMPORT_ROUTE,
+                self::VOICE => lmslabs::VOICE_ROUTE, self::SCENE => lmslabs::TEXT_ROUTE];
+            $accept = [self::IMAGE => 'image/png, image/webp, image/jpeg, application/json',
+                self::VOICE => 'audio/mpeg, application/json'];
             [$status, $headers, $body] = lmslabs::post(
-                $image ? lmslabs::IMAGE_ROUTE : ($import ? lmslabs::IMPORT_ROUTE : lmslabs::TEXT_ROUTE),
+                $routes[$row->operation],
                 (string)$row->body,
                 (string)$row->idemkey,
-                $image ? 'image/png, image/webp, image/jpeg, application/json' : 'application/json'
+                $accept[$row->operation] ?? 'application/json'
             );
             $row->retryafter = max(1, min(60, (int)($headers['retry-after'] ?? self::RETRY_AFTER)));
             if ($image) {
                 self::image_outcome($row, $instance, $status, $headers, $body);
             } else if ($import) {
                 self::import_outcome($row, $instance, $status, $headers, $body);
+            } else if ($voice) {
+                self::voice_outcome($row, $instance, $status, $headers, $body);
             } else {
                 self::scene_outcome($row, $instance, $status, $headers, $body);
             }
@@ -541,6 +643,47 @@ class requests {
     }
 
     /**
+     * Records the outcome of a voiceover clip request; delivered MP3 bytes are saved at once.
+     *
+     * @param stdClass $row
+     * @param stdClass $instance
+     * @param int $status
+     * @param array $headers
+     * @param string $body
+     */
+    protected static function voice_outcome(
+        stdClass $row,
+        stdClass $instance,
+        int $status,
+        array $headers,
+        string $body
+    ): void {
+        global $DB;
+        [$code, $requestid, $balance] = self::read_error($headers, $body);
+        $row->requestid = $requestid !== '' ? $requestid : $row->requestid;
+        if ($status === 200) {
+            $row->charged = (int)($headers['x-credits-charged'] ?? lmslabs::VOICE_CREDITS);
+            $row->balance = isset($headers['x-credits-balance']) && is_numeric($headers['x-credits-balance'])
+                ? (int)$headers['x-credits-balance'] : null;
+            $scene = $DB->get_record('aisoftskills_scene', ['id' => $row->targetid, 'aisoftskillsid' => $instance->id]);
+            $segment = json_decode((string)$row->body, true);
+            if (!$scene || !is_array($segment) || !voiceover::is_mp3($body)) {
+                $type = strtolower(trim(explode(';', (string)($headers['content-type'] ?? ''))[0]));
+                $row->status = 'lost';
+                $row->errorcode = $scene ? 'unusable_audio' : 'scene_deleted';
+                $row->result = json_encode(['contenttype' => substr($type, 0, 100), 'bytes' => strlen($body)]);
+                return;
+            }
+            $cm = get_coursemodule_from_instance('aisoftskills', $instance->id, $instance->course, false, MUST_EXIST);
+            voiceover::save(\context_module::instance($cm->id), $instance, $scene, $segment, $body);
+            $row->status = 'completed';
+            $row->errorcode = null;
+            return;
+        }
+        self::error_outcome($row, $status, $code, $balance, self::VOICE_UNCERTAIN, 'lost');
+    }
+
+    /**
      * The picture in a delivered image answer, or null when there is none.
      *
      * Raw PNG, WebP or JPEG bytes are accepted whatever the content type says, as long as the bytes really are a picture.
@@ -693,7 +836,8 @@ class requests {
     public static function export(stdClass $row, \context_module $context): array {
         global $DB;
         $image = $row->operation === self::IMAGE;
-        $credits = $image ? lmslabs::IMAGE_CREDITS : lmslabs::TEXT_CREDITS;
+        $voice = $row->operation === self::VOICE;
+        $credits = $image ? lmslabs::IMAGE_CREDITS : ($voice ? lmslabs::VOICE_CREDITS : lmslabs::TEXT_CREDITS);
         if ($row->operation === self::IMPORT) {
             $credits *= max(1, (int)((json_decode((string)$row->body, true) ?: [])['sceneCount'] ?? 1));
         }
@@ -704,7 +848,7 @@ class requests {
             'balance' => $row->balance === null ? '-' : (int)$row->balance,
         ];
         $import = $row->operation === self::IMPORT;
-        $prefix = $image ? 'aireq_image_' : ($import ? 'aireq_import_' : 'aireq_scene_');
+        $prefix = $image ? 'aireq_image_' : ($import ? 'aireq_import_' : ($voice ? 'aireq_voice_' : 'aireq_scene_'));
         $status = (string)$row->status;
         if ($status === 'completed') {
             $message = get_string($prefix . 'completed' . ($row->balance === null ? '' : 'balance'), 'mod_aisoftskills', $a);
@@ -714,8 +858,11 @@ class requests {
             $message = get_string($prefix . $status, 'mod_aisoftskills', $a);
         }
         $body = json_decode((string)$row->body, true) ?: [];
-        if ($image) {
+        if ($image || $voice) {
             $title = (string)$DB->get_field('aisoftskills_scene', 'title', ['id' => $row->targetid]);
+            if ($voice) {
+                $title .= ' · ' . \core_text::substr((string)($body['text'] ?? ''), 0, 60);
+            }
         } else if ($import) {
             $title = get_string('import_title', 'mod_aisoftskills', (object)['count' => (int)($body['sceneCount'] ?? 0),
                 'titles' => implode(', ', array_slice((array)($body['titles'] ?? []), 0, 3))]);
@@ -740,7 +887,7 @@ class requests {
             'retryafter' => (int)($row->retryafter ?? self::RETRY_AFTER),
             'sceneid' => (int)$row->targetid,
             'sceneurl' => $sceneurl,
-            'openscene' => $status === 'completed' && !$image && $sceneurl !== '',
+            'openscene' => $status === 'completed' && !$image && !$voice && $sceneurl !== '',
             'timecreated' => userdate((int)$row->timecreated),
         ];
     }
@@ -768,9 +915,11 @@ class requests {
             'provider_failed' => 'provider_failed', 'invalid_provider_result' => 'provider_failed',
             'provider_unavailable' => 'provider_failed', 'invalid_input' => 'rejected', 'invalid_json' => 'rejected',
             'unexpected_fields' => 'rejected', 'body_too_large' => 'rejected', 'invalid_idempotency_key' => 'rejected',
-            'http_404' => 'not_live',
+            'http_404' => 'not_live', 'tts_failed' => 'provider_failed', 'unsupported_voice' => 'rejected',
+            'unsupported_locale' => 'rejected', 'text_too_long' => 'rejected',
         ];
-        $prefix = $row->operation === self::IMPORT ? 'aiimporterror_' : 'aidrafterror_';
+        $prefixes = [self::IMPORT => 'aiimporterror_', self::VOICE => 'aivoiceerror_'];
+        $prefix = $prefixes[$row->operation] ?? 'aidrafterror_';
         return get_string($prefix . ($map[$code] ?? 'failed'), 'mod_aisoftskills', $a);
     }
 }

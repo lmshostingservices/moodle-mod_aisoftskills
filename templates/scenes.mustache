@@ -17,18 +17,21 @@
 {{!
     @template mod_aisoftskills/scenes
 
-    Set-up step 6 (pictures) or 7 (check each scene), one card per scene in playing order.
+    Set-up step 6 (pictures and name labels), 7 (voiceover) or 8 (check each scene), one card per scene in playing order.
 
     Example context (json):
     {
         "bar": {"current": 6, "total": 8, "steps": [{"number": 6, "name": "Pictures", "done": false, "current": true, "dot": 0}]},
-        "pictures": true, "check": false,
+        "pictures": true, "check": false, "voicestep": false, "voiceon": false, "voiceoff": false, "voicenolocale": false,
+        "voices": [], "voicepartsline": "The voiceover reads: the question.", "settingsurl": "#", "clipcount": 0, "clipids": "", "clipcredits": 0, "voicecredits": 1,
         "hasscenes": true, "count": 1, "industry": "Retail",
         "cmid": 1, "requests": [], "canai": true, "aioff": false, "missingcount": 1, "missingids": "1",
         "missingcredits": 5, "imagecredits": 5,
         "cards": [{"id": 1, "number": 1, "title": "Behind on the target", "skill": "Motivation", "image": "", "noimage": true,
             "responsesok": true, "canai": true, "imagecredits": 5,
-            "editurl": "#", "replaceurl": "#", "deleteurl": "#", "upurl": null, "downurl": null}],
+            "editurl": "#", "replaceurl": "#", "deleteurl": "#", "upurl": null, "downurl": null,
+            "labelsjson": "[]", "labelssuggested": 1, "labelcount": 0, "labelsline": "No name labels yet", "labels": [],
+            "voiceready": false, "voicemissing": "", "toolong": false}],
         "nav": {"backurl": "#", "backlabel": "Back", "nexturl": "#", "nextlabel": "Next: Check the scenes", "blocked": "1 scene still needs a picture."}
     }
 }}
@@ -55,6 +58,33 @@
     </div>
     {{/pictures}}
 
+    {{#voicestep}}
+    <div class="ss-wstep">
+        <h3 class="ss-wstep-title">{{#str}} voice_title, mod_aisoftskills {{/str}}</h3>
+        <p class="ss-mini">{{#str}} voice_intro, mod_aisoftskills, {{voicecredits}} {{/str}}</p>
+        {{#voiceon}}
+        <p class="ss-mini">{{voicepartsline}} <a href="{{settingsurl}}">{{#str}} voice_changeparts, mod_aisoftskills {{/str}}</a></p>
+        {{#voices.0}}
+        <div class="ss-voicelist">
+            <strong>{{#str}} voices_people, mod_aisoftskills {{/str}}</strong>
+            <ul>{{#voices}}<li dir="auto">{{text}}</li>{{/voices}}</ul>
+        </div>
+        {{/voices.0}}
+        {{#clipcount}}
+        <button type="button" class="ss-btn ss-btn-primary" data-action="genvoice" data-clips="{{clipids}}" data-credits="{{voicecredits}}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7"/></svg>
+            <span>{{#str}} voice_button, mod_aisoftskills, { "count": {{clipcount}}, "credits": {{clipcredits}} } {{/str}}</span>
+        </button>
+        {{/clipcount}}
+        {{^clipcount}}{{#hasscenes}}<p class="ss-ok mb-0">{{#str}} voice_allmade, mod_aisoftskills {{/str}}</p>{{/hasscenes}}{{/clipcount}}
+        {{> mod_aisoftskills/aireq_list}}
+        {{/voiceon}}
+        {{#voicenolocale}}<p class="ss-note mb-0">{{#str}} voice_nolocale, mod_aisoftskills {{/str}}</p>{{/voicenolocale}}
+        {{#voiceoff}}<p class="ss-note mb-0">{{#str}} voice_off, mod_aisoftskills {{/str}}</p>{{/voiceoff}}
+        {{^voiceoff}}<p class="ss-mini mt-2 mb-0">{{#str}} voice_optional, mod_aisoftskills {{/str}}</p>{{/voiceoff}}
+    </div>
+    {{/voicestep}}
+
     {{#check}}
     <div class="ss-wstep">
         <h3 class="ss-wstep-title">{{#str}} check_title, mod_aisoftskills {{/str}}</h3>
@@ -68,6 +98,7 @@
         <div class="ss-slidecard" data-scene="{{id}}">
             <div class="ss-slidecard-thumb">
                 {{#image}}<img src="{{image}}" alt="" loading="lazy">{{/image}}
+                {{#labels}}<span class="ss-namelabel ss-namelabel-sm {{#you}}is-you{{/you}}" style="left: {{x}}%; top: {{y}}%;" dir="auto">{{text}}</span>{{/labels}}
                 {{#noimage}}<span class="ss-slidecard-noimage">{{#str}} noimageyet, mod_aisoftskills {{/str}}</span>{{/noimage}}
                 <span class="ss-slidecard-no">{{#str}} scenex, mod_aisoftskills, {{number}} {{/str}}</span>
             </div>
@@ -85,8 +116,21 @@
                 </button>
                 {{/canai}}
                 <a class="ss-btn ss-btn-ghost ss-btn-sm w-100 mt-2" href="{{replaceurl}}">{{#str}} uploadownimage, mod_aisoftskills {{/str}}</a>
+                {{^noimage}}
+                <div class="ss-slidecard-meta mt-2">{{labelsline}}</div>
+                <button type="button" class="ss-btn ss-btn-ghost ss-btn-sm w-100" data-action="labels" data-scene="{{id}}" data-image="{{image}}" data-title="{{title}}" data-labels="{{labelsjson}}" data-suggested="{{labelssuggested}}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg>
+                    <span>{{#str}} labels_button, mod_aisoftskills {{/str}}</span>
+                </button>
+                {{/noimage}}
                 {{/pictures}}
+                {{#voiceon}}
+                <div class="ss-slidecard-meta {{^voiceready}}is-warn{{/voiceready}}">
+                    {{#voiceready}}{{#str}} voice_scene_ready, mod_aisoftskills {{/str}}{{/voiceready}}{{voicemissing}}
+                </div>
+                {{/voiceon}}
                 {{#check}}
+                {{#toolong}}<div class="ss-slidecard-meta is-warn">{{#str}} toolong_scene, mod_aisoftskills {{/str}}</div>{{/toolong}}
                 <div class="ss-slidecard-meta {{^responsesok}}is-warn{{/responsesok}}">
                     {{#responsesok}}{{#str}} sceneresponsesok, mod_aisoftskills {{/str}}{{/responsesok}}{{^responsesok}}{{#str}} sceneneedsresponses, mod_aisoftskills {{/str}}{{/responsesok}}
                 </div>

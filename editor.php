@@ -103,6 +103,7 @@ for ($i = count($existing); $i < manager::OPTIONS; $i++) {
 }
 $form->set_data($defaults);
 
+$PAGE->requires->js_call_amd('mod_aisoftskills/limits', 'init');
 [$image] = manager::get_scene_image($context, (int)$scene->id);
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('mod_aisoftskills/editor', [

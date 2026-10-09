@@ -2,6 +2,25 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.0] - 2026-10-10
+
+Builds on 1.3.1. New tariffs approved by the owner on 8 Oct 2026: **5 credits per scene** (LMS Labs AI or the teacher's own AI assistant; was 3) and **5 credits per voiceover clip**. Unchanged: 50 to unlock, 5 per picture. LMS Labs charges these; Moodle shows them. Voiceover stays off until LMS Labs publishes the speech routes.
+
+### Added
+
+- **Voiceover** (Google Chirp 3 HD, 8 voice types): a narrator voice chosen in the plugin settings reads the scenario and the question; the people in the picture speak with voices matching their name labels (never the narrator's); the two responses are read in the learner's voice, and the feedback (what happened, why) by the narrator. Each activity chooses what is read. New set-up step 7 "Voiceover" creates the missing clips one after another.
+- **"Listen before answering"**: the responses open once the scene's voiceover has played to the end.
+- **Name labels on pictures** ("Leo - Bartender"): suggested from the scene text, dragged into place by the teacher, shown over the picture.
+- **Practice and test modes**, either or both, with a pass mark, "Take the test again", and the completion rule "Pass the test".
+- **Results as slides**: score and indicators first, then one slide per scene with the better response and why.
+
+### Changed
+
+- The scene setting is shown as short cards (The situation, What you do, Good to know) under a role line ("As the bar shift supervisor, how would you handle this situation?") instead of a caption on the picture.
+- Feedback is shown as cards, one sentence per paragraph.
+- The better response is first in half of a test's scenes and second in the other half.
+- Text limits so every scene fits on the page, with character counters in the editor; the AI assistant prompt asks for shorter text.
+
 ## [v1.3.1] - 2026-10-09
 
 Builds on 1.3.0, which it replaces. It follows the LMS Labs handover of 9 Oct 2026 for the scene import route. No tariff or database changes.

@@ -95,8 +95,13 @@ function aisoftskills_update_instance($data, $mform = null) {
     $data = manager::prepare_instance_data($data);
     $data->id = $data->instance;
     $data->timemodified = time();
+    $before = $DB->get_record('aisoftskills', ['id' => $data->id], '*', MUST_EXIST);
     $DB->update_record('aisoftskills', $data);
     $instance = $DB->get_record('aisoftskills', ['id' => $data->id], '*', MUST_EXIST);
+    if (\mod_aisoftskills\local\learning::graded_mode($before) !== \mod_aisoftskills\local\learning::graded_mode($instance)) {
+        // Practice and test grades never mix: start the gradebook again from the attempts that now count.
+        aisoftskills_grade_item_update($instance, 'reset');
+    }
     aisoftskills_grade_item_update($instance);
     aisoftskills_update_grades($instance, 0, false);
     \core_completion\api::update_completion_date_event(
@@ -141,7 +146,7 @@ function aisoftskills_delete_instance($id) {
  */
 function aisoftskills_get_coursemodule_info($coursemodule) {
     global $DB;
-    $fields = 'id, name, intro, introformat, completionallscenes';
+    $fields = 'id, name, intro, introformat, completionallscenes, completionpasstest';
     if (!$instance = $DB->get_record('aisoftskills', ['id' => $coursemodule->instance], $fields)) {
         return false;
     }
@@ -152,6 +157,7 @@ function aisoftskills_get_coursemodule_info($coursemodule) {
     }
     if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
         $result->customdata['customcompletionrules']['completionallscenes'] = $instance->completionallscenes;
+        $result->customdata['customcompletionrules']['completionpasstest'] = $instance->completionpasstest;
     }
     return $result;
 }

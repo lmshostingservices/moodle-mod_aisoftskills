@@ -36,7 +36,7 @@ Feature: Teachers build AI Soft Skills scenes and learners open them
     And I set the field "Resolving conflict" to "1"
     And I set the field "Spanish" to "1"
     And I press "Next: Create the scenes"
-    And I should see "Step 5 of 8"
+    And I should see "Step 5 of 9"
     Then I should see "Copy prompt"
     And I should see "LMS Labs AI scene writing is not available on this site"
     And I should see "Creating scenes needs this site's LMS Labs connection"
@@ -93,12 +93,12 @@ Feature: Teachers build AI Soft Skills scenes and learners open them
     And I navigate to "Set up the lesson" in current page administration
     Then I should see "Create a picture for every scene"
     And I should see "Scenes still without a picture: 1."
-    And the "Next: Check the scenes" "button" should be disabled
-    And "Next: Check the scenes" "link" should not exist
+    And the "Next: Voiceover" "button" should be disabled
+    And "Next: Voiceover" "link" should not exist
     And I should see "Upload my own picture"
     And I click on "Back" "link" in the ".ss-setupnav" "css_element"
     And I should see "Use an AI assistant"
-    And I should see "Step 5 of 8"
+    And I should see "Step 5 of 9"
 
   Scenario: A teacher can open the reports
     Given the following "mod_aisoftskills > scenes" exist:

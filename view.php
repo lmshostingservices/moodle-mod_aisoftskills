@@ -62,13 +62,33 @@ manager::view($instance, $course, $cm, $context);
 $userid = (int)$USER->id;
 $canattempt = has_capability('mod/aisoftskills:attempt', $context) && !isguestuser();
 $finished = $canattempt ? learning::finished_attempts($instance, $userid) : [];
-$inprogress = $canattempt && $DB->record_exists('aisoftskills_attempt', ['aisoftskillsid' => $instance->id,
-    'userid' => $userid, 'state' => learning::STATE_INPROGRESS]);
+$modes = learning::modes($instance);
+$graded = learning::graded_mode($instance);
 $best = null;
 foreach ($finished as $attempt) {
-    $best = $best === null ? (float)$attempt->score : max($best, (float)$attempt->score);
+    if ($attempt->playmode === $graded) {
+        $best = $best === null ? (float)$attempt->score : max($best, (float)$attempt->score);
+    }
 }
-$canstart = $canattempt && $ready && ($inprogress || learning::can_start($instance, $userid));
+// One start button per way to play: practice, test, or both.
+$starts = [];
+foreach ($modes as $mode) {
+    $inprogress = $canattempt && $DB->record_exists('aisoftskills_attempt', ['aisoftskillsid' => $instance->id,
+        'userid' => $userid, 'state' => learning::STATE_INPROGRESS, 'playmode' => $mode]);
+    if (!$canattempt || !$ready || (!$inprogress && !learning::can_start($instance, $userid, $mode))) {
+        continue;
+    }
+    $both = count($modes) > 1;
+    $starts[] = [
+        'mode' => $mode,
+        'label' => $both ? get_string(($inprogress ? 'resume_' : 'start_') . $mode, 'mod_aisoftskills')
+            : get_string($inprogress ? 'resume' : 'start', 'mod_aisoftskills'),
+        'intro' => $both || $mode === learning::MODE_TEST ? get_string($mode . '_intro', 'mod_aisoftskills') : '',
+        'primary' => $mode === learning::MODE_TEST || !$both,
+    ];
+}
+$canstart = (bool)$starts;
+$used = count(array_filter($finished, fn($a) => $a->playmode === $graded));
 
 // The career ladder with this activity's level highlighted.
 $ladder = [];
@@ -91,17 +111,19 @@ foreach ($ready as [$scene]) {
 $history = [];
 foreach ($finished as $attempt) {
     $history[] = ['number' => (int)$attempt->attempt, 'score' => (int)round((float)$attempt->score),
+        'mode' => get_string('mode_' . ($attempt->playmode === learning::MODE_TEST ? 'test' : 'practice'), 'mod_aisoftskills'),
         'date' => userdate($attempt->timefinish, get_string('strftimedatetimeshort', 'langconfig'))];
 }
 
 $config = [
     'cmid' => (int)$cm->id,
     'sounds' => (int)$instance->sounds,
+    'mustlisten' => (int)$instance->mustlisten,
     'level' => (string)$instance->level,
     'levelname' => get_string('level_' . $instance->level, 'mod_aisoftskills'),
     'contentlang' => (string)$instance->contentlang,
     'rtl' => catalogue::is_rtl((string)$instance->contentlang),
-    'allowretry' => (int)$instance->allowretry,
+    'passmark' => in_array(learning::MODE_TEST, $modes, true) ? (int)$instance->passmark : 0,
     'graded' => $instance->grade != 0,
 ];
 
@@ -112,7 +134,8 @@ $templatedata = [
     'canmanage' => $canmanage,
     'canattempt' => $canattempt,
     'canstart' => $canstart,
-    'resume' => $inprogress,
+    'starts' => $starts,
+    'showmode' => count($modes) > 1,
     'nomore' => $canattempt && $ready && !$canstart,
     'industry' => catalogue::industry_name((string)$instance->industry, (string)$instance->customindustry),
     'levelname' => get_string('level_' . $instance->level, 'mod_aisoftskills'),
@@ -127,7 +150,7 @@ $templatedata = [
     'history' => array_reverse($history),
     'hashistory' => (bool)$history,
     'attemptsinfo' => $instance->maxattempts
-        ? get_string('attemptsused', 'mod_aisoftskills', ['used' => count($finished), 'max' => $instance->maxattempts])
+        ? get_string('attemptsused', 'mod_aisoftskills', ['used' => $used, 'max' => $instance->maxattempts])
         : '',
     'setupurl' => (new moodle_url('/mod/aisoftskills/builder.php', ['id' => $cm->id, 'step' => 'resume']))->out(false),
     'reporturl' => has_capability('mod/aisoftskills:viewreports', $context)

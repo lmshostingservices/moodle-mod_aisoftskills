@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Version information for mod_aisoftskills.
+ * Caches for mod_aisoftskills.
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services
@@ -24,9 +24,12 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'mod_aisoftskills';
-$plugin->version   = 2026101000;
-$plugin->release   = '1.4.0';
-$plugin->requires  = 2024042200; // Moodle 4.4.
-$plugin->supported = [404, 503];
-$plugin->maturity  = MATURITY_STABLE;
+$definitions = [
+    // The LMS Labs voiceover catalogue (voice names only), so pages never wait on LMS Labs.
+    'voicecatalog' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => false,
+        'staticacceleration' => true,
+    ],
+];

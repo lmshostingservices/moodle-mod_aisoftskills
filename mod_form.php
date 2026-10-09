@@ -74,14 +74,37 @@ class mod_aisoftskills_mod_form extends moodleform_mod {
 
         // Play.
         $mform->addElement('header', 'playhdr', get_string('playsettings', $c));
-        $mform->addElement('advcheckbox', 'allowretry', get_string('allowretry', $c), get_string('allowretry_desc', $c));
-        $mform->setDefault('allowretry', 1);
+        $mform->addElement('advcheckbox', 'practicemode', get_string('practicemode', $c), get_string('practicemode_desc', $c));
+        $mform->addHelpButton('practicemode', 'practicemode', $c);
+        $mform->setDefault('practicemode', 1);
+        $mform->addElement('advcheckbox', 'testmode', get_string('testmode', $c), get_string('testmode_desc', $c));
+        $mform->addHelpButton('testmode', 'testmode', $c);
+        $mform->setDefault('testmode', 0);
+        $mform->addElement('text', 'passmark', get_string('passmark', $c), ['size' => 4]);
+        $mform->setType('passmark', PARAM_INT);
+        $mform->setDefault('passmark', 70);
+        $mform->addHelpButton('passmark', 'passmark', $c);
+        $mform->hideIf('passmark', 'testmode', 'notchecked');
         $mform->addElement('advcheckbox', 'shuffleoptions', get_string('shuffleoptions', $c));
         $mform->setDefault('shuffleoptions', 1);
         $mform->addElement('advcheckbox', 'sounds', get_string('sounds', $c), get_string('sounds_desc', $c));
         $mform->setDefault('sounds', $config->defaultsounds ?? 1);
+        // Voiceover: what is read out (when voiceover is switched on for the site and made in the set-up).
+        $parts = [];
+        foreach (\mod_aisoftskills\local\voiceover::PARTS as $part) {
+            $parts[] = $mform->createElement('advcheckbox', $part, '', get_string('voicepart_' . $part, $c));
+        }
+        $mform->addGroup($parts, 'voiceparts', get_string('voiceparts', $c), '<br>', true);
+        $mform->addHelpButton('voiceparts', 'voiceparts', $c);
+        foreach (\mod_aisoftskills\local\voiceover::PARTS as $part) {
+            $mform->setDefault("voiceparts[$part]", 1);
+        }
+        $mform->addElement('advcheckbox', 'mustlisten', get_string('mustlisten', $c), get_string('mustlisten_desc', $c));
+        $mform->addHelpButton('mustlisten', 'mustlisten', $c);
+        $mform->setDefault('mustlisten', 0);
         $attemptoptions = [0 => get_string('unlimited')] + array_combine(range(1, 10), range(1, 10));
         $mform->addElement('select', 'maxattempts', get_string('maxattempts', $c), $attemptoptions);
+        $mform->addHelpButton('maxattempts', 'maxattempts', $c);
 
         // Grade.
         $this->standard_grading_coursemodule_elements();
@@ -124,7 +147,16 @@ class mod_aisoftskills_mod_form extends moodleform_mod {
             get_string('completionallscenes_desc', 'mod_aisoftskills')
         );
         $mform->addHelpButton($name, 'completionallscenes', 'mod_aisoftskills');
-        return [$name];
+        $pass = $this->suffixed('completionpasstest');
+        $mform->addElement(
+            'advcheckbox',
+            $pass,
+            get_string('completionpasstest', 'mod_aisoftskills'),
+            get_string('completionpasstest_desc', 'mod_aisoftskills')
+        );
+        $mform->addHelpButton($pass, 'completionpasstest', 'mod_aisoftskills');
+        $mform->hideIf($pass, 'testmode', 'notchecked');
+        return [$name, $pass];
     }
 
     /**
@@ -134,7 +166,39 @@ class mod_aisoftskills_mod_form extends moodleform_mod {
      * @return bool
      */
     public function completion_rule_enabled($data) {
-        return !empty($data[$this->suffixed('completionallscenes')]);
+        return !empty($data[$this->suffixed('completionallscenes')]) || !empty($data[$this->suffixed('completionpasstest')]);
+    }
+
+    /**
+     * "Pass the test" means nothing without a test: it is cleared when Test is switched off.
+     *
+     * @param stdClass $data
+     */
+    public function data_postprocessing($data) {
+        parent::data_postprocessing($data);
+        $pass = $this->suffixed('completionpasstest');
+        if (empty($data->testmode) && !empty($data->$pass)) {
+            $data->$pass = 0;
+        }
+        if (isset($data->completionpasstest) && empty($data->testmode)) {
+            $data->completionpasstest = 0;
+        }
+    }
+
+    /**
+     * Shows the stored voiceover parts as ticked boxes.
+     *
+     * @param array $defaultvalues
+     */
+    public function data_preprocessing(&$defaultvalues) {
+        parent::data_preprocessing($defaultvalues);
+        if (isset($defaultvalues['voiceparts']) && is_string($defaultvalues['voiceparts'])) {
+            $stored = explode(',', $defaultvalues['voiceparts']);
+            $defaultvalues['voiceparts'] = [];
+            foreach (\mod_aisoftskills\local\voiceover::PARTS as $part) {
+                $defaultvalues['voiceparts'][$part] = in_array($part, $stored, true) ? 1 : 0;
+            }
+        }
     }
 
     /**
@@ -148,6 +212,16 @@ class mod_aisoftskills_mod_form extends moodleform_mod {
         $errors = parent::validation($data, $files);
         if (($data['industry'] ?? '') === 'custom' && trim((string)($data['customindustry'] ?? '')) === '') {
             $errors['customindustry'] = get_string('required');
+        }
+        $pass = $this->suffixed('completionpasstest');
+        if (!empty($data[$pass]) && !empty($data['testmode']) && (int)($data['passmark'] ?? 0) < 1) {
+            $errors[$pass] = get_string('completionpasstest_needtest', 'mod_aisoftskills');
+        }
+        if (empty($data['practicemode']) && empty($data['testmode'])) {
+            $errors['practicemode'] = get_string('modes_needone', 'mod_aisoftskills');
+        }
+        if (!empty($data['testmode']) && ((int)($data['passmark'] ?? 0) < 0 || (int)($data['passmark'] ?? 0) > 100)) {
+            $errors['passmark'] = get_string('passmark_range', 'mod_aisoftskills');
         }
         return $errors;
     }

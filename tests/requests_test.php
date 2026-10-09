@@ -93,7 +93,7 @@ final class requests_test extends \advanced_testcase {
      */
     protected function draft_ok(array $draft = []): array {
         return [200, ['content-type' => 'application/json', 'x-request-id' => 'req-1', 'x-idempotent-replay' => 'false'],
-            json_encode(['requestId' => 'req-1', 'model' => 'gpt-4o-2024-08-06', 'creditsCharged' => 3, 'creditsBalance' => 97,
+            json_encode(['requestId' => 'req-1', 'model' => 'gpt-4o-2024-08-06', 'creditsCharged' => 5, 'creditsBalance' => 97,
             'draft' => $draft + ['title' => 'Discussion', 'setting' => 'Office', 'characters' => ['Pat', 'Alex'],
                 'dialogue' => [['speaker' => 'Pat', 'line' => 'Let\'s talk.'], ['speaker' => 'Alex', 'line' => 'I agree.']],
                 'teachingNote' => 'Listen to both sides.']])];
@@ -166,12 +166,12 @@ final class requests_test extends \advanced_testcase {
             $DB->count_records('aisoftskills_option', ['sceneid' => $scene->id]),
             'The teacher writes the two responses.'
         );
-        $this->assertSame(3, (int)$row->charged);
+        $this->assertSame(5, (int)$row->charged);
         $this->assertSame(97, (int)$row->balance);
         $this->assertSame('req-1', $row->requestid);
         $context = \context_module::instance(get_coursemodule_from_instance('aisoftskills', $this->instance->id)->id);
         $export = requests::export($row, $context);
-        $this->assertStringContainsString('3 LMS Labs credits used; 97 left', $export['message']);
+        $this->assertStringContainsString('5 LMS Labs credits used; 97 left', $export['message']);
         $this->assertTrue($export['openscene']);
         $this->assertArrayNotHasKey('idemkey', $export);
         // A completed request is never sent again.
@@ -259,7 +259,7 @@ final class requests_test extends \advanced_testcase {
             [$this->text_error(503, 'PROVIDER_UNAVAILABLE'), 'provider_unavailable', 'could not draft'],
             [[404, [], 'Not found'], 'http_404', 'not available yet'],
             [$this->draft_ok(['dialogue' => [['speaker' => 'Sam', 'line' => 'Hi'], ['speaker' => 'Pat', 'line' => 'Hi']]]),
-                'unusable_draft', 'may have charged 3'],
+                'unusable_draft', 'may have charged 5'],
         ];
         foreach ($cases as [$answer, $code, $text]) {
             $this->answers = [$answer];
@@ -312,7 +312,7 @@ final class requests_test extends \advanced_testcase {
     }
 
     /**
-     * Scenes from an AI assistant are charged like drafts (3 credits each) and created only once LMS Labs confirms:
+     * Scenes from an AI assistant are charged like drafts (5 credits each) and created only once LMS Labs confirms:
      * a refusal creates nothing, an unconfirmed charge is checked with the same key, and a confirmed one creates the
      * scenes exactly once.
      */
@@ -338,7 +338,7 @@ final class requests_test extends \advanced_testcase {
             json_decode($this->sent[0][2], true),
             'Only the count and titles are sent.'
         );
-        $this->assertStringContainsString('need 6 and 2 are left', requests::export($row, $context)['message']);
+        $this->assertStringContainsString('need 10 and 2 are left', requests::export($row, $context)['message']);
 
         // Not deployed at LMS Labs yet, whatever error code the 404 carries.
         $this->answers = [[404, ['content-type' => 'application/json'], json_encode(['error' => ['code' => 'NOT_FOUND']])]];
@@ -358,14 +358,14 @@ final class requests_test extends \advanced_testcase {
         $this->assertSame('uncertain', $row->status);
         $this->assertSame($start, $scenes());
         $this->answers = [[200, ['content-type' => 'application/json'], json_encode(['requestId' => 'imp-2',
-            'creditsCharged' => 6, 'creditsBalance' => 44])]];
+            'creditsCharged' => 10, 'creditsBalance' => 44])]];
         $row = requests::check($row, $this->instance);
         $this->assertSame('completed', $row->status);
         $this->assertSame($this->sent[3][3], $this->sent[4][3]);
         $this->assertSame($this->sent[3][2], $this->sent[4][2]);
         $this->assertSame($start + 2, $scenes());
-        $this->assertSame(6, (int)$row->charged);
-        $this->assertStringContainsString('6 LMS Labs credits used; 44 left', requests::export($row, $context)['message']);
+        $this->assertSame(10, (int)$row->charged);
+        $this->assertStringContainsString('10 LMS Labs credits used; 44 left', requests::export($row, $context)['message']);
         // Checking a completed import again sends nothing and creates nothing.
         requests::check($row, $this->instance);
         $this->assertCount(5, $this->sent);

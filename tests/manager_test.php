@@ -102,4 +102,18 @@ final class manager_test extends \advanced_testcase {
         $this->assertSame(100, $data->maxattempts);
         $this->assertSame(manager::GRADE_HIGHEST, $data->grademethod);
     }
+
+    /**
+     * Practice or test (at least one), the pass mark and what the voiceover reads.
+     */
+    public function test_prepare_modes_and_voice(): void {
+        $data = manager::prepare_instance_data((object)['practicemode' => 0, 'testmode' => 0, 'passmark' => 140,
+            'voiceparts' => ['scenario' => 1, 'question' => 0, 'why' => '1', 'bogus' => 1]]);
+        $this->assertSame(1, $data->practicemode);
+        $this->assertSame(1, $data->allowretry);
+        $this->assertSame(100, $data->passmark);
+        $this->assertSame('scenario,why', $data->voiceparts);
+        $data = manager::prepare_instance_data((object)['practicemode' => 0, 'testmode' => 1]);
+        $this->assertSame(0, $data->allowretry);
+    }
 }

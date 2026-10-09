@@ -81,6 +81,74 @@ function xmldb_aisoftskills_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026092900, 'aisoftskills');
     }
 
+    if ($oldversion < 2026101000) {
+        // Name labels on scene pictures ("Leo - Bartender"), placed by the teacher; and "listen before answering".
+        $table = new xmldb_table('aisoftskills_scene');
+        $field = new xmldb_field('labels', XMLDB_TYPE_TEXT, null, null, null, null, null, 'teachingnote');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('aisoftskills');
+        $field = new xmldb_field(
+            'voiceparts',
+            XMLDB_TYPE_CHAR,
+            '255',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            'scenario,question,responses,consequence,why',
+            'sounds'
+        );
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('mustlisten', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'voiceparts');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('voicemap', XMLDB_TYPE_TEXT, null, null, null, null, null, 'mustlisten');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Practice and test modes replace "try again after a poorer choice": an activity that allowed a second try
+        // becomes practice only, one that did not becomes test only (without a pass mark, as before). Earlier attempts
+        // keep counting towards the grade.
+        $fields = [
+            new xmldb_field('practicemode', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'allowretry'),
+            new xmldb_field('testmode', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'practicemode'),
+            new xmldb_field('passmark', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '70', 'testmode'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        $field = new xmldb_field(
+            'completionpasstest',
+            XMLDB_TYPE_INTEGER,
+            '1',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'completionallscenes'
+        );
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $attempts = new xmldb_table('aisoftskills_attempt');
+        $field = new xmldb_field('playmode', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'practice', 'state');
+        if (!$dbman->field_exists($attempts, $field)) {
+            $dbman->add_field($attempts, $field);
+        }
+        // Safe to run again: only activities not converted yet, and their attempts.
+        $DB->execute("UPDATE {aisoftskills_attempt} SET playmode = 'test'
+                       WHERE aisoftskillsid IN (SELECT id FROM {aisoftskills} WHERE allowretry = 0 AND testmode = 0)");
+        $DB->execute('UPDATE {aisoftskills} SET practicemode = 0, testmode = 1, passmark = 0
+                       WHERE allowretry = 0 AND testmode = 0');
+        upgrade_mod_savepoint(true, 2026101000, 'aisoftskills');
+    }
+
     return true;
 }
 

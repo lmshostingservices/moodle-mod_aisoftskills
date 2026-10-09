@@ -21,7 +21,8 @@ namespace mod_aisoftskills\completion;
 use core_completion\activity_custom_completion;
 
 /**
- * Custom completion rules: study every scene, master every phrase, finish the Test.
+ * Custom completion rules: finish every scene (one finished attempt), and pass the test (a finished test attempt at or
+ * above the pass mark).
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services
@@ -37,8 +38,18 @@ class custom_completion extends activity_custom_completion {
     public function get_state(string $rule): int {
         global $DB;
         $this->validate_rule($rule);
-        $done = $DB->record_exists('aisoftskills_attempt', ['aisoftskillsid' => $this->cm->instance,
-            'userid' => (int)$this->userid, 'state' => 'finished']);
+        $params = ['aid' => $this->cm->instance, 'userid' => (int)$this->userid, 'state' => 'finished'];
+        if ($rule === 'completionpasstest') {
+            $passmark = (int)$DB->get_field('aisoftskills', 'passmark', ['id' => $this->cm->instance]);
+            $done = $DB->record_exists_select(
+                'aisoftskills_attempt',
+                "aisoftskillsid = :aid AND userid = :userid AND state = :state AND playmode = :mode AND score >= :passmark",
+                $params + ['mode' => 'test', 'passmark' => max(1, $passmark)]
+            );
+        } else {
+            $done = $DB->record_exists('aisoftskills_attempt', ['aisoftskillsid' => $params['aid'],
+                'userid' => $params['userid'], 'state' => $params['state']]);
+        }
         return $done ? COMPLETION_COMPLETE : COMPLETION_INCOMPLETE;
     }
 
@@ -48,7 +59,7 @@ class custom_completion extends activity_custom_completion {
      * @return string[]
      */
     public static function get_defined_custom_rules(): array {
-        return ['completionallscenes'];
+        return ['completionallscenes', 'completionpasstest'];
     }
 
     /**
@@ -57,7 +68,10 @@ class custom_completion extends activity_custom_completion {
      * @return array
      */
     public function get_custom_rule_descriptions(): array {
-        return ['completionallscenes' => get_string('completiondetail:allscenes', 'mod_aisoftskills')];
+        return [
+            'completionallscenes' => get_string('completiondetail:allscenes', 'mod_aisoftskills'),
+            'completionpasstest' => get_string('completiondetail:passtest', 'mod_aisoftskills'),
+        ];
     }
 
     /**
@@ -66,6 +80,6 @@ class custom_completion extends activity_custom_completion {
      * @return string[]
      */
     public function get_sort_order(): array {
-        return ['completionview', 'completionallscenes', 'completionusegrade', 'completionpassgrade'];
+        return ['completionview', 'completionallscenes', 'completionpasstest', 'completionusegrade', 'completionpassgrade'];
     }
 }

@@ -78,7 +78,7 @@ final class learning_test extends \advanced_testcase {
         foreach ($data['scenes'] as $scene) {
             $this->assertCount(2, $scene['options']);
             foreach ($scene['options'] as $option) {
-                $this->assertSame(['id', 'letter', 'text'], array_keys($option));
+                $this->assertSame(['id', 'letter', 'text', 'voice'], array_keys($option));
             }
         }
         $json = json_encode($data);
@@ -143,21 +143,106 @@ final class learning_test extends \advanced_testcase {
     }
 
     /**
-     * Without retries a poorer choice ends the scene and reveals the better response.
+     * A test allows one choice per scene and keeps the better response for the results slides.
      */
-    public function test_no_retry_reveals_better(): void {
+    public function test_test_mode_one_choice(): void {
         global $DB;
         $this->resetAfterTest();
-        [, , $context, $instance, $student, $scenes] = $this->setup_activity(['allowretry' => 0], 1);
+        [, , $context, $instance, $student, $scenes] = $this->setup_activity(['practicemode' => 0, 'testmode' => 1,
+            'passmark' => 70], 1);
         $data = learning::start_attempt($instance, $context, (int)$student->id);
+        $this->assertSame('test', $data['mode']);
         $attempt = $DB->get_record('aisoftskills_attempt', ['id' => $data['attemptid']]);
         $r = learning::choose($instance, $context, $attempt, (int)$scenes[0]->id, $this->option($scenes[0]->id, false));
         $this->assertSame(0, $r['canretry']);
         $this->assertSame(1, $r['resolved']);
-        $this->assertSame('Better 1', $r['better']);
-        $this->assertNotSame('', $r['betterreason']);
+        $this->assertSame('', $r['better']);
+        $summary = learning::finish_attempt(
+            $instance,
+            get_coursemodule_from_instance('aisoftskills', $instance->id),
+            get_course($instance->course),
+            $context,
+            $DB->get_record('aisoftskills_attempt', ['id' => $attempt->id])
+        );
+        $this->assertSame(0, $summary['score']);
+        $this->assertSame(70, $summary['passmark']);
+        $this->assertSame(0, $summary['passed']);
+        $this->assertSame('Better 1', $summary['recap'][0]['better']);
+        $this->assertFalse($summary['recap'][0]['firstbest']);
         $this->expectException(\moodle_exception::class);
         learning::choose($instance, $context, $attempt, (int)$scenes[0]->id, $this->option($scenes[0]->id, true));
+    }
+
+    /**
+     * Practice and test together: practice is never limited, attempts allowed and grades count the test only.
+     */
+    public function test_both_modes(): void {
+        global $DB;
+        $this->resetAfterTest();
+        [$course, $cm, $context, $instance, $student, $scenes] = $this->setup_activity(['practicemode' => 1,
+            'testmode' => 1, 'passmark' => 50, 'maxattempts' => 1], 1);
+        $this->assertSame(['practice', 'test'], learning::modes($instance));
+        $this->assertSame('test', learning::graded_mode($instance));
+        $play = function (string $mode, bool $best) use ($instance, $context, $student, $scenes, $cm, $course, $DB) {
+            $data = learning::start_attempt($instance, $context, (int)$student->id, $mode);
+            $attempt = $DB->get_record('aisoftskills_attempt', ['id' => $data['attemptid']]);
+            $r = learning::choose($instance, $context, $attempt, (int)$scenes[0]->id, $this->option($scenes[0]->id, $best));
+            if (!$r['resolved']) {
+                $this->assertSame(1, $r['canretry']);
+                learning::choose($instance, $context, $attempt, (int)$scenes[0]->id, $this->option($scenes[0]->id, true));
+            }
+            return learning::finish_attempt(
+                $instance,
+                $cm,
+                $course,
+                $context,
+                $DB->get_record('aisoftskills_attempt', ['id' => $attempt->id])
+            );
+        };
+        $practice = $play('practice', false);
+        $this->assertSame(1, $practice['cantest']);
+        $play('practice', true);
+        $this->assertTrue(learning::can_start($instance, (int)$student->id, 'practice'));
+        // Practice does not count towards the grade.
+        $this->assertSame([], \mod_aisoftskills\local\manager::get_user_grades($instance, (int)$student->id));
+        $test = $play('test', true);
+        $this->assertSame(1, $test['passed']);
+        $this->assertFalse(learning::can_start($instance, (int)$student->id, 'test'));
+        $this->assertTrue(learning::can_start($instance, (int)$student->id, 'practice'));
+        $grades = \mod_aisoftskills\local\manager::get_user_grades($instance, (int)$student->id);
+        $this->assertEquals(100, $grades[$student->id]->rawgrade);
+    }
+
+    /**
+     * The better response is first in half of the scenes and second in the other half.
+     */
+    public function test_better_first_is_balanced(): void {
+        for ($n = 1; $n <= 9; $n++) {
+            $firsts = learning::better_first($n);
+            $this->assertCount($n, $firsts);
+            $this->assertLessThanOrEqual(1, abs(count(array_filter($firsts)) * 2 - $n));
+        }
+        $options = [(object)['id' => 5, 'best' => 0], (object)['id' => 7, 'best' => 1]];
+        $this->assertSame([7, 5], learning::place_better($options, true));
+        $this->assertSame([5, 7], learning::place_better($options, false));
+    }
+
+    /**
+     * The role line and the scene cards.
+     */
+    public function test_role_line_and_cards(): void {
+        $this->resetAfterTest();
+        $this->assertSame(
+            'As the bar shift supervisor, how would you handle this situation?',
+            learning::role_line('You, the bar shift supervisor', 'en')
+        );
+        $this->assertSame('Tú, la supervisora', learning::role_line('Tú, la supervisora', 'es'));
+        $this->assertSame('', learning::role_line('', 'en'));
+        $cards = learning::context_cards('At 4 pm the venue fills up. You ask Leo to stay. He hesitates. ' .
+            'The manager expects full cover.', 'en');
+        $this->assertSame(['situation', 'action', 'context'], array_column($cards, 'kind'));
+        $this->assertSame([['text' => 'He hesitates.'], ['text' => 'The manager expects full cover.']], $cards[2]['lines']);
+        $this->assertSame(['situation', 'context'], array_column(learning::context_cards('Uno. Dos. Tres.', 'es'), 'kind'));
     }
 
     /**

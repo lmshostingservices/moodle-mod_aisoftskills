@@ -78,6 +78,10 @@ class choose_option extends base {
             'better' => new external_value(PARAM_TEXT, 'The better response, when it is revealed'),
             'betterreason' => new external_value(PARAM_TEXT, 'Why the better response works'),
             'allresolved' => new external_value(PARAM_BOOL, 'Every scene is done'),
+            'voice' => new \core_external\external_multiple_structure(new external_single_structure([
+                'url' => new external_value(PARAM_URL, 'Voiceover clip'),
+                'part' => new external_value(PARAM_ALPHA, 'consequence or reason'),
+            ]), 'The feedback read out, empty when there is none'),
         ]);
     }
 }

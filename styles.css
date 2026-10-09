@@ -8,7 +8,8 @@
 .path-mod-aisoftskills .ss-app,
 .path-mod-aisoftskills .ss-editor,
 .path-mod-aisoftskills .ss-report,
-.path-mod-aisoftskills .ss-slides {
+.path-mod-aisoftskills .ss-slides,
+.path-mod-aisoftskills .ss-labeleditor {
     --ss-bg: #f3f5f9;
     --ss-surface: #fff;
     --ss-surface-2: #f8fafc;
@@ -1237,7 +1238,7 @@
 }
 .path-mod-aisoftskills .ss-consequence {
     width: 100%;
-    max-width: 620px;
+    max-width: 720px;
     max-height: 100%;
     overflow: auto;
     border-radius: 22px;
@@ -1277,10 +1278,10 @@
 }
 .path-mod-aisoftskills .ss-consequence-body {
     display: grid;
-    grid-template-columns: 210px minmax(0, 1fr);
-    gap: 18px;
-    align-items: center;
-    padding: 18px 20px;
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+    padding: 20px;
 }
 .path-mod-aisoftskills .ss-gauge {
     position: relative;
@@ -1356,28 +1357,69 @@
     background: #fee4e2;
     color: #a3190f;
 }
-.path-mod-aisoftskills .ss-consequence-text p {
-    margin: 0 0 10px;
-    line-height: 1.5;
+.path-mod-aisoftskills .ss-consequence-text {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
-.path-mod-aisoftskills .ss-consequence-what {
+.path-mod-aisoftskills .ss-fbcard {
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--ss-surface-2);
+    border: 1px solid var(--ss-border);
+}
+.path-mod-aisoftskills .ss-fbcard p {
+    margin: 0;
+    line-height: 1.55;
+}
+.path-mod-aisoftskills .ss-fbcard p + p {
+    margin-top: 8px;
+}
+.path-mod-aisoftskills .ss-fbcard-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ss-muted);
+}
+.path-mod-aisoftskills .ss-fbcard-title svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.path-mod-aisoftskills .ss-fbcard-what p {
     font-weight: 600;
+    color: var(--ss-text);
 }
-.path-mod-aisoftskills .ss-consequence-why {
-    color: var(--ss-text-2);
+.path-mod-aisoftskills .ss-consequence.is-best .ss-fbcard-why {
+    background: #ecfdf3;
+    border-color: #abefc6;
+}
+.path-mod-aisoftskills .ss-consequence.is-best .ss-fbcard-why .ss-fbcard-title {
+    color: #0b6b43;
+}
+.path-mod-aisoftskills .ss-consequence.is-poor .ss-fbcard-why {
+    background: #fef3f2;
+    border-color: #fecdca;
+}
+.path-mod-aisoftskills .ss-consequence.is-poor .ss-fbcard-why .ss-fbcard-title {
+    color: #a3190f;
 }
 .path-mod-aisoftskills .ss-better {
-    padding: 10px 12px;
-    border-radius: 12px;
     background: #ecfdf3;
-    border: 1px solid #abefc6;
+    border-color: #abefc6;
 }
-.path-mod-aisoftskills .ss-better-label {
-    font-size: .8rem;
-    font-weight: 800;
+.path-mod-aisoftskills .ss-better .ss-fbcard-title {
     color: #0b6b43;
-    text-transform: uppercase;
-    letter-spacing: .04em;
 }
 .path-mod-aisoftskills .ss-better-text {
     font-weight: 700;
@@ -1726,4 +1768,462 @@
 }
 .path-mod-aisoftskills .ss-setup-progress {
     margin: 0;
+}
+
+/* 1.4.0: scene setting in short cards, name labels, voiceover, results slides, practice and test. */
+.path-mod-aisoftskills .ss-ctxcards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.path-mod-aisoftskills .ss-ctxcard {
+    padding: 10px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--ss-border);
+    border-left: 4px solid var(--ss-primary);
+    background: var(--ss-surface);
+    box-shadow: var(--ss-shadow-sm);
+    transition: box-shadow .2s, border-color .2s;
+}
+.path-mod-aisoftskills .ss-ctxcard-action {
+    border-left-color: var(--ss-teal);
+}
+.path-mod-aisoftskills .ss-ctxcard-context {
+    border-left-color: var(--ss-warning);
+}
+.path-mod-aisoftskills .ss-ctxcard p {
+    margin: 0;
+    color: var(--ss-text-2);
+    line-height: 1.5;
+}
+.path-mod-aisoftskills .ss-ctxcard p + p {
+    margin-top: 6px;
+}
+.path-mod-aisoftskills .ss-ctxcard-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 4px;
+    font-size: .74rem;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ss-primary);
+}
+.path-mod-aisoftskills .ss-ctxcard-action .ss-ctxcard-title {
+    color: #0b7a76;
+}
+.path-mod-aisoftskills .ss-ctxcard-context .ss-ctxcard-title {
+    color: var(--ss-warning);
+}
+.path-mod-aisoftskills .ss-ctxcard-title svg,
+.path-mod-aisoftskills .ss-question svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.path-mod-aisoftskills .ss-ctxcard-situation .ss-ico-action,
+.path-mod-aisoftskills .ss-ctxcard-situation .ss-ico-context,
+.path-mod-aisoftskills .ss-ctxcard-action .ss-ico-situation,
+.path-mod-aisoftskills .ss-ctxcard-action .ss-ico-context,
+.path-mod-aisoftskills .ss-ctxcard-context .ss-ico-situation,
+.path-mod-aisoftskills .ss-ctxcard-context .ss-ico-action {
+    display: none;
+}
+.path-mod-aisoftskills .ss-question {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: var(--ss-primary-soft);
+    color: var(--ss-primary);
+    transition: box-shadow .2s;
+}
+.path-mod-aisoftskills .ss-question svg {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+}
+.path-mod-aisoftskills .ss-question p {
+    margin: 0;
+    color: var(--ss-text);
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.4;
+}
+.path-mod-aisoftskills .is-speaking {
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, .35), var(--ss-shadow-md);
+}
+.path-mod-aisoftskills .ss-dialogue-line.is-speaking {
+    box-shadow: none;
+    background: var(--ss-primary-soft);
+    border-radius: 8px;
+}
+
+/* Name labels over the picture (centre at x%, y%). */
+.path-mod-aisoftskills .ss-namelabel {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    max-width: 46%;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, .82);
+    color: #fff;
+    font-size: .85rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .3);
+    pointer-events: none;
+}
+.path-mod-aisoftskills .ss-namelabel.is-you {
+    background: rgba(79, 70, 229, .92);
+}
+.path-mod-aisoftskills .ss-namelabel-sm {
+    padding: 2px 7px;
+    font-size: .68rem;
+}
+.path-mod-aisoftskills .ss-slidecard-thumb {
+    position: relative;
+}
+.path-mod-aisoftskills .ss-labeleditor-stage {
+    position: relative;
+    margin: 0 0 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+}
+.path-mod-aisoftskills .ss-labeleditor-stage img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.path-mod-aisoftskills .ss-namelabel.is-draggable {
+    pointer-events: auto;
+    cursor: grab;
+    outline: 2px dashed rgba(255, 255, 255, .7);
+    outline-offset: 2px;
+}
+.path-mod-aisoftskills .ss-namelabel.is-draggable:focus-visible {
+    outline: 3px solid #facc15;
+}
+.path-mod-aisoftskills .ss-labeleditor-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.path-mod-aisoftskills .ss-labelrow {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 2fr) auto;
+    gap: 8px;
+    align-items: center;
+}
+.path-mod-aisoftskills .ss-labelrow-you {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: .85rem;
+}
+
+/* Voiceover buttons. */
+.path-mod-aisoftskills .ss-listen {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 8px;
+    padding: 7px 16px 7px 10px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ss-primary);
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--ss-shadow-sm);
+}
+.path-mod-aisoftskills .ss-listen svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+.path-mod-aisoftskills .ss-listen .ss-listen-stop,
+.path-mod-aisoftskills .ss-listen[aria-pressed="true"] .ss-listen-play {
+    display: none;
+}
+.path-mod-aisoftskills .ss-listen[aria-pressed="true"] .ss-listen-stop {
+    display: inline;
+}
+.path-mod-aisoftskills .ss-listen:focus-visible,
+.path-mod-aisoftskills .ss-option-listen:focus-visible {
+    outline: 3px solid rgba(79, 70, 229, .35);
+    outline-offset: 2px;
+}
+.path-mod-aisoftskills .ss-option-wrap {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    border-radius: 16px;
+}
+.path-mod-aisoftskills .ss-option-wrap .ss-option {
+    flex: 1 1 auto;
+}
+.path-mod-aisoftskills .ss-option-listen {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 40px;
+    border-radius: 14px;
+    border: 2px solid var(--ss-border);
+    background: var(--ss-surface);
+    color: var(--ss-primary);
+    cursor: pointer;
+}
+.path-mod-aisoftskills .ss-option-listen svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.path-mod-aisoftskills .ss-option-listen svg path:first-child {
+    fill: currentColor;
+}
+.path-mod-aisoftskills .ss-option-listen[aria-pressed="true"] {
+    background: var(--ss-primary);
+    border-color: var(--ss-primary);
+    color: #fff;
+}
+.path-mod-aisoftskills .ss-option.is-locked {
+    opacity: .6;
+}
+.path-mod-aisoftskills .ss-listennote {
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--ss-warning-soft);
+    color: var(--ss-warning);
+    font-weight: 600;
+    font-size: .9rem;
+}
+.path-mod-aisoftskills .ss-voicelist ul {
+    margin: 4px 0 12px;
+    padding-left: 18px;
+}
+
+/* Results slides. */
+.path-mod-aisoftskills .ss-summary {
+    max-width: 780px;
+}
+.path-mod-aisoftskills .ss-slide:focus {
+    outline: none;
+}
+.path-mod-aisoftskills .ss-recap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: 18px;
+    align-items: start;
+}
+.path-mod-aisoftskills .ss-recap-pic {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--ss-surface-2);
+    aspect-ratio: 16 / 10;
+}
+.path-mod-aisoftskills .ss-recap-pic img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.path-mod-aisoftskills .ss-recap-no {
+    position: absolute;
+    inset: 10px auto auto 10px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, .78);
+    color: #fff;
+    font-size: .8rem;
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-recap-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.path-mod-aisoftskills .ss-recap-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.path-mod-aisoftskills .ss-recap-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+.path-mod-aisoftskills .ss-recap-result {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .8rem;
+    font-weight: 800;
+}
+.path-mod-aisoftskills .ss-recap-result svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.path-mod-aisoftskills .ss-recap-result.is-best {
+    background: var(--ss-success-soft);
+    color: var(--ss-success);
+}
+.path-mod-aisoftskills .ss-recap-result.is-poor {
+    background: var(--ss-warning-soft);
+    color: var(--ss-warning);
+}
+.path-mod-aisoftskills .ss-fbcard-why.is-best {
+    background: #ecfdf3;
+    border-color: #abefc6;
+}
+.path-mod-aisoftskills .ss-slidenav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 18px 0 6px;
+}
+.path-mod-aisoftskills .ss-slidedots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.path-mod-aisoftskills .ss-slidedot {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ss-border-strong);
+    cursor: pointer;
+    transition: width .2s var(--ss-ease), background-color .2s;
+}
+.path-mod-aisoftskills .ss-slidedot.is-current {
+    width: 26px;
+    background: var(--ss-primary);
+}
+.path-mod-aisoftskills .ss-passline {
+    margin: 8px 0 0;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-passline.is-passed {
+    background: var(--ss-success-soft);
+    color: var(--ss-success);
+}
+.path-mod-aisoftskills .ss-passline.is-notyet {
+    background: var(--ss-warning-soft);
+    color: var(--ss-warning);
+}
+.path-mod-aisoftskills .ss-startmodes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+.path-mod-aisoftskills .ss-startmode {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 280px;
+}
+
+@media (max-width: 700px) {
+    .path-mod-aisoftskills .ss-recap {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .path-mod-aisoftskills .ss-labelrow {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .path-mod-aisoftskills .ss-namelabel {
+        font-size: .72rem;
+        padding: 3px 8px;
+    }
+}
+.path-mod-aisoftskills .ss-consequence-head .ss-listen-sm {
+    margin-inline-start: auto;
+    padding: 5px 12px 5px 8px;
+    font-size: .85rem;
+}
+.path-mod-aisoftskills .ss-roleline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--ss-primary), var(--ss-primary-2));
+    color: #fff;
+    font-weight: 700;
+    line-height: 1.35;
+    box-shadow: var(--ss-shadow-sm);
+}
+.path-mod-aisoftskills .ss-roleline-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .2);
+}
+.path-mod-aisoftskills .ss-roleline-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.path-mod-aisoftskills .ss-limit {
+    color: var(--ss-muted);
+}
+.path-mod-aisoftskills .ss-limit.is-over {
+    color: var(--ss-danger);
+    font-weight: 700;
+}
+.path-mod-aisoftskills .ss-passline.is-notyet,
+.path-mod-aisoftskills .ss-listennote,
+.path-mod-aisoftskills .ss-recap-result.is-poor {
+    color: #7a4100;
+}
+.path-mod-aisoftskills .ss-labelrow .ss-iconbtn svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
 }

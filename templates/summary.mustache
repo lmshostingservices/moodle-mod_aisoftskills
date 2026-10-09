@@ -24,48 +24,84 @@
         "score": 75, "tone": "good", "headline": "Strong", "message": "6 of 8 best first choices",
         "levelline": "You are showing the habits of a Manager.",
         "kpis": [{"kpi": "morale", "name": "Morale", "value": 70, "start": 50, "up": true, "change": "+20"}],
-        "canretake": true, "attemptsleft": "", "hastakeaways": true,
-        "takeaways": [{"title": "Behind on the target", "skill": "Motivating others",
+        "canretake": true, "attemptsleft": "", "slidecount": 2, "istest": true, "cantest": false,
+        "passline": "Not passed yet: the pass mark is 70%. Take the test again to pass.", "passed": false,
+        "slides": [{"slide": 0, "label": 1, "current": true}, {"slide": 1, "label": 2, "current": false}],
+        "recap": [{"slide": 1, "number": 1, "title": "Behind on the target", "skill": "Motivating others",
+            "image": "https://example.com/scene.png", "firstbest": false,
             "better": "Is there anything I can get you to help you reach the goal faster?",
-            "reason": "Offering help shows trust and removes blockers."}]
+            "reasonlines": ["Offering help shows trust.", "It removes blockers."]}]
     }
 }}
-<section class="ss-summary ss-summary-{{tone}}" tabindex="-1" aria-labelledby="ss-summary-title">
-    <div class="ss-summary-top">
-        <div class="ss-ring" style="--p: {{score}};" role="img" aria-label="{{score}}%">
-            <span><strong>{{score}}</strong><small>%</small></span>
+<section class="ss-summary ss-summary-{{tone}}" tabindex="-1" aria-labelledby="ss-summary-title" aria-roledescription="{{#str}} results_carousel, mod_aisoftskills {{/str}}">
+    <div class="ss-slide ss-slide-overview" tabindex="-1" role="group" aria-roledescription="{{#str}} results_slidename, mod_aisoftskills {{/str}}" aria-labelledby="ss-summary-title">
+        <div class="ss-summary-top">
+            <div class="ss-ring" style="--p: {{score}};" role="img" aria-label="{{score}}%">
+                <span><strong>{{score}}</strong><small>%</small></span>
+            </div>
+            <div>
+                <h3 class="ss-summary-title" id="ss-summary-title">{{headline}}</h3>
+                <p class="ss-summary-message">{{message}}</p>
+                <p class="ss-summary-level">{{levelline}}</p>
+                {{#passline}}<p class="ss-passline {{#passed}}is-passed{{/passed}}{{^passed}}is-notyet{{/passed}}">{{.}}</p>{{/passline}}
+            </div>
         </div>
-        <div>
-            <h3 class="ss-summary-title" id="ss-summary-title">{{headline}}</h3>
-            <p class="ss-summary-message">{{message}}</p>
-            <p class="ss-summary-level">{{levelline}}</p>
+        <h4 class="ss-panel-title">{{#str}} workplaceindicators, mod_aisoftskills {{/str}}</h4>
+        <ul class="ss-finalkpis">
+            {{#kpis}}
+            <li class="ss-finalkpi">
+                <span class="ss-finalkpi-name">{{name}}</span>
+                <span class="ss-finalkpi-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{value}}" aria-label="{{name}}"><span style="width: {{value}}%;"></span></span>
+                <span class="ss-finalkpi-value">{{value}}</span>
+                <span class="ss-delta {{#up}}is-up{{/up}}{{^up}}is-down{{/up}}">{{change}}</span>
+            </li>
+            {{/kpis}}
+        </ul>
+        {{#recap.0}}<p class="ss-mini mb-0">{{#str}} results_next, mod_aisoftskills {{/str}}</p>{{/recap.0}}
+    </div>
+    {{#recap}}
+    <div class="ss-slide ss-slide-scene" tabindex="-1" role="group" aria-roledescription="{{#str}} results_slidename, mod_aisoftskills {{/str}}" aria-labelledby="ss-recap-title-{{slide}}" hidden>
+        <div class="ss-recap">
+            <div class="ss-recap-pic">
+                {{#image}}<img src="{{image}}" alt="" loading="lazy">{{/image}}
+                <span class="ss-recap-no">{{#str}} scenex, mod_aisoftskills, {{number}} {{/str}}</span>
+            </div>
+            <div class="ss-recap-body">
+                <div class="ss-recap-head">
+                    {{#skill}}<span class="ss-skillchip" dir="auto">{{skill}}</span>{{/skill}}
+                    <span class="ss-recap-result {{#firstbest}}is-best{{/firstbest}}{{^firstbest}}is-poor{{/firstbest}}">
+                        {{#firstbest}}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>{{#str}} recap_firstbest, mod_aisoftskills {{/str}}{{/firstbest}}
+                        {{^firstbest}}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 16.5h.01M10.3 3.9L2.6 17.3A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.7L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>{{#str}} recap_firstpoor, mod_aisoftskills {{/str}}{{/firstbest}}
+                    </span>
+                </div>
+                <h4 class="ss-recap-title" id="ss-recap-title-{{slide}}" dir="auto">{{title}}</h4>
+                {{#better}}
+                <section class="ss-fbcard ss-better">
+                    <h5 class="ss-fbcard-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg>{{#str}} betterresponse, mod_aisoftskills {{/str}}</h5>
+                    <p class="ss-better-text" dir="auto">“{{better}}”</p>
+                </section>
+                {{/better}}
+                {{#reasonlines.0}}
+                <section class="ss-fbcard ss-fbcard-why is-best">
+                    <h5 class="ss-fbcard-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>{{#str}} fb_whyworks, mod_aisoftskills {{/str}}</h5>
+                    {{#reasonlines}}<p dir="auto">{{.}}</p>{{/reasonlines}}
+                </section>
+                {{/reasonlines.0}}
+            </div>
         </div>
     </div>
-    <h4 class="ss-panel-title">{{#str}} workplaceindicators, mod_aisoftskills {{/str}}</h4>
-    <ul class="ss-finalkpis">
-        {{#kpis}}
-        <li class="ss-finalkpi">
-            <span class="ss-finalkpi-name">{{name}}</span>
-            <span class="ss-finalkpi-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{value}}" aria-label="{{name}}"><span style="width: {{value}}%;"></span></span>
-            <span class="ss-finalkpi-value">{{value}}</span>
-            <span class="ss-delta {{#up}}is-up{{/up}}{{^up}}is-down{{/up}}">{{change}}</span>
-        </li>
-        {{/kpis}}
-    </ul>
-    {{#hastakeaways}}
-    <h4 class="ss-panel-title">{{#str}} takeaways, mod_aisoftskills {{/str}}</h4>
-    <ul class="ss-takeaways">
-        {{#takeaways}}
-        <li class="ss-takeaway">
-            <strong dir="auto">{{title}}</strong>{{#skill}} <span class="ss-skillchip" dir="auto">{{skill}}</span>{{/skill}}
-            <p class="mb-1" dir="auto">{{#str}} takeaway_better, mod_aisoftskills {{/str}} “{{better}}”</p>
-            {{#reason}}<p class="ss-mini mb-0" dir="auto">{{reason}}</p>{{/reason}}
-        </li>
-        {{/takeaways}}
-    </ul>
-    {{/hastakeaways}}
+    {{/recap}}
+    <nav class="ss-slidenav" aria-label="{{#str}} results_carousel, mod_aisoftskills {{/str}}">
+        <button type="button" class="ss-iconbtn" data-action="slideprev" aria-label="{{#str}} previous, mod_aisoftskills {{/str}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="ss-slidedots">
+            {{#slides}}<button type="button" class="ss-slidedot {{#current}}is-current{{/current}}" aria-label="{{#str}} results_goto, mod_aisoftskills, {{label}} {{/str}}"></button>{{/slides}}
+        </div>
+        <span class="ss-mini" data-region="slidecount" aria-live="polite"></span>
+        <button type="button" class="ss-iconbtn" data-action="slidenext" aria-label="{{#str}} next, mod_aisoftskills {{/str}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+    </nav>
     <div class="ss-summary-actions">
-        {{#canretake}}<button type="button" class="ss-btn ss-btn-ghost" data-action="retake">{{#str}} tryagainactivity, mod_aisoftskills {{/str}}</button>{{/canretake}}
+        {{#canretake}}<button type="button" class="ss-btn ss-btn-ghost" data-action="retake">{{#istest}}{{#str}} testagain, mod_aisoftskills {{/str}}{{/istest}}{{^istest}}{{#str}} tryagainactivity, mod_aisoftskills {{/str}}{{/istest}}</button>{{/canretake}}
+        {{#cantest}}<button type="button" class="ss-btn ss-btn-primary" data-action="gototest">{{#str}} gototest, mod_aisoftskills {{/str}}</button>{{/cantest}}
         <button type="button" class="ss-btn ss-btn-primary" data-action="home">{{#str}} backtohome, mod_aisoftskills {{/str}}</button>
         {{#attemptsleft}}<p class="ss-note">{{.}}</p>{{/attemptsleft}}
     </div>

@@ -20,9 +20,10 @@ use moodle_url;
 use stdClass;
 
 /**
- * The teacher's set-up path: eight steps in a fixed order, with Back and Next only.
+ * The teacher's set-up path: nine steps in a fixed order, with Back and Next only.
  *
- * 1 workplace, 2 level, 3 skills, 4 language and size, 5 create the scenes, 6 pictures, 7 check each scene, 8 finish.
+ * 1 workplace, 2 level, 3 skills, 4 language and size, 5 create the scenes, 6 pictures and name labels, 7 voiceover
+ * (optional: never blocks Next), 8 check each scene, 9 finish.
  *
  * @package    mod_aisoftskills
  * @copyright  2026 LMS Hosting Services
@@ -30,7 +31,7 @@ use stdClass;
  */
 class setuppath {
     /** @var string[] step names, in order (string keys setupstep_<name>). */
-    public const STEPS = ['workplace', 'level', 'skills', 'language', 'create', 'pictures', 'check', 'finish'];
+    public const STEPS = ['workplace', 'level', 'skills', 'language', 'create', 'pictures', 'voices', 'check', 'finish'];
 
     /** @var int The create step. */
     public const CREATE = 5;
@@ -38,17 +39,20 @@ class setuppath {
     /** @var int The pictures step. */
     public const PICTURES = 6;
 
+    /** @var int The voiceover step. */
+    public const VOICES = 7;
+
     /** @var int The check step. */
-    public const CHECK = 7;
+    public const CHECK = 8;
 
     /** @var int The finish step. */
-    public const FINISH = 8;
+    public const FINISH = 9;
 
     /**
      * The page for a step.
      *
      * @param int $cmid
-     * @param int $step 1 to 8
+     * @param int $step 1 to 9
      * @return moodle_url
      */
     public static function url(int $cmid, int $step): moodle_url {
@@ -60,6 +64,7 @@ class setuppath {
         return match ($step) {
             self::CREATE => new moodle_url($builder, ['id' => $cmid, 'step' => 'build']),
             self::PICTURES => new moodle_url($scenes, ['id' => $cmid, 'step' => 'pictures']),
+            self::VOICES => new moodle_url($scenes, ['id' => $cmid, 'step' => 'voices']),
             self::CHECK => new moodle_url($scenes, ['id' => $cmid, 'step' => 'check']),
             default => new moodle_url($builder, ['id' => $cmid, 'step' => 'finish']),
         };
@@ -68,7 +73,7 @@ class setuppath {
     /**
      * Template data for the step bar. The bar only shows progress: steps are reached with Back and Next.
      *
-     * @param int $current 1 to 8
+     * @param int $current 1 to 9
      * @return array
      */
     public static function bar(int $current): array {
@@ -91,7 +96,7 @@ class setuppath {
      *
      * @param array $state from {@see self::state()}
      * @param bool $choicessaved whether the builder choices have been saved at least once
-     * @return int step 1 to 8
+     * @return int step 1 to 9
      */
     public static function resume_step(array $state, bool $choicessaved): int {
         if (!$state['scenes']) {

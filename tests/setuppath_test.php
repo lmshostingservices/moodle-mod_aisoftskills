@@ -36,11 +36,12 @@ final class setuppath_test extends \advanced_testcase {
         $this->assertSame('/mod/aisoftskills/builder.php?id=3&start=2', setuppath::url(3, 2)->out_as_local_url(false));
         $this->assertSame('/mod/aisoftskills/builder.php?id=3&step=build', setuppath::url(3, 5)->out_as_local_url(false));
         $this->assertSame('/mod/aisoftskills/scenes.php?id=3&step=pictures', setuppath::url(3, 6)->out_as_local_url(false));
-        $this->assertSame('/mod/aisoftskills/scenes.php?id=3&step=check', setuppath::url(3, 7)->out_as_local_url(false));
-        $this->assertSame('/mod/aisoftskills/builder.php?id=3&step=finish', setuppath::url(3, 8)->out_as_local_url(false));
+        $this->assertSame('/mod/aisoftskills/scenes.php?id=3&step=voices', setuppath::url(3, 7)->out_as_local_url(false));
+        $this->assertSame('/mod/aisoftskills/scenes.php?id=3&step=check', setuppath::url(3, 8)->out_as_local_url(false));
+        $this->assertSame('/mod/aisoftskills/builder.php?id=3&step=finish', setuppath::url(3, 9)->out_as_local_url(false));
         $bar = setuppath::bar(6);
-        $this->assertCount(8, $bar['steps']);
-        $this->assertSame([true, true, true, true, true, false, false, false], array_column($bar['steps'], 'done'));
+        $this->assertCount(9, $bar['steps']);
+        $this->assertSame([true, true, true, true, true, false, false, false, false], array_column($bar['steps'], 'done'));
         $this->assertTrue($bar['steps'][5]['current']);
         $this->assertSame('Pictures', $bar['steps'][5]['name']);
     }

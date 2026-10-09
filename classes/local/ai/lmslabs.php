@@ -39,7 +39,7 @@ class lmslabs implements provider {
     public const TEXT_ROUTE = '/api/moodle/ai-softskills/scenes/draft';
 
     /** @var int Credits LMS Labs charges per delivered scene draft (owner-approved tariff). */
-    public const TEXT_CREDITS = 3;
+    public const TEXT_CREDITS = 5;
 
     /**
      * @var string AI Soft Skills charge for scenes made outside LMS Labs AI (an AI assistant of the teacher's choice):
@@ -47,6 +47,15 @@ class lmslabs implements provider {
      * LMS Labs answers 404 and no scene is created.
      */
     public const IMPORT_ROUTE = '/api/moodle/ai-softskills/scenes/import';
+
+    /** @var string AI Soft Skills voiceover catalogue (free): Google Chirp 3 HD voices per locale. */
+    public const VOICE_CATALOG_ROUTE = '/api/moodle/ai-softskills/speech/capabilities';
+
+    /** @var string AI Soft Skills voiceover route: one MP3 clip of at most 200 characters per request. */
+    public const VOICE_ROUTE = '/api/moodle/ai-softskills/speech/tts';
+
+    /** @var int Credits LMS Labs charges per delivered voiceover clip (owner-approved tariff, 8 Oct 2026). */
+    public const VOICE_CREDITS = 5;
 
     /** @var string Dedicated AI Soft Skills picture route. */
     public const IMAGE_ROUTE = '/api/moodle/ai-softskills/images';
@@ -102,7 +111,7 @@ class lmslabs implements provider {
      * The caller persists the key and body before calling, and reuses both for any later check of the same request.
      * Nothing is retried here.
      *
-     * @param string $route one of TEXT_ROUTE, IMPORT_ROUTE or IMAGE_ROUTE
+     * @param string $route one of TEXT_ROUTE, IMPORT_ROUTE, IMAGE_ROUTE or VOICE_ROUTE
      * @param string $body exact JSON body
      * @param string $key Idempotency-Key
      * @param string $accept Accept header value
@@ -114,7 +123,7 @@ class lmslabs implements provider {
         if ($credentials === null) {
             throw new moodle_exception('ainotavailable', 'mod_aisoftskills');
         }
-        if (!in_array($route, [self::TEXT_ROUTE, self::IMPORT_ROUTE, self::IMAGE_ROUTE], true)) {
+        if (!in_array($route, [self::TEXT_ROUTE, self::IMPORT_ROUTE, self::IMAGE_ROUTE, self::VOICE_ROUTE], true)) {
             throw new \coding_exception('Unknown LMS Labs route');
         }
         $url = self::BASE_URL . $route;
@@ -150,6 +159,40 @@ class lmslabs implements provider {
     }
 
     /**
+     * Reads the voiceover catalogue (free; header-only credentials; redirects never followed).
+     *
+     * @return array|null locales [{locale, ttsLanguageCode, voices [{name}]}], or null when it cannot be read
+     */
+    public static function voice_catalog(): ?array {
+        global $CFG;
+        $credentials = \mod_aisoftskills\local\credentials::find();
+        if ($credentials === null) {
+            return null;
+        }
+        $url = self::BASE_URL . self::VOICE_CATALOG_ROUTE;
+        $headers = ['X-Site-ID: ' . $credentials['siteid'], 'X-API-Key: ' . $credentials['apikey'],
+            'Accept: application/json'];
+        if (self::$transport) {
+            [$status, $body] = (self::$transport)($url, $headers);
+        } else {
+            require_once($CFG->libdir . '/filelib.php');
+            $curl = new \curl();
+            $curl->setHeader($headers);
+            $body = $curl->get($url, [], ['CURLOPT_CONNECTTIMEOUT' => 5, 'CURLOPT_TIMEOUT' => 15,
+                'CURLOPT_FOLLOWLOCATION' => false]);
+            if ($curl->get_errno()) {
+                return null;
+            }
+            $status = (int)($curl->get_info()['http_code'] ?? 0);
+        }
+        $data = json_decode((string)$body, true);
+        if ((int)$status !== 200 || !is_array($data) || empty($data['locales']) || !is_array($data['locales'])) {
+            return null;
+        }
+        return array_values(array_filter($data['locales'], 'is_array'));
+    }
+
+    /**
      * Reads the site's balance (GET /api/credits, key in the X-API-Key header).
      *
      * @return array|null
@@ -169,7 +212,9 @@ class lmslabs implements provider {
             require_once($CFG->libdir . '/filelib.php');
             $curl = new \curl();
             $curl->setHeader($headers);
-            $body = $curl->get($url, [], ['CURLOPT_CONNECTTIMEOUT' => 5, 'CURLOPT_TIMEOUT' => 10]);
+            // Never follow a redirect: the API key header would be sent on to the new address.
+            $body = $curl->get($url, [], ['CURLOPT_CONNECTTIMEOUT' => 5, 'CURLOPT_TIMEOUT' => 10,
+                'CURLOPT_FOLLOWLOCATION' => false]);
             if ($curl->get_errno()) {
                 return null;
             }

@@ -50,15 +50,18 @@ class scene_form extends \moodleform {
         $mform->addRule('title', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
         $mform->addElement('text', 'skill', get_string('sceneskill', $c), ['size' => 40] + $dir);
         $mform->setType('skill', PARAM_TEXT);
-        $mform->addElement('textarea', 'context', get_string('scenecontext', $c), ['rows' => 3, 'cols' => 60] + $dir);
+        $mform->addElement('textarea', 'context', get_string('scenecontext', $c), ['rows' => 3, 'cols' => 60,
+            'data-ss-limit' => manager::LIMITS['context']] + $dir);
         $mform->setType('context', PARAM_TEXT);
         $mform->addHelpButton('context', 'scenecontext', $c);
         $mform->addElement('textarea', 'scripttext', get_string('scenescript', $c), ['rows' => 5, 'cols' => 60] + $dir);
         $mform->setType('scripttext', PARAM_TEXT);
         $mform->addHelpButton('scripttext', 'scenescript', $c);
-        $mform->addElement('text', 'speaker', get_string('scenespeaker', $c), ['size' => 40] + $dir);
+        $mform->addElement('text', 'speaker', get_string('scenespeaker', $c), ['size' => 40,
+            'data-ss-limit' => manager::LIMITS['speaker']] + $dir);
         $mform->setType('speaker', PARAM_TEXT);
-        $mform->addElement('text', 'question', get_string('scenequestion', $c), ['size' => 60] + $dir);
+        $mform->addElement('text', 'question', get_string('scenequestion', $c), ['size' => 60,
+            'data-ss-limit' => manager::LIMITS['question']] + $dir);
         $mform->setType('question', PARAM_TEXT);
         $mform->addElement('textarea', 'imageprompt', get_string('sceneimageprompt', $c), ['rows' => 3, 'cols' => 60]);
         $mform->setType('imageprompt', PARAM_TEXT);
@@ -72,7 +75,8 @@ class scene_form extends \moodleform {
             $letter = chr(65 + $i);
             $mform->addElement('header', "optionhdr{$i}", get_string('responsex', $c, $letter));
             $mform->setExpanded("optionhdr{$i}");
-            $mform->addElement('textarea', "text{$i}", get_string('responsetext', $c), ['rows' => 2, 'cols' => 60] + $dir);
+            $mform->addElement('textarea', "text{$i}", get_string('responsetext', $c), ['rows' => 2, 'cols' => 60,
+                'data-ss-limit' => manager::LIMITS['text']] + $dir);
             $mform->setType("text{$i}", PARAM_TEXT);
             $mform->addRule("text{$i}", null, 'required', null, 'client');
             $mform->addElement('select', "kpi{$i}", get_string('responsekpi', $c), $kpis);
@@ -84,11 +88,12 @@ class scene_form extends \moodleform {
                 'textarea',
                 "consequence{$i}",
                 get_string('responseconsequence', $c),
-                ['rows' => 3, 'cols' => 60] + $dir
+                ['rows' => 3, 'cols' => 60, 'data-ss-limit' => manager::LIMITS['consequence']] + $dir
             );
             $mform->setType("consequence{$i}", PARAM_TEXT);
             $mform->addHelpButton("consequence{$i}", 'responseconsequence', $c);
-            $mform->addElement('textarea', "reason{$i}", get_string('responsereason', $c), ['rows' => 2, 'cols' => 60] + $dir);
+            $mform->addElement('textarea', "reason{$i}", get_string('responsereason', $c), ['rows' => 2, 'cols' => 60,
+                'data-ss-limit' => manager::LIMITS['reason']] + $dir);
             $mform->setType("reason{$i}", PARAM_TEXT);
         }
         $mform->addElement('header', 'besthdr', get_string('bestresponse', $c));
@@ -116,7 +121,24 @@ class scene_form extends \moodleform {
         if ($best < 0 || $best >= manager::OPTIONS) {
             $errors['bestgroup'] = get_string('required');
         }
+        // Short enough to sit neatly on the page.
+        $limit = function (string $name, string $field) use ($data, &$errors) {
+            $length = \core_text::strlen(trim((string)($data[$name] ?? '')));
+            if ($length > manager::LIMITS[$field]) {
+                $errors[$name] = get_string(
+                    'toolong_field',
+                    'mod_aisoftskills',
+                    (object)['max' => manager::LIMITS[$field], 'length' => $length]
+                );
+            }
+        };
+        foreach (['context', 'question', 'speaker'] as $field) {
+            $limit($field, $field);
+        }
         for ($i = 0; $i < manager::OPTIONS; $i++) {
+            foreach (['text', 'consequence', 'reason'] as $field) {
+                $limit($field . $i, $field);
+            }
             if (trim((string)($data["text{$i}"] ?? '')) === '') {
                 $errors["text{$i}"] = get_string('required');
             }

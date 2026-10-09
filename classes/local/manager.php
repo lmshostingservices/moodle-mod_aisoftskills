@@ -34,8 +34,16 @@ class manager {
     /** @var string[] Accepted picture types. */
     public const IMAGE_TYPES = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
 
+    /**
+     * @var int[] Longest text, in characters, that still sits neatly on the scene page and in the feedback popup.
+     *     Longer text (from earlier versions or pasted from an AI assistant) is kept, but flagged in the check step and
+     *     must be shortened when the scene is next saved in the editor.
+     */
+    public const LIMITS = ['context' => 450, 'question' => 160, 'text' => 300, 'consequence' => 300, 'reason' => 220,
+        'speaker' => 60];
+
     /** @var string[] File areas. */
-    public const FILEAREAS = ['sceneimage'];
+    public const FILEAREAS = ['sceneimage', 'voiceover'];
 
     /** @var int Most pictures accepted in one upload. */
     public const MAX_UPLOAD_IMAGES = 100;
@@ -62,7 +70,9 @@ class manager {
      * @return stdClass
      */
     public static function prepare_instance_data(stdClass $data): stdClass {
-        foreach (['allowretry', 'shuffleoptions', 'sounds', 'completionallscenes'] as $flag) {
+        $flags = ['allowretry', 'practicemode', 'testmode', 'shuffleoptions', 'sounds', 'mustlisten', 'completionallscenes',
+            'completionpasstest'];
+        foreach ($flags as $flag) {
             if (property_exists($data, $flag)) {
                 $data->$flag = empty($data->$flag) ? 0 : 1;
             }
@@ -85,6 +95,27 @@ class manager {
         if (isset($data->grademethod) && !in_array((int)$data->grademethod, [1, 2, 3, 4], true)) {
             $data->grademethod = self::GRADE_HIGHEST;
         }
+        if (
+            property_exists($data, 'practicemode') && property_exists($data, 'testmode')
+                && !$data->practicemode && !$data->testmode
+        ) {
+            // At least one way to play.
+            $data->practicemode = 1;
+        }
+        if (property_exists($data, 'testmode') || property_exists($data, 'practicemode')) {
+            // Kept in step for anything that still reads the old setting.
+            $data->allowretry = empty($data->testmode) || !empty($data->practicemode) ? 1 : 0;
+        }
+        if (isset($data->voiceparts) && is_array($data->voiceparts)) {
+            // From the form: one checkbox per part.
+            $data->voiceparts = implode(',', array_keys(array_filter($data->voiceparts)));
+        }
+        if (property_exists($data, 'voiceparts')) {
+            $data->voiceparts = implode(',', array_intersect(voiceover::PARTS, explode(',', (string)$data->voiceparts)));
+        }
+        if (property_exists($data, 'passmark')) {
+            $data->passmark = max(0, min(100, (int)$data->passmark));
+        }
         if (property_exists($data, 'maxattempts')) {
             $data->maxattempts = max(0, min(100, (int)$data->maxattempts));
         }
@@ -103,8 +134,9 @@ class manager {
      */
     public static function get_user_grades(stdClass $instance, int $userid = 0): array {
         global $DB;
-        $params = ['aid' => $instance->id, 'state' => 'finished'];
-        $where = 'aisoftskillsid = :aid AND state = :state';
+        // Only the graded mode counts: the test when the activity has one, otherwise practice.
+        $params = ['aid' => $instance->id, 'state' => 'finished', 'mode' => learning::graded_mode($instance)];
+        $where = 'aisoftskillsid = :aid AND state = :state AND playmode = :mode';
         if ($userid) {
             $where .= ' AND userid = :userid';
             $params['userid'] = $userid;
@@ -206,6 +238,30 @@ class manager {
         foreach ($scenes as $scene) {
             if (self::scene_ready($context, $scene, $options[$scene->id])) {
                 $out[] = [$scene, $options[$scene->id]];
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * The fields of a scene that are longer than {@see self::LIMITS}.
+     *
+     * @param stdClass $scene
+     * @param stdClass[] $options
+     * @return string[] field names (context, question, speaker, text, consequence or reason), each once
+     */
+    public static function too_long(stdClass $scene, array $options): array {
+        $out = [];
+        foreach (['context', 'question', 'speaker'] as $field) {
+            if (\core_text::strlen(trim((string)$scene->$field)) > self::LIMITS[$field]) {
+                $out[] = $field;
+            }
+        }
+        foreach ($options as $option) {
+            foreach (['text', 'consequence', 'reason'] as $field) {
+                if (\core_text::strlen(trim((string)$option->$field)) > self::LIMITS[$field] && !in_array($field, $out, true)) {
+                    $out[] = $field;
+                }
             }
         }
         return $out;
@@ -336,6 +392,7 @@ class manager {
         $DB->delete_records('aisoftskills_option', ['sceneid' => $scene->id]);
         $DB->delete_records('aisoftskills_scene', ['id' => $scene->id]);
         get_file_storage()->delete_area_files($context->id, 'mod_aisoftskills', 'sceneimage', $scene->id);
+        get_file_storage()->delete_area_files($context->id, 'mod_aisoftskills', 'voiceover', $scene->id);
         self::normalise_sortorder((int)$scene->aisoftskillsid);
     }
 

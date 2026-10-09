@@ -38,6 +38,7 @@ class start_attempt extends base {
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
             'cmid' => new external_value(PARAM_INT, 'Course module id'),
+            'mode' => new external_value(PARAM_ALPHA, 'practice or test; empty for the activity\'s first mode', VALUE_DEFAULT, ''),
         ]);
     }
 
@@ -45,13 +46,14 @@ class start_attempt extends base {
      * Starts or resumes an attempt.
      *
      * @param int $cmid
+     * @param string $mode
      * @return array
      */
-    public static function execute(int $cmid): array {
+    public static function execute(int $cmid, string $mode = ''): array {
         global $USER;
-        $params = self::validate_parameters(self::execute_parameters(), ['cmid' => $cmid]);
+        $params = self::validate_parameters(self::execute_parameters(), ['cmid' => $cmid, 'mode' => $mode]);
         [, , $instance, $context] = self::load_cm($params['cmid'], 'attempt');
-        return learning::start_attempt($instance, $context, (int)$USER->id);
+        return learning::start_attempt($instance, $context, (int)$USER->id, $params['mode']);
     }
 
     /**
@@ -63,23 +65,45 @@ class start_attempt extends base {
         return new external_single_structure([
             'attemptid' => new external_value(PARAM_INT, 'Attempt id'),
             'attempt' => new external_value(PARAM_INT, 'Attempt number'),
+            'mode' => new external_value(PARAM_ALPHA, 'practice or test'),
             'scenes' => new external_multiple_structure(new external_single_structure([
                 'sceneid' => new external_value(PARAM_INT, 'Scene id'),
                 'number' => new external_value(PARAM_INT, 'Scene number'),
                 'title' => new external_value(PARAM_TEXT, 'Title'),
                 'skill' => new external_value(PARAM_TEXT, 'Soft skill'),
                 'context' => new external_value(PARAM_TEXT, 'What is happening'),
+                'cards' => new external_multiple_structure(new external_single_structure([
+                    'kind' => new external_value(PARAM_ALPHA, 'situation, action or context'),
+                    'lines' => new external_multiple_structure(new external_single_structure([
+                        'text' => new external_value(PARAM_TEXT, 'One sentence'),
+                    ])),
+                ]), 'What is happening, in short cards'),
+                'labels' => new external_multiple_structure(new external_single_structure([
+                    'text' => new external_value(PARAM_TEXT, 'Name label, such as Leo - Bartender'),
+                    'x' => new external_value(PARAM_FLOAT, 'Centre, percent of the picture width'),
+                    'y' => new external_value(PARAM_FLOAT, 'Centre, percent of the picture height'),
+                    'you' => new external_value(PARAM_BOOL, 'The learner'),
+                ]), 'Name labels on the picture'),
+                'voice' => new external_multiple_structure(new external_single_structure([
+                    'url' => new external_value(PARAM_URL, 'Voiceover clip'),
+                    'part' => new external_value(PARAM_ALPHA, 'context, line or question'),
+                    'line' => new external_value(PARAM_INT, 'Conversation line, -1 none'),
+                ]), 'Voiceover of the scene, empty when there is none'),
                 'dialogue' => new external_multiple_structure(new external_single_structure([
                     'speaker' => new external_value(PARAM_TEXT, 'Who speaks'),
                     'line' => new external_value(PARAM_TEXT, 'What they say'),
                 ]), 'Lead-in conversation'),
                 'speaker' => new external_value(PARAM_TEXT, 'Who responds'),
+                'roleline' => new external_value(PARAM_TEXT, 'Who the learner is in the scene, as a line for the top'),
                 'question' => new external_value(PARAM_TEXT, 'Question to the learner'),
                 'image' => new external_value(PARAM_URL, 'Picture URL'),
                 'options' => new external_multiple_structure(new external_single_structure([
                     'id' => new external_value(PARAM_INT, 'Response id'),
                     'letter' => new external_value(PARAM_ALPHA, 'A or B'),
                     'text' => new external_value(PARAM_TEXT, 'Response'),
+                    'voice' => new external_multiple_structure(new external_single_structure([
+                        'url' => new external_value(PARAM_URL, 'Voiceover clip'),
+                    ]), 'The response read in the learner\'s voice, empty when there is none'),
                 ])),
                 'resolved' => new external_value(PARAM_BOOL, 'Scene done'),
                 'answered' => new external_value(PARAM_BOOL, 'A choice has been made'),

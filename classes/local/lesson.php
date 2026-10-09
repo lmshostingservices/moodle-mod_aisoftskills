@@ -241,7 +241,8 @@ class lesson {
         $limit = (int)(get_config('mod_aisoftskills', 'airate') ?: 30);
         $count = $DB->count_records_select(
             'aisoftskills_ailog',
-            'userid = :userid AND timecreated > :since',
+            // Voiceover clips have their own limit.
+            "userid = :userid AND timecreated > :since AND action <> 'voice'",
             ['userid' => $userid, 'since' => time() - HOURSECS]
         );
         if ($count >= $limit) {

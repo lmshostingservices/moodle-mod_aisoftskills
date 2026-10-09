@@ -54,6 +54,7 @@ class provider implements
             'userid' => 'privacy:metadata:attempt:userid',
             'attempt' => 'privacy:metadata:attempt:attempt',
             'state' => 'privacy:metadata:attempt:state',
+            'playmode' => 'privacy:metadata:attempt:mode',
             'sceneorder' => 'privacy:metadata:attempt:sceneorder',
             'score' => 'privacy:metadata:attempt:score',
             'kpis' => 'privacy:metadata:attempt:kpis',
@@ -85,6 +86,7 @@ class provider implements
         $collection->add_external_location_link('lmslabs', [
             'brief' => 'privacy:metadata:lmslabs:brief',
             'prompt' => 'privacy:metadata:lmslabs:prompt',
+            'voicetext' => 'privacy:metadata:lmslabs:voicetext',
             'siteid' => 'privacy:metadata:lmslabs:siteid',
         ], 'privacy:metadata:lmslabs');
         $collection->add_subsystem_link('core_grades', [], 'privacy:metadata:core_grades');
@@ -178,6 +180,7 @@ class provider implements
                 $attempts[] = (object)[
                     'attempt' => (int)$attempt->attempt,
                     'state' => $attempt->state,
+                    'mode' => $attempt->playmode,
                     'score' => $attempt->score === null ? null : (float)$attempt->score,
                     'indicators' => learning::kpis($attempt),
                     'timestart' => transform::datetime($attempt->timestart),

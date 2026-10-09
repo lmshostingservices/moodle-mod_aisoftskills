@@ -104,6 +104,7 @@
                 <th scope="col">{{#str}} fullname {{/str}}</th>
                 {{#identityheaders}}<th scope="col">{{name}}</th>{{/identityheaders}}
                 <th scope="col">{{#str}} col_attempt, mod_aisoftskills {{/str}}</th>
+                <th scope="col">{{#str}} col_mode, mod_aisoftskills {{/str}}</th>
                 <th scope="col">{{#str}} col_state, mod_aisoftskills {{/str}}</th>
                 <th scope="col">{{#str}} col_started, mod_aisoftskills {{/str}}</th>
                 <th scope="col">{{#str}} col_duration, mod_aisoftskills {{/str}}</th>
@@ -115,7 +116,7 @@
                 {{#canmanage}}<td><input type="checkbox" name="attemptids[]" value="{{id}}" aria-label="{{#str}} select {{/str}} {{fullname}}"></td>{{/canmanage}}
                 <td>{{fullname}}</td>
                 {{#identity}}<td>{{value}}</td>{{/identity}}
-                <td>{{attempt}}</td><td>{{state}}</td><td>{{started}}</td><td>{{duration}}</td><td>{{score}}</td>
+                <td>{{attempt}}</td><td>{{mode}}</td><td>{{state}}</td><td>{{started}}</td><td>{{duration}}</td><td>{{score}}</td>
             </tr>
             {{/rows}}
             </tbody>

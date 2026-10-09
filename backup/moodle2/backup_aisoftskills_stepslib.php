@@ -36,17 +36,19 @@ class backup_aisoftskills_activity_structure_step extends backup_activity_struct
 
         $root = new backup_nested_element('aisoftskills', ['id'], [
             'name', 'intro', 'introformat', 'industry', 'customindustry', 'level', 'contentlang', 'skills', 'imagestyle',
-            'allowretry', 'shuffleoptions', 'sounds', 'grade', 'grademethod', 'maxattempts', 'completionallscenes',
+            'allowretry', 'practicemode', 'testmode', 'passmark', 'shuffleoptions', 'sounds', 'voiceparts', 'mustlisten',
+            'voicemap', 'grade',
+            'grademethod', 'maxattempts', 'completionallscenes', 'completionpasstest',
             'timecreated', 'timemodified',
         ]);
         $scenes = new backup_nested_element('scenes');
         $scene = new backup_nested_element('scene', ['id'], ['sortorder', 'skill', 'title', 'context', 'speaker',
-            'question', 'imageprompt', 'script', 'teachingnote', 'timecreated', 'timemodified']);
+            'question', 'imageprompt', 'script', 'teachingnote', 'labels', 'timecreated', 'timemodified']);
         $options = new backup_nested_element('options');
         $option = new backup_nested_element('option', ['id'], ['sortorder', 'text', 'best', 'kpi', 'kpidelta',
             'consequence', 'reason']);
         $attempts = new backup_nested_element('attempts');
-        $attempt = new backup_nested_element('attempt', ['id'], ['userid', 'attempt', 'state', 'sceneorder', 'score',
+        $attempt = new backup_nested_element('attempt', ['id'], ['userid', 'attempt', 'state', 'playmode', 'sceneorder', 'score',
             'kpis', 'timestart', 'timefinish', 'timemodified']);
         $choices = new backup_nested_element('choices');
         $choice = new backup_nested_element('choice', ['id'], ['sceneid', 'optionid', 'best', 'tries', 'resolved',
@@ -72,6 +74,7 @@ class backup_aisoftskills_activity_structure_step extends backup_activity_struct
 
         $root->annotate_files('mod_aisoftskills', 'intro', null);
         $scene->annotate_files('mod_aisoftskills', 'sceneimage', 'id');
+        $scene->annotate_files('mod_aisoftskills', 'voiceover', 'id');
 
         return $this->prepare_activity_structure($root);
     }

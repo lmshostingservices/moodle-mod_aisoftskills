@@ -55,6 +55,18 @@ $functions = [
         'type' => 'write',
         'ajax' => true,
     ],
+    'mod_aisoftskills_create_voice' => [
+        'classname' => \mod_aisoftskills\external\create_voice::class,
+        'description' => 'Creates one voiceover clip of a scene with LMS Labs (when voiceover is switched on).',
+        'type' => 'write',
+        'ajax' => true,
+    ],
+    'mod_aisoftskills_save_labels' => [
+        'classname' => \mod_aisoftskills\external\save_labels::class,
+        'description' => 'Saves the name labels placed on a scene picture.',
+        'type' => 'write',
+        'ajax' => true,
+    ],
     'mod_aisoftskills_draft_scene' => [
         'classname' => \mod_aisoftskills\external\draft_scene::class,
         'description' => 'Drafts one scene with LMS Labs AI (when available on the site).',

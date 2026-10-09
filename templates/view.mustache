@@ -23,12 +23,13 @@
     Example context (json):
     {
         "uniqid": "ss-1", "config": "{}", "ready": true, "canmanage": false, "canattempt": true, "canstart": true,
-        "resume": false, "nomore": false, "industry": "Office", "levelname": "Manager",
+        "starts": [{"mode": "practice", "label": "Practise", "intro": "", "primary": false}, {"mode": "test", "label": "Take the test", "intro": "", "primary": true}],
+        "showmode": true, "nomore": false, "industry": "Office", "levelname": "Manager",
         "leveldesc": "Leads a team: performance, workload and conflict.", "language": "English",
         "ladder": [{"key": "worker", "name": "Worker", "number": 1, "current": false, "below": true},
             {"key": "manager", "name": "Manager", "number": 3, "current": true, "below": false}],
         "skills": ["Motivating others"], "hasskills": true, "scenes": 8, "bestscore": 75, "hasbest": true,
-        "history": [{"number": 1, "score": 75, "date": "27/09/26, 10:00"}], "hashistory": true, "attemptsinfo": "",
+        "history": [{"number": 1, "score": 75, "mode": "Test", "date": "27/09/26, 10:00"}], "hashistory": true, "attemptsinfo": "",
         "setupurl": "#", "reporturl": "#", "dir": "ltr", "contentlang": "en"
     }
 }}
@@ -50,11 +51,16 @@
                 </div>
                 {{/hasskills}}
                 <div class="ss-hero-actions">
-                    {{#canstart}}
-                    <button type="button" class="ss-btn ss-btn-primary ss-btn-lg" data-action="start">
-                        {{#resume}}{{#str}} resume, mod_aisoftskills {{/str}}{{/resume}}{{^resume}}{{#str}} start, mod_aisoftskills {{/str}}{{/resume}}
-                    </button>
-                    {{/canstart}}
+                    {{#starts.0}}
+                    <div class="ss-startmodes">
+                        {{#starts}}
+                        <div class="ss-startmode">
+                            <button type="button" class="ss-btn {{#primary}}ss-btn-primary{{/primary}}{{^primary}}ss-btn-ghost{{/primary}} ss-btn-lg" data-action="start" data-mode="{{mode}}">{{label}}</button>
+                            {{#intro}}<p class="ss-mini mb-0">{{.}}</p>{{/intro}}
+                        </div>
+                        {{/starts}}
+                    </div>
+                    {{/starts.0}}
                     {{#nomore}}<p class="ss-note">{{#str}} nomoreattempts, mod_aisoftskills {{/str}}</p>{{/nomore}}
                     {{^ready}}<p class="ss-note">{{#canmanage}}{{#str}} notready_manager, mod_aisoftskills {{/str}}{{/canmanage}}{{^canmanage}}{{#str}} notready_student, mod_aisoftskills {{/str}}{{/canmanage}}</p>{{/ready}}
                     {{#attemptsinfo}}<p class="ss-note">{{.}}</p>{{/attemptsinfo}}
@@ -72,8 +78,8 @@
         <section class="ss-panel">
             <h4 class="ss-panel-title">{{#str}} yourattempts, mod_aisoftskills {{/str}}</h4>
             <table class="table table-sm ss-table">
-                <thead><tr><th scope="col">{{#str}} attempt, mod_aisoftskills {{/str}}</th><th scope="col">{{#str}} score, mod_aisoftskills {{/str}}</th><th scope="col">{{#str}} date {{/str}}</th></tr></thead>
-                <tbody>{{#history}}<tr><td>{{number}}</td><td>{{score}}%</td><td>{{date}}</td></tr>{{/history}}</tbody>
+                <thead><tr><th scope="col">{{#str}} attempt, mod_aisoftskills {{/str}}</th>{{#showmode}}<th scope="col">{{#str}} col_mode, mod_aisoftskills {{/str}}</th>{{/showmode}}<th scope="col">{{#str}} score, mod_aisoftskills {{/str}}</th><th scope="col">{{#str}} date {{/str}}</th></tr></thead>
+                <tbody>{{#history}}<tr><td>{{number}}</td>{{#showmode}}<td>{{mode}}</td>{{/showmode}}<td>{{score}}%</td><td>{{date}}</td></tr>{{/history}}</tbody>
             </table>
         </section>
         {{/hashistory}}

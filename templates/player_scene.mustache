@@ -22,11 +22,17 @@
     Example context (json):
     {
         "sceneid": 1, "number": 1, "total": 8, "title": "The deadline is slipping", "skill": "Motivating others",
-        "context": "The team is behind schedule and tired.", "speaker": "You, the team leader",
+        "context": "The team is behind schedule. You ask Sam to stay late. The client calls twice a day.",
+        "cards": [{"kind": "situation", "title": "The situation", "lines": [{"text": "The team is behind schedule."}]},
+            {"kind": "action", "title": "What you do", "lines": [{"text": "You ask Sam to stay late."}]},
+            {"kind": "context", "title": "Good to know", "lines": [{"text": "The client calls twice a day."}]}],
+        "labels": [{"text": "Sam - Developer", "x": 30, "y": 55, "you": false}, {"text": "You, the team leader", "x": 70, "y": 55, "you": true}],
+        "haslearnerlabel": true, "voice": [{"url": "https://example.com/1.mp3", "part": "context", "line": -1}], "hasvoice": true,
+        "speaker": "You, the team leader", "roleline": "As the team leader, how would you handle this situation?",
         "dialogue": [{"speaker": "Sam", "line": "We will never make Friday."}, {"speaker": "Ana", "line": "Not like this."}],
         "question": "What do you say?", "image": "https://example.com/scene.png",
-        "options": [{"id": 11, "letter": "A", "text": "Is there anything I can get you to help you reach the goal faster?"},
-            {"id": 12, "letter": "B", "text": "Hurry up, all of you!"}]
+        "options": [{"id": 11, "letter": "A", "text": "Is there anything I can get you to help you reach the goal faster?", "voice": [{"url": "https://example.com/2.mp3"}], "hasvoice": true},
+            {"id": 12, "letter": "B", "text": "Hurry up, all of you!", "voice": [], "hasvoice": false}]
     }
 }}
 <section class="ss-scene" data-sceneid="{{sceneid}}" aria-labelledby="ss-scene-title-{{sceneid}}">
@@ -37,22 +43,58 @@
     <div class="ss-scene-body">
         <figure class="ss-figure">
             <img src="{{image}}" alt="{{title}}" draggable="false">
-            {{#speaker}}<figcaption class="ss-speaker" dir="auto">{{speaker}}</figcaption>{{/speaker}}
+            {{#labels}}
+            <span class="ss-namelabel {{#you}}is-you{{/you}}" style="left: {{x}}%; top: {{y}}%;" dir="auto">{{text}}</span>
+            {{/labels}}
+            {{#labels.0}}<figcaption class="sr-only">{{#str}} labels_inpicture, mod_aisoftskills {{/str}} {{#labels}}{{text}}. {{/labels}}</figcaption>{{/labels.0}}
         </figure>
         <div class="ss-scene-side">
-            {{#context}}<p class="ss-context" dir="auto">{{context}}</p>{{/context}}
+            {{#roleline}}
+            <p class="ss-roleline" dir="auto">
+                <span class="ss-roleline-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c.8-3.9 3.6-6 7-6s6.2 2.1 7 6"/><path d="M9.5 14.5l2.5 3 2.5-3"/></svg></span>
+                <span>{{roleline}}</span>
+            </p>
+            {{/roleline}}
+            {{#hasvoice}}
+            <button type="button" class="ss-listen" data-action="listen" aria-pressed="false">
+                <svg class="ss-listen-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="ss-listen-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                <span class="ss-listen-label">{{#str}} listen_scene, mod_aisoftskills {{/str}}</span>
+            </button>
+            {{/hasvoice}}
+            {{#cards.0}}
+            <div class="ss-ctxcards" data-part="context">
+                {{#cards}}
+                <section class="ss-ctxcard ss-ctxcard-{{kind}}">
+                    <h4 class="ss-ctxcard-title">{{> mod_aisoftskills/context_icon}}<span>{{title}}</span></h4>
+                    {{#lines}}<p dir="auto">{{text}}</p>{{/lines}}
+                </section>
+                {{/cards}}
+            </div>
+            {{/cards.0}}
             {{#dialogue.0}}
             <div class="ss-dialogue">
-                {{#dialogue}}<p class="ss-dialogue-line" dir="auto">{{#speaker}}<strong class="ss-dialogue-speaker">{{speaker}}</strong> {{/speaker}}<span>{{line}}</span></p>{{/dialogue}}
+                {{#dialogue}}<p class="ss-dialogue-line" data-line="{{index}}" dir="auto">{{#speaker}}<strong class="ss-dialogue-speaker">{{speaker}}</strong> {{/speaker}}<span>{{line}}</span></p>{{/dialogue}}
             </div>
             {{/dialogue.0}}
-            <p class="ss-question" dir="auto">{{#question}}{{question}}{{/question}}{{^question}}{{#str}} whatdoyousay, mod_aisoftskills {{/str}}{{/question}}</p>
+            <div class="ss-question" data-part="question">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg>
+                <p dir="auto">{{#question}}{{question}}{{/question}}{{^question}}{{#str}} whatdoyousay, mod_aisoftskills {{/str}}{{/question}}</p>
+            </div>
+            <p class="ss-listennote" data-region="listennote" role="status" hidden></p>
             <div class="ss-options" role="group" aria-label="{{#str}} responses, mod_aisoftskills {{/str}}">
                 {{#options}}
-                <button type="button" class="ss-option" data-optionid="{{id}}">
-                    <span class="ss-option-letter" aria-hidden="true">{{letter}}</span>
-                    <span class="ss-option-text" dir="auto">{{text}}</span>
-                </button>
+                <div class="ss-option-wrap">
+                    <button type="button" class="ss-option" data-optionid="{{id}}">
+                        <span class="ss-option-letter" aria-hidden="true">{{letter}}</span>
+                        <span class="ss-option-text" dir="auto">{{text}}</span>
+                    </button>
+                    {{#hasvoice}}
+                    <button type="button" class="ss-option-listen" data-action="listenoption" data-optionid="{{id}}" aria-pressed="false" title="{{#str}} listen_option, mod_aisoftskills, {{letter}} {{/str}}" aria-label="{{#str}} listen_option, mod_aisoftskills, {{letter}} {{/str}}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
+                    </button>
+                    {{/hasvoice}}
+                </div>
                 {{/options}}
             </div>
         </div>

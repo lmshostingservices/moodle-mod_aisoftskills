@@ -278,7 +278,7 @@ if ($tab === 'attempts') {
     $count = $DB->count_records_sql("SELECT COUNT(1) FROM {aisoftskills_attempt} a JOIN {user} u ON u.id = a.userid
         WHERE $where", $params);
     $params += $userselect->params;
-    $sql = "SELECT a.id, a.userid, a.attempt, a.state, a.timestart, a.timefinish, a.score
+    $sql = "SELECT a.id, a.userid, a.attempt, a.state, a.playmode, a.timestart, a.timefinish, a.score
                    {$userselect->selects}
               FROM {aisoftskills_attempt} a
               JOIN {user} u ON u.id = a.userid
@@ -291,6 +291,7 @@ if ($tab === 'attempts') {
         'identity' => array_map(fn($f) => ['value' => $a->$f ?? ''], $identityfields),
         'attempt' => (int)$a->attempt,
         'state' => $str('state_' . $a->state),
+        'mode' => $str('mode_' . ($a->playmode === learning::MODE_TEST ? 'test' : 'practice')),
         'started' => $fmtdate($a->timestart),
         'duration' => $a->timefinish ? format_time((int)$a->timefinish - (int)$a->timestart) : '–',
         'score' => $fmtpct($a->score),
@@ -300,7 +301,8 @@ if ($tab === 'attempts') {
         foreach ($identityfields as $f) {
             $columns[$f] = \core_user\fields::get_display_name($f);
         }
-        $columns += ['attempt' => $str('col_attempt'), 'state' => $str('col_state'), 'started' => $str('col_started'),
+        $columns += ['attempt' => $str('col_attempt'), 'mode' => $str('col_mode'), 'state' => $str('col_state'),
+            'started' => $str('col_started'),
             'duration' => $str('col_duration'), 'score' => $str('col_score')];
         $rs = $DB->get_recordset_sql($sql, $params);
         \core\dataformat::download_data(
@@ -314,7 +316,8 @@ if ($tab === 'attempts') {
                 foreach ($identityfields as $f) {
                     $line[$f] = $a->$f ?? '';
                 }
-                return $line + ['attempt' => $r['attempt'], 'state' => $r['state'], 'started' => $r['started'],
+                return $line + ['attempt' => $r['attempt'], 'mode' => $r['mode'], 'state' => $r['state'],
+                    'started' => $r['started'],
                     'duration' => $r['duration'], 'score' => $r['score']];
             }
         );

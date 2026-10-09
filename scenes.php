@@ -28,12 +28,15 @@ use mod_aisoftskills\local\ai\factory;
 use mod_aisoftskills\local\ai\requests;
 use mod_aisoftskills\local\catalogue;
 use mod_aisoftskills\local\manager;
+use mod_aisoftskills\local\labels;
 use mod_aisoftskills\local\setuppath;
+use mod_aisoftskills\local\voiceover;
 
 $id = required_param('id', PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
 $sceneid = optional_param('sceneid', 0, PARAM_INT);
-$step = optional_param('step', 'check', PARAM_ALPHA) === 'pictures' ? setuppath::PICTURES : setuppath::CHECK;
+$steps = ['pictures' => setuppath::PICTURES, 'voices' => setuppath::VOICES];
+$step = $steps[optional_param('step', 'check', PARAM_ALPHA)] ?? setuppath::CHECK;
 
 [$course, $cm] = get_course_and_cm_from_cmid($id, 'aisoftskills');
 $instance = $DB->get_record('aisoftskills', ['id' => $cm->instance], '*', MUST_EXIST);
@@ -134,6 +137,11 @@ $total = count($scenes);
 $sesskey = sesskey();
 $missing = [];
 $noresponses = 0;
+// Voiceover: what is still to make, scene by scene (only worked out on the voiceover step).
+$voicestep = $step === setuppath::VOICES;
+$canvoice = $voicestep && voiceover::enabled() && has_capability('mod/aisoftskills:useai', $context);
+$voiceconfig = $canvoice ? voiceover::config($instance) : null;
+$clips = [];
 foreach ($scenes as $s) {
     $i++;
     [$url] = manager::get_scene_image($context, (int)$s->id);
@@ -142,6 +150,16 @@ foreach ($scenes as $s) {
         $missing[] = (int)$s->id;
     }
     $noresponses += $responsesok ? 0 : 1;
+    $saved = labels::get($s);
+    $toclip = [];
+    if ($voiceconfig && $voiceconfig['locale'] !== '') {
+        foreach (voiceover::segments($s, $voiceconfig, $options[$s->id], voiceover::parts($instance)) as $segment) {
+            if (voiceover::url($context, (int)$s->id, $segment) === '') {
+                $toclip[] = $segment['index'];
+                $clips[] = $s->id . ':' . $segment['index'];
+            }
+        }
+    }
     $cards[] = [
         'id' => (int)$s->id,
         'number' => $i,
@@ -159,6 +177,16 @@ foreach ($scenes as $s) {
             'sesskey' => $sesskey]))->out(false) : null,
         'replaceurl' => (new moodle_url($baseurl, ['action' => 'replace', 'sceneid' => $s->id]))->out(false),
         'deleteurl' => (new moodle_url($baseurl, ['action' => 'delete', 'sceneid' => $s->id]))->out(false),
+        'labelsjson' => json_encode($saved ?: labels::suggest($s), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        'labelssuggested' => $saved ? 0 : 1,
+        'labelcount' => count($saved),
+        'labelsline' => $saved ? (count($saved) === 1 ? get_string('labels_one', 'mod_aisoftskills')
+            : get_string('labels_count', 'mod_aisoftskills', count($saved))) : get_string('labels_none', 'mod_aisoftskills'),
+        'labels' => array_map(fn($l) => ['text' => format_string($l['text'], true, ['context' => $context]),
+            'x' => $l['x'], 'y' => $l['y'], 'you' => $l['you']], $saved),
+        'toolong' => (bool)manager::too_long($s, $options[$s->id]),
+        'voiceready' => $voiceconfig && !$toclip,
+        'voicemissing' => $toclip ? get_string('voice_scene_missing', 'mod_aisoftskills', count($toclip)) : '',
     ];
 }
 
@@ -166,10 +194,14 @@ $str = fn($k, $a = null) => get_string($k, 'mod_aisoftskills', $a);
 if ($step === setuppath::PICTURES) {
     $blocked = $missing ? $str('setup_needpictures', count($missing)) : '';
     $back = setuppath::CREATE;
+} else if ($step === setuppath::VOICES) {
+    // Voiceover is optional: it never blocks the next step.
+    $blocked = '';
+    $back = setuppath::PICTURES;
 } else {
     $blocked = $noresponses ? $str('setup_needresponses', $noresponses)
         : ($missing ? $str('setup_needpictures', count($missing)) : '');
-    $back = setuppath::PICTURES;
+    $back = setuppath::VOICES;
 }
 if (!$total) {
     $blocked = $str('setup_needscene');
@@ -177,11 +209,46 @@ if (!$total) {
 $next = $step + 1;
 
 $PAGE->requires->js_call_amd('mod_aisoftskills/scenes', 'init', ['#ss-scenes']);
+if ($step === setuppath::PICTURES) {
+    $PAGE->requires->js_call_amd('mod_aisoftskills/labels', 'init', ['#ss-scenes']);
+}
+
+// Who sounds like what, for the voiceover step.
+$voices = [];
+if ($voiceconfig && $voiceconfig['locale'] !== '') {
+    $typename = function (string $voice): string {
+        $type = strtolower(preg_replace('/^.*-Chirp3-HD-/', '', $voice));
+        return get_string_manager()->string_exists('voicetype_' . $type, 'mod_aisoftskills')
+            ? get_string('voicetype_' . $type, 'mod_aisoftskills') : $voice;
+    };
+    $voices[] = ['text' => $str('voice_narrator', $typename($voiceconfig['narrator']))];
+    $voices[] = ['text' => $str('voice_learner', (object)['f' => $typename($voiceconfig['learner']['f']),
+        'm' => $typename($voiceconfig['learner']['m'])])];
+    foreach ($voiceconfig['people'] as $person => $voice) {
+        $voices[] = ['text' => $str('voice_person', (object)['name' => core_text::strtotitle($person),
+            'voice' => $typename($voice)])];
+    }
+}
 
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('mod_aisoftskills/scenes', [
     'bar' => setuppath::bar($step),
     'pictures' => $step === setuppath::PICTURES,
+    'voicestep' => $voicestep,
+    'voiceon' => $canvoice && $voiceconfig && $voiceconfig['locale'] !== '',
+    'voicenolocale' => $canvoice && $voiceconfig && $voiceconfig['locale'] === '',
+    'voiceoff' => $voicestep && !$canvoice,
+    'voices' => $voices,
+    'voicepartsline' => $str('voice_parts', implode('; ', array_map(
+        fn($p) => core_text::strtolower(core_text::substr($str('voicepart_' . $p), 0, 1)) .
+            core_text::substr($str('voicepart_' . $p), 1),
+        voiceover::parts($instance)
+    ))),
+    'settingsurl' => (new moodle_url('/course/modedit.php', ['update' => $cm->id]))->out(false) . '#id_playhdr',
+    'clipcount' => count($clips),
+    'clipids' => implode(',', $clips),
+    'clipcredits' => count($clips) * \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS,
+    'voicecredits' => \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS,
     'check' => $step === setuppath::CHECK,
     'cards' => $cards,
     'hasscenes' => $total > 0,
@@ -194,9 +261,9 @@ echo $OUTPUT->render_from_template('mod_aisoftskills/scenes', [
     'missingids' => implode(',', $missing),
     'missingcredits' => count($missing) * \mod_aisoftskills\local\ai\lmslabs::IMAGE_CREDITS,
     'imagecredits' => \mod_aisoftskills\local\ai\lmslabs::IMAGE_CREDITS,
-    'requests' => $step === setuppath::PICTURES && has_capability('mod/aisoftskills:useai', $context) ? array_map(
+    'requests' => $step !== setuppath::CHECK && has_capability('mod/aisoftskills:useai', $context) ? array_map(
         fn($r) => requests::export($r, $context),
-        requests::open((int)$instance->id, requests::IMAGE)
+        requests::open((int)$instance->id, $voicestep ? requests::VOICE : requests::IMAGE)
     ) : [],
     'nav' => [
         'backurl' => setuppath::url((int)$cm->id, $back)->out(false),

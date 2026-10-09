@@ -50,6 +50,24 @@ if ($ADMIN->fulltree) {
         get_string('aiimages_desc', $component),
         1
     ));
+    // Off by default: LMS Labs has not published the AI Soft Skills speech routes yet (tariff: 5 credits per clip).
+    $settings->add(new admin_setting_configcheckbox(
+        "$component/aivoice",
+        get_string('aivoice', $component),
+        get_string('aivoice_desc', $component, \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS),
+        0
+    ));
+    $voicetypes = [];
+    foreach (\mod_aisoftskills\local\voiceover::VOICETYPES as $type) {
+        $voicetypes[$type] = get_string('voicetype_' . strtolower($type), $component);
+    }
+    $settings->add(new admin_setting_configselect(
+        "$component/narratorvoice",
+        get_string('narratorvoice', $component),
+        get_string('narratorvoice_desc', $component),
+        \mod_aisoftskills\local\voiceover::DEFAULT_NARRATOR,
+        $voicetypes
+    ));
     $settings->add(new admin_setting_configtext(
         "$component/lmslabssiteid",
         get_string('lmslabssiteid', $component),

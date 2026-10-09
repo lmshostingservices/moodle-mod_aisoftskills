@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/aisoftskills/db" VERSION="20260927" COMMENT="XMLDB file for mod_aisoftskills"
+<XMLDB PATH="mod/aisoftskills/db" VERSION="20261010" COMMENT="XMLDB file for mod_aisoftskills"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -17,13 +17,20 @@
         <FIELD NAME="contentlang" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="en" SEQUENCE="false" COMMENT="Language the scenes are written in"/>
         <FIELD NAME="skills" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Builder choices as JSON: skill keys, custom skills, scene count"/>
         <FIELD NAME="imagestyle" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="illustration" SEQUENCE="false"/>
-        <FIELD NAME="allowretry" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="After a poor choice the learner may try again (only the first choice is marked)"/>
+        <FIELD NAME="allowretry" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Before 1.4.0: after a poor choice the learner may try again. Replaced by practicemode and testmode"/>
+        <FIELD NAME="practicemode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Practice: after a poorer choice the learner tries the other response"/>
+        <FIELD NAME="testmode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Test: one choice per scene, a score and a pass mark at the end; graded"/>
+        <FIELD NAME="passmark" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="70" SEQUENCE="false" COMMENT="Test score needed to pass, in percent; 0 none"/>
         <FIELD NAME="shuffleoptions" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="sounds" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="voiceparts" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="scenario,question,responses,consequence,why" SEQUENCE="false" COMMENT="What the voiceover reads, comma-separated"/>
+        <FIELD NAME="mustlisten" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Learners hear a scene's voiceover to the end before they can answer"/>
+        <FIELD NAME="voicemap" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Voice type given to each person, kept so made clips stay valid (JSON)"/>
         <FIELD NAME="grade" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="100" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="grademethod" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 highest, 2 average, 3 first, 4 last"/>
         <FIELD NAME="maxattempts" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="0 means unlimited"/>
         <FIELD NAME="completionallscenes" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="completionpasstest" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Completion: a test attempt reaches the pass mark"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -45,6 +52,7 @@
         <FIELD NAME="imageprompt" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="English picture description for image generation"/>
         <FIELD NAME="script" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Lead-in dialogue as JSON: characters and speaker/line pairs"/>
         <FIELD NAME="teachingnote" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Note for the teacher about what the scene teaches"/>
+        <FIELD NAME="labels" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Name labels placed on the picture by the teacher, as JSON: text and position in percent"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -80,6 +88,7 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="attempt" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="state" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="inprogress" SEQUENCE="false" COMMENT="inprogress or finished"/>
+        <FIELD NAME="playmode" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="practice" SEQUENCE="false" COMMENT="practice or test"/>
         <FIELD NAME="sceneorder" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Scene ids in the order shown, and option order, as JSON"/>
         <FIELD NAME="score" TYPE="number" LENGTH="10" NOTNULL="false" SEQUENCE="false" DECIMALS="2" COMMENT="Percentage of scenes where the first choice was the better response"/>
         <FIELD NAME="kpis" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Indicator values at the end, as JSON"/>

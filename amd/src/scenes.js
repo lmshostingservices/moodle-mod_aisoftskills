@@ -14,7 +14,8 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Scene manager: create scene pictures with LMS Labs AI, one at a time or all missing pictures at once.
+ * Scene manager: create scene pictures with LMS Labs AI, one at a time or all missing pictures at once, and create the
+ * missing voiceover clips one after another.
  *
  * @module     mod_aisoftskills/scenes
  * @copyright  2026 LMS Hosting Services
@@ -37,7 +38,7 @@ export const init = async(selector) => {
         return;
     }
     const S = await loadStrings(['generating', 'genone_confirm', 'genone_confirm_replace', 'genall_confirm',
-        'genall_progress', 'confirm_title', 'confirm_create']);
+        'genall_progress', 'confirm_title', 'confirm_create', 'voice_confirm', 'voice_progress']);
     const region = root.querySelector('[data-region="aireqs"]');
     // A delivered picture is already saved: show it by reloading the page.
     const done = (request) => {
@@ -78,6 +79,53 @@ export const init = async(selector) => {
             }
         });
     });
+
+    // Voiceover: every missing clip, one after another; the run stops at the first clip that is not delivered.
+    const voice = root.querySelector('[data-action="genvoice"]');
+    if (voice) {
+        voice.addEventListener('click', async() => {
+            const clips = voice.dataset.clips.split(',').filter((v) => v !== '').map((v) => v.split(':').map(Number));
+            const credits = clips.length * parseInt(voice.dataset.credits, 10);
+            if (!clips.length || !await confirm(fmt(S.voice_confirm, {count: clips.length, credits}))) {
+                return;
+            }
+            const label = voice.querySelector('span');
+            const original = label.textContent;
+            voice.disabled = true;
+            let made = 0;
+            try {
+                for (const [sceneid, index] of clips) {
+                    label.textContent = fmt(S.voice_progress, {done: made + 1, count: clips.length});
+                    let request;
+                    try {
+                        request = await Ajax.call([{methodname: 'mod_aisoftskills_create_voice',
+                            args: {sceneid, index}}], true, true, false, 120000)[0];
+                    } catch (err) {
+                        if (err && err.errorcode === 'voice_alreadymade') {
+                            // Made meanwhile (another tab): nothing bought, go on.
+                            made++;
+                            continue;
+                        }
+                        throw err;
+                    }
+                    if (request.status !== 'completed') {
+                        await Requests.show(region, request, null);
+                        region.scrollIntoView({behavior: 'smooth', block: 'start'});
+                        break;
+                    }
+                    made++;
+                }
+            } catch (err) {
+                Notification.exception(err);
+            }
+            if (made > 0) {
+                window.location.reload();
+                return;
+            }
+            voice.disabled = false;
+            label.textContent = original;
+        });
+    }
 
     const all = root.querySelector('[data-action="genall"]');
     if (all) {
