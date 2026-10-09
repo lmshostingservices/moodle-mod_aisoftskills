@@ -2,6 +2,16 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.10] - 2026-10-11
+
+### Changed
+
+- **No clip is made while its price is unknown.** When the LMS Labs voice list does not publish a price per clip (`tariff.tts`), Moodle now waits as it does for a different price, instead of going ahead: a clip sent without a ceiling to an older LMS Labs could cost more than the teacher was shown (LMS Labs' recommendation of 11 Oct 2026). LMS Labs publishes `tariff.tts: 2` in development.
+
+### Fixed
+
+- **Pictures follow the chosen style.** A scene's picture description written while the activity had the other style (or by an AI assistant that wrote "a realistic photograph of ...") could override the activity's choice, so an illustration activity got photos. The description's style words are now swapped for the chosen style, and the prompt states the style as a firm rule ("must look drawn, never like a photograph", or the reverse for photos). Pictures already made are kept; make a new picture for any that do not match.
+
 ## [v1.4.9] - 2026-10-11
 
 ### Changed

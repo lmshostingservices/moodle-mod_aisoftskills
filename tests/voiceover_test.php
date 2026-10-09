@@ -71,7 +71,7 @@ final class voiceover_test extends \advanced_testcase {
         set_config('lmslabsapikey', 'secret-key', 'mod_aisoftskills');
         $voices = array_map(fn($t) => ['name' => 'en-AU-Chirp3-HD-' . $t], voiceover::VOICETYPES);
         lmslabs::$transport = fn() => [200, json_encode(['locales' => [
-            ['locale' => 'en-AU', 'ttsLanguageCode' => 'en-AU', 'voices' => $voices]]])];
+            ['locale' => 'en-AU', 'ttsLanguageCode' => 'en-AU', 'voices' => $voices]], 'tariff' => ['tts' => 2]])];
         $this->answers = [];
         $this->sent = [];
         lmslabs::$posttransport = function ($url, $headers, $body) {
@@ -410,12 +410,20 @@ final class voiceover_test extends \advanced_testcase {
         $this->assertStringContainsString('at most 5 credits', requests::export($row, $this->context)['message']);
         $row->timecreated = time() + 1;
         $this->assertStringContainsString('at most 2 credits', requests::export($row, $this->context)['message']);
-        // No published price (older catalogues) does not hold anything.
+        // No published price: the price is unknown, so nothing new is made either (a clip sent without a ceiling to an
+        // older LMS Labs could cost more than the teacher was shown).
         lmslabs::$transport = fn() => [200, json_encode(['locales' => [['locale' => 'en-AU', 'ttsLanguageCode' => 'en-AU',
             'voices' => $voices]], 'tariff' => []])];
         \cache::make('mod_aisoftskills', 'voicecatalog')->purge();
         voiceover::catalog();
-        $this->assertNull(voiceover::price_hold());
+        $this->assertSame(0, voiceover::price_hold());
+        try {
+            requests::start_voice($this->instance, (int)$USER->id, $this->scene, 0);
+            $this->fail('No clip may be made while its price is unknown.');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('voice_priceunknown', $e->errorcode);
+        }
+        $this->assertSame([], $this->sent);
     }
 
     /**
@@ -424,7 +432,7 @@ final class voiceover_test extends \advanced_testcase {
     public function test_quote(): void {
         $voices = array_map(fn($t) => ['name' => 'en-AU-Chirp3-HD-' . $t], voiceover::VOICETYPES);
         lmslabs::$transport = fn() => [200, json_encode(['locales' => [['locale' => 'en-AU', 'ttsLanguageCode' => 'en-AU',
-            'voices' => $voices]], 'tariff' => ['clipRefSupported' => true, 'maxCreditsRequired' => true]])];
+            'voices' => $voices]], 'tariff' => ['tts' => 2, 'clipRefSupported' => true, 'maxCreditsRequired' => true]])];
         \cache::make('mod_aisoftskills', 'voicecatalog')->purge();
         voiceover::catalog();
         $quotes = [];

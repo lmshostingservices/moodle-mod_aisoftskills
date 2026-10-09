@@ -91,15 +91,18 @@ class voiceover {
     }
 
     /**
-     * The price LMS Labs publishes per clip when it differs from the approved price, or null when it matches (or
-     * LMS Labs publishes none). While it differs, no new clip is asked for: the teacher would be charged a price
-     * they were not shown.
+     * Why no new clip may be asked for: the price LMS Labs publishes per clip when it differs from the approved price,
+     * 0 when LMS Labs publishes no price (it is then unknown, and a clip sent without a ceiling could cost more), or
+     * null when it publishes the approved price. The teacher is never charged a price they were not shown.
      *
      * @return int|null
      */
     public static function price_hold(): ?int {
         $price = (string)get_config('mod_aisoftskills', 'voiceprice');
-        return $price !== '' && (int)$price !== lmslabs::VOICE_CREDITS ? (int)$price : null;
+        if ($price === '' || !ctype_digit($price)) {
+            return 0;
+        }
+        return (int)$price !== lmslabs::VOICE_CREDITS ? (int)$price : null;
     }
 
     /** @var bool Whether {@see self::catalog()} may ask LMS Labs (false while building a learner's page). */

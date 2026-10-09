@@ -133,4 +133,33 @@ final class lesson_test extends \advanced_testcase {
         $this->assertStringContainsString('Industry: Veterinary clinic', $image);
         $this->assertStringContainsString('No text', $image);
     }
+
+    /**
+     * A picture description never asks for the other style: "a realistic photograph" becomes "an illustration" when
+     * the activity uses illustrations, and the prompt states the style as a firm rule.
+     */
+    public function test_style_words(): void {
+        $this->assertSame(
+            'An illustration of an office where Narin argues with Pim.',
+            \mod_aisoftskills\local\lesson::style_words(
+                'A realistic photograph of an office where Narin argues with Pim.',
+                'illustration'
+            )
+        );
+        $this->assertSame(
+            'Illustration, three people at a desk.',
+            \mod_aisoftskills\local\lesson::style_words('Cinematic shot, photorealistic, three people at a desk.', 'illustration')
+        );
+        $this->assertSame(
+            'A photograph of a cafe.',
+            \mod_aisoftskills\local\lesson::style_words('A bright, friendly flat illustration of a cafe.', 'photo')
+        );
+        $instance = (object)['imagestyle' => 'illustration', 'industry' => 'retail', 'customindustry' => ''];
+        $scene = (object)['imageprompt' => 'A realistic photograph of Narin and Pim.', 'title' => 'T', 'labels' => '',
+            'script' => '', 'speaker' => '', 'context' => ''];
+        $prompt = \mod_aisoftskills\local\lesson::image_prompt($instance, $scene);
+        $this->assertStringContainsString('Scene: An illustration of Narin and Pim.', $prompt);
+        $this->assertStringContainsString('It must look drawn, never like a photograph', $prompt);
+        $this->assertStringNotContainsString('photograph of', $prompt);
+    }
 }

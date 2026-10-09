@@ -274,7 +274,8 @@ echo $OUTPUT->render_from_template('mod_aisoftskills/scenes', [
     'clipcredits' => count($clips) * \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS,
     'voicecredits' => \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS,
     // LMS Labs still publishes another price per clip: nothing new is made until it publishes the approved one.
-    'pricehold' => voiceover::price_hold() !== null ? get_string('voice_pricehold', 'mod_aisoftskills', [
+    'pricehold' => voiceover::price_hold() !== null ? get_string(voiceover::price_hold() ? 'voice_pricehold'
+        : 'voice_priceunknown', 'mod_aisoftskills', [
         'published' => voiceover::price_hold(), 'approved' => \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS]) : '',
     // Free remakes (when LMS Labs supports them): each clip is priced before the teacher confirms.
     'remakes' => voiceover::remakes() ? 1 : 0,

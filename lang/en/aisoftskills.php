@@ -302,6 +302,7 @@ People in the picture: {$a->people}
 Show every named person clearly and make them easy to tell apart. Cast each one so they match their name and role: the gender the scene gives them, an age that suits the role, and an appearance that is plausible for their name (for example, a person called Priya looks South Asian, a person called Mei looks East Asian). Do not add extra people in the foreground.
 
 Rules:
+- Style: {$a->stylerule}
 - Landscape, 16:10 (for example 1600 × 1000 pixels).
 - Show the people involved clearly; faces, gestures and body language make the moment obvious.
 - The moment is shown just before anyone responds, so the picture suits every possible response.
@@ -311,6 +312,8 @@ $string['imagestyle'] = 'Picture style';
 $string['imagestyle_illustration'] = 'bright, friendly flat illustration';
 $string['imagestyle_illustration_name'] = 'Illustration';
 $string['imagestyle_photo'] = 'realistic photograph';
+$string['imagestyle_rule_illustration'] = 'a bright, friendly flat illustration throughout. It must look drawn, never like a photograph: flat colours, clean outlines and simple shading, with no photographic detail, lighting or depth of field.';
+$string['imagestyle_rule_photo'] = 'a realistic photograph throughout. It must look like a real photo taken at work, never like a drawing, illustration or 3D render.';
 $string['imagestyle_photo_name'] = 'Photo';
 $string['import_confirm'] = 'Scenes to create: {$a->count}. LMS Labs charges 5 credits per scene, {$a->credits} credits in all, the same as scenes written by LMS Labs AI. The scenes are created once LMS Labs confirms.';
 $string['import_title'] = 'Scenes from your AI assistant ({$a->count}): {$a->titles}';
@@ -830,6 +833,7 @@ $string['voicenote_missing'] = 'Teachers only: {$a} voiceover clips for this sce
 $string['voicenote_nocatalogue'] = 'Teachers only: there is no voiceover, because LMS Labs has not sent its list of voices for this language to this site. Open Set up → Voiceover to load it, and check the LMS Labs connection.';
 $string['voicenote_off'] = 'Teachers only: voiceover is turned off in the plugin settings, so learners hear nothing.';
 $string['voice_pricehold'] = 'Voiceover is waiting for LMS Labs: it still charges {$a->published} credits per clip, and the approved price is {$a->approved}. No clip is made until LMS Labs charges {$a->approved}, so you are never charged a price you were not shown. Clips already made keep playing.';
+$string['voice_priceunknown'] = 'Voiceover is waiting for LMS Labs: its voice list does not say what a clip costs, and the approved price is {$a->approved} credits. No clip is made until LMS Labs publishes its price, so you are never charged a price you were not shown. Clips already made keep playing.';
 $string['voice_busy'] = 'The voiceover is being made. Wait until it finishes, or press Stop.';
 $string['genall_busy'] = 'The pictures are being made. Wait until they finish.';
 $string['voice_stop'] = 'Stop';

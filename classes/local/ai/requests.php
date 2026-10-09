@@ -209,8 +209,12 @@ class requests {
             throw new moodle_exception('voice_alreadymade', 'mod_aisoftskills');
         }
         if (($published = voiceover::price_hold()) !== null) {
-            throw new moodle_exception('voice_pricehold', 'mod_aisoftskills', '', ['published' => $published,
-                'approved' => lmslabs::VOICE_CREDITS]);
+            throw new moodle_exception(
+                $published ? 'voice_pricehold' : 'voice_priceunknown',
+                'mod_aisoftskills',
+                '',
+                ['published' => $published, 'approved' => lmslabs::VOICE_CREDITS]
+            );
         }
         $body = voiceover::body($segments[$index]);
         if (voiceover::remakes() !== null) {

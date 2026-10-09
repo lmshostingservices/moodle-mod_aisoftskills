@@ -134,6 +134,30 @@ class lesson {
     }
 
     /**
+     * A scene's picture description with any words for the other picture style replaced, so it never asks for a
+     * photograph when the activity uses illustrations (or the reverse). Descriptions written while the activity had
+     * another style often say "a realistic photograph of ...".
+     *
+     * @param string $text
+     * @param string $style photo or illustration
+     * @return string
+     */
+    public static function style_words(string $text, string $style): string {
+        if ($style === 'photo') {
+            $drawn = '(?:flat |cartoon |vector |bright, friendly flat )*(?:illustration|cartoon|drawing)';
+            $text = preg_replace('/\b' . $drawn . '\b/iu', 'photograph', $text);
+            return preg_replace('/\b(?:illustrated|cartoon-?style|hand-?drawn)\s*/iu', '', $text);
+        }
+        $kinds = '(?:ultra-?|hyper-?)?(?:photo-?realistic|realistic|photographic|cinematic)';
+        $text = preg_replace('/\b' . $kinds . '\s+(?:photo(?:graph)?|image|picture|shot)\b/iu', 'illustration', $text);
+        $text = preg_replace('/\b(?:photo(?:graph)?|DSLR shot)\b/iu', 'illustration', $text);
+        $text = preg_replace('/\b(?:ultra-?|hyper-?)?(?:photo-?realistic|photographic|cinematic|realistic)\s*/iu', '', $text);
+        $text = preg_replace(['/\b([Aa]) (illustration)\b/u', '/,\s*(?=[,.])/u', '/\s{2,}/u'], ['$1n $2', '', ' '], $text);
+        $text = trim($text, " \t\n\r\0\x0B,");
+        return \core_text::strtoupper(\core_text::substr($text, 0, 1)) . \core_text::substr($text, 1);
+    }
+
+    /**
      * The full picture prompt for a scene.
      *
      * @param stdClass $instance
@@ -142,6 +166,7 @@ class lesson {
      */
     public static function image_prompt(stdClass $instance, stdClass $scene): string {
         $description = trim((string)$scene->imageprompt) !== '' ? trim((string)$scene->imageprompt) : trim((string)$scene->title);
+        $description = self::style_words($description, (string)$instance->imagestyle);
         $sm = get_string_manager();
         $people = self::picture_people($scene);
         $build = fn($d) => $sm->get_string('imageprompt_full', 'mod_aisoftskills', (object)[
@@ -149,6 +174,7 @@ class lesson {
             'people' => $people,
             'industry' => self::industry_english($instance),
             'style' => $sm->get_string('imagestyle_' . $instance->imagestyle, 'mod_aisoftskills', null, 'en'),
+            'stylerule' => $sm->get_string('imagestyle_rule_' . $instance->imagestyle, 'mod_aisoftskills', null, 'en'),
         ], 'en');
         $prompt = $build($description);
         // The picture route accepts at most 2,000 characters: shorten the description, never the rules.
