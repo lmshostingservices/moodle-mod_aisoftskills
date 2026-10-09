@@ -65,6 +65,7 @@ class choose_option extends base {
     public static function execute_returns(): external_single_structure {
         return new external_single_structure([
             'best' => new external_value(PARAM_BOOL, 'The better response was chosen'),
+            'worst' => new external_value(PARAM_BOOL, 'The very poor response was chosen'),
             'first' => new external_value(PARAM_BOOL, 'This was the first choice in the scene (the one marked)'),
             'consequence' => new external_value(PARAM_TEXT, 'What happens next'),
             'reason' => new external_value(PARAM_TEXT, 'Why'),

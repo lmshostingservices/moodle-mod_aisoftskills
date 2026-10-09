@@ -169,18 +169,19 @@ class lesson {
             }
             $title = manager::clean_line($scene['title'] ?? '');
             $options = [];
-            foreach (array_slice((array)($scene['options'] ?? []), 0, manager::OPTIONS) as $option) {
+            foreach (array_slice((array)($scene['options'] ?? []), 0, manager::MAX_OPTIONS) as $option) {
                 if (is_array($option)) {
                     $clean = manager::clean_option($option);
                     if ($clean->text !== '') {
-                        $options[] = (array)$clean;
+                        $options[] = $clean;
                     }
                 }
             }
-            $bestcount = count(array_filter($options, fn($o) => $o['best']));
-            if ($title === '' || count($options) !== manager::OPTIONS || $bestcount !== 1) {
+            $options = manager::mark_worst($options);
+            if ($title === '' || !manager::options_ok($options)) {
                 continue;
             }
+            $options = array_map(fn($o) => (array)$o, $options);
             $scenes[] = [
                 'title' => $title,
                 'skill' => manager::clean_line($scene['skill'] ?? ''),

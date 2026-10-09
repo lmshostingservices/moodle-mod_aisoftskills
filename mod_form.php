@@ -85,8 +85,21 @@ class mod_aisoftskills_mod_form extends moodleform_mod {
         $mform->setDefault('passmark', 70);
         $mform->addHelpButton('passmark', 'passmark', $c);
         $mform->hideIf('passmark', 'testmode', 'notchecked');
+        $bands = [
+            $mform->createElement('static', 'kpiamberlabel', '', get_string('kpiamber', $c)),
+            $mform->createElement('text', 'kpiamber', get_string('kpiamber', $c), ['size' => 3]),
+            $mform->createElement('static', 'kpigreenlabel', '', get_string('kpigreen', $c)),
+            $mform->createElement('text', 'kpigreen', get_string('kpigreen', $c), ['size' => 3]),
+        ];
+        $mform->addGroup($bands, 'kpibands', get_string('kpibands', $c), ' ', false);
+        $mform->setType('kpiamber', PARAM_INT);
+        $mform->setType('kpigreen', PARAM_INT);
+        $mform->setDefault('kpiamber', 40);
+        $mform->setDefault('kpigreen', 70);
+        $mform->addHelpButton('kpibands', 'kpibands', $c);
         $mform->addElement('advcheckbox', 'shuffleoptions', get_string('shuffleoptions', $c));
         $mform->setDefault('shuffleoptions', 1);
+        $mform->addHelpButton('shuffleoptions', 'shuffleoptions', $c);
         $mform->addElement('advcheckbox', 'sounds', get_string('sounds', $c), get_string('sounds_desc', $c));
         $mform->setDefault('sounds', $config->defaultsounds ?? 1);
         // Voiceover: what is read out (when voiceover is switched on for the site and made in the set-up).
@@ -219,6 +232,11 @@ class mod_aisoftskills_mod_form extends moodleform_mod {
         }
         if (empty($data['practicemode']) && empty($data['testmode'])) {
             $errors['practicemode'] = get_string('modes_needone', 'mod_aisoftskills');
+        }
+        $amber = (int)($data['kpiamber'] ?? 40);
+        $green = (int)($data['kpigreen'] ?? 70);
+        if ($amber < 1 || $green > 100 || $amber >= $green) {
+            $errors['kpibands'] = get_string('kpibands_range', 'mod_aisoftskills');
         }
         if (!empty($data['testmode']) && ((int)($data['passmark'] ?? 0) < 0 || (int)($data['passmark'] ?? 0) > 100)) {
             $errors['passmark'] = get_string('passmark_range', 'mod_aisoftskills');

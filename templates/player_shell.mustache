@@ -34,13 +34,13 @@
         <ol class="ss-dots" data-region="dots" aria-label="{{#str}} progress, mod_aisoftskills {{/str}}">
             {{#dots}}<li class="ss-dot" data-number="{{number}}"><span class="visually-hidden sr-only">{{number}}</span></li>{{/dots}}
         </ol>
+        <div class="ss-kpistrip" data-region="kpis" role="group" aria-label="{{#str}} workplaceindicators, mod_aisoftskills {{/str}}">
+            {{#kpis}}{{> mod_aisoftskills/kpi_chip }}{{/kpis}}
+        </div>
         <button type="button" class="ss-iconbtn" data-action="sound" aria-pressed="true" title="{{#str}} sounds, mod_aisoftskills {{/str}}" aria-label="{{#str}} sounds, mod_aisoftskills {{/str}}">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16 9a4 4 0 010 6"/></svg>
         </button>
     </header>
-    <div class="ss-kpistrip" data-region="kpis" role="group" aria-label="{{#str}} workplaceindicators, mod_aisoftskills {{/str}}">
-        {{#kpis}}{{> mod_aisoftskills/kpi_chip }}{{/kpis}}
-    </div>
     <div class="ss-stage" data-region="stage"></div>
     <footer class="ss-footer">
         <p class="ss-scenecount" data-region="count"></p>

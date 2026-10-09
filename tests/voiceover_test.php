@@ -216,6 +216,35 @@ final class voiceover_test extends \advanced_testcase {
     }
 
     /**
+     * LMS Labs answers that say "not made" end the request; unknown outcomes keep the key for "Check again".
+     */
+    public function test_error_codes(): void {
+        global $DB, $USER;
+        $json = ['content-type' => 'application/json'];
+        $cases = [
+            [503, 'VOICEOVER_NOT_ENABLED', 'failed', 'not switched on'],
+            [503, 'TARIFF_NOT_APPROVED', 'failed', 'not switched on'],
+            [503, 'PROVIDER_NOT_CONFIGURED', 'failed', 'configuration problem'],
+            [502, 'UNUSABLE_AUDIO', 'failed', 'not been charged'],
+            [503, 'SETTLEMENT_UNCONFIRMED', 'uncertain', ''],
+            [503, 'TTS_UNAVAILABLE', 'uncertain', ''],
+            [500, '', 'uncertain', ''],
+            [410, 'GONE', 'lost', 'contact LMS Labs support before'],
+        ];
+        foreach ($cases as $i => [$status, $code, $want, $text]) {
+            // An unresolved request blocks the next one for the scene: clear it, as "Dismiss" would.
+            $DB->delete_records_select('aisoftskills_aireq', "status IN ('uncertain', 'lost')");
+            $body = json_encode(['requestId' => 'r' . $i, 'error' => ['code' => $code, 'message' => 'x']]);
+            $this->answers = [[$status, $json, $body]];
+            $row = requests::start_voice($this->instance, (int)$USER->id, $this->scene, $i);
+            $this->assertSame($want, $row->status, $code);
+            if ($text !== '') {
+                $this->assertStringContainsString($text, requests::export($row, $this->context)['message'], $code);
+            }
+        }
+    }
+
+    /**
      * Voiceover off: no request can be made.
      */
     public function test_off(): void {

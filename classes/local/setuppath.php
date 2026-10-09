@@ -140,13 +140,12 @@ class setuppath {
     }
 
     /**
-     * Whether a scene's responses are complete: exactly two with text, exactly one of them the better one.
+     * Whether a scene's responses are complete: two or three with text, exactly one of them the better one.
      *
      * @param stdClass[] $options
      * @return bool
      */
     public static function responses_ok(array $options): bool {
-        $list = array_values(array_filter($options, fn($o) => trim((string)$o->text) !== ''));
-        return count($list) === manager::OPTIONS && count(array_filter($list, fn($o) => (int)$o->best === 1)) === 1;
+        return manager::options_ok($options);
     }
 }

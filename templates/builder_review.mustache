@@ -26,7 +26,7 @@
             "question": "What do you say?",
             "options": [{"letter": "A", "text": "Is there anything I can get you to help you reach your goals faster?",
                 "best": true, "kpiname": "Motivation", "delta": "+20"},
-                {"letter": "B", "text": "Hurry up!", "best": false, "kpiname": "Morale", "delta": "-20"}]}]
+                {"letter": "B", "text": "Hurry up!", "best": false, "worst": false, "kpiname": "Morale", "delta": "-20"}]}]
     }
 }}
 <div class="ss-panel">
@@ -48,7 +48,7 @@
                 {{#options}}
                 <span class="ss-draft-phrase {{#best}}is-best{{/best}}{{^best}}is-distractor{{/best}}">
                     <b>{{letter}}</b> <span dir="auto">{{text}}</span>
-                    <span class="ss-draft-kpi">{{#best}}{{#str}} review_better, mod_aisoftskills {{/str}} · {{/best}}{{kpiname}} {{delta}}</span>
+                    <span class="ss-draft-kpi">{{#best}}{{#str}} review_better, mod_aisoftskills {{/str}} · {{/best}}{{#worst}}{{#str}} review_worst, mod_aisoftskills {{/str}} · {{/worst}}{{kpiname}} {{delta}}</span>
                 </span>
                 {{/options}}
             </span>

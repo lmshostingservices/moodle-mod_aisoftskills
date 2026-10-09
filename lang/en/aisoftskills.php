@@ -89,7 +89,7 @@ $string['act_unlockedat'] = 'unlocked {$a}';
 $string['act_unsaved'] = 'Save any changes below first: these buttons leave this page.';
 $string['act_warn_insufficient'] = 'The balance ({$a->balance}) is below the price ({$a->price} credits). LMS Labs will refuse the unlock unless it recognises an existing purchase for this site.';
 $string['activation'] = 'AI Soft Skills activation';
-$string['addresponses'] = 'Add the two responses';
+$string['addresponses'] = 'Add the responses';
 $string['aibadimage'] = 'The AI service did not return a usable picture.';
 $string['aidraft_anyskills'] = 'the soft skills that matter most at their level';
 $string['aidraft_audience'] = 'Who the learners are';
@@ -97,7 +97,7 @@ $string['aidraft_brief'] = 'Your text';
 $string['aidraft_briefdefault'] = 'One short workplace scene for learners at the {$a->level} level to practise {$a->skills}. Two to four colleagues talk in a {$a->industry} workplace; the conversation stops at the moment the learner must decide what to say. Write every line in {$a->language}.';
 $string['aidraft_briefrequired'] = 'Describe what the scene should be about.';
 $string['aidraft_button'] = 'Create a scene ({$a} credits)';
-$string['aidraft_confirm'] = 'Create this scene with LMS Labs AI? LMS Labs charges 5 credits when the scene is delivered.';
+$string['aidraft_confirm'] = 'Create this scene with LMS Labs AI? LMS Labs charges 5 credits when it creates the scene.';
 $string['aidraft_context'] = 'The workplace';
 $string['aidraft_drafting'] = 'Drafting the scene. This can take up to a minute and a half; you can leave this page and come back.';
 $string['aidraft_imageprompt'] = '{$a->title}. {$a->setting} People in the picture: {$a->characters}.';
@@ -113,7 +113,7 @@ $string['aidrafterror_rate_limited'] = 'Too many drafts requested at once. Wait 
 $string['aidrafterror_rejected'] = 'LMS Labs did not accept this request. Check the text and try again. You have not been charged. (LMS Labs reference: {$a->requestid})';
 $string['aidrafterror_unusable_draft'] = 'LMS Labs delivered a draft this site could not use, and may have charged {$a->charged} credits. Contact LMS Labs support with the reference before drafting again. (LMS Labs reference: {$a->requestid})';
 $string['aidrafts'] = 'AI scene drafts';
-$string['aidrafts_desc'] = 'Let teachers draft a scene (title, setting, lead-in conversation and teaching note) with LMS Labs AI in the lesson builder. Each delivered draft costs 5 LMS Labs credits; failed drafts are not charged. Teachers need the "Use LMS Labs AI" capability.';
+$string['aidrafts_desc'] = 'Let teachers draft a scene (title, setting, lead-in conversation and teaching note) with LMS Labs AI in the lesson builder. Each draft LMS Labs creates costs 5 LMS Labs credits; a draft it could not create is not charged. Teachers need the "Use LMS Labs AI" capability.';
 $string['aierror_body_too_large'] = 'The picture request is too large. Shorten the scene\'s picture description. (LMS Labs reference: {$a->requestid})';
 $string['aierror_deadline_exceeded'] = 'The picture took too long and was stopped. Check your LMS Labs usage before trying again. (LMS Labs reference: {$a->requestid})';
 $string['aierror_failed'] = 'LMS Labs could not create the picture. You have not been charged. (LMS Labs reference: {$a->requestid})';
@@ -220,7 +220,7 @@ $string['build_showprompt'] = 'Show the prompt';
 $string['builder_existing'] = 'This activity already has {$a} scenes. New scenes are added after them.';
 $string['builder_save'] = 'Next: Create the scenes';
 $string['careerladder'] = 'Career levels';
-$string['check_intro'] = 'Open each scene and read it through. Every scene needs two responses for learners to choose between, with one marked as the better one. Scenes created from your own text need their two responses added here.';
+$string['check_intro'] = 'Open each scene and read it through. Every scene needs two or three responses for learners to choose between, with one marked as the better one. Scenes created from your own text need their two responses added here.';
 $string['check_title'] = 'Check each scene';
 $string['col_answers'] = 'Answers';
 $string['col_attempt'] = 'Attempt';
@@ -256,7 +256,7 @@ $string['customindustry'] = 'Your industry';
 $string['customindustry_placeholder'] = 'For example: veterinary clinic';
 $string['deleteselected'] = 'Delete selected';
 $string['deltabest'] = 'The better response must raise the indicator.';
-$string['deltaother'] = 'The other response can\'t raise the indicator.';
+$string['deltaother'] = 'The poorer responses can\'t raise the indicator.';
 $string['deltarange'] = 'Use a number from -{$a} to {$a}.';
 $string['editscene'] = 'Edit scene';
 $string['errorsceneneeds'] = 'Upload at least one picture or give the scene a title.';
@@ -266,7 +266,7 @@ $string['fb_whyfalls'] = 'Why this falls short';
 $string['fb_whyworks'] = 'Why this works';
 $string['finish_done'] = 'Done: back to the course';
 $string['finish_nopicture'] = 'Scenes without a picture: {$a}';
-$string['finish_noresponses'] = 'Scenes without their two responses: {$a}';
+$string['finish_noresponses'] = 'Scenes without their responses: {$a}';
 $string['finish_noscenes'] = 'There are no scenes yet.';
 $string['finish_notready'] = '{$a->ready} of {$a->scenes} scenes are ready';
 $string['finish_notready_help'] = 'Learners only see the scenes that are ready. Use Back to finish the others.';
@@ -278,8 +278,8 @@ $string['genall_confirm'] = 'Create the missing pictures ({$a->count})? LMS Labs
 $string['genall_progress'] = 'Creating picture {$a->done} of {$a->count}…';
 $string['generateimage'] = 'Create picture ({$a} credits)';
 $string['generating'] = 'Creating… this can take a minute';
-$string['genone_confirm'] = 'Create a picture for this scene? LMS Labs charges 5 credits when the picture is delivered.';
-$string['genone_confirm_replace'] = 'Create a new picture for this scene? It replaces the current picture. LMS Labs charges 5 credits when the new picture is delivered.';
+$string['genone_confirm'] = 'Create a picture for this scene? LMS Labs charges 5 credits when it creates the picture.';
+$string['genone_confirm_replace'] = 'Create a new picture for this scene? It replaces the current picture. LMS Labs charges 5 credits when it creates the new picture.';
 $string['gradeaverage'] = 'Average of attempts';
 $string['gradefirst'] = 'First attempt';
 $string['gradehighest'] = 'Highest attempt';
@@ -289,6 +289,7 @@ $string['grademethod_help'] = 'How the grade is calculated when a learner makes 
 $string['headline_best'] = 'Great choice!';
 $string['headline_bestretry'] = 'That works better.';
 $string['headline_poor'] = 'That didn\'t go well.';
+$string['headline_worst'] = 'That made things much worse.';
 $string['herotitle'] = 'You are the {$a}';
 $string['imageprompt_full'] = 'Create one {$a->style} for a workplace soft-skills lesson.
 
@@ -360,7 +361,7 @@ $string['lang_th'] = 'Thai';
 $string['lang_tr'] = 'Turkish';
 $string['lang_vi'] = 'Vietnamese';
 $string['lang_zh'] = 'Chinese (Simplified)';
-$string['lessonempty'] = 'The draft has no usable scenes. Each scene needs a title and two responses, one of them marked as the better one.';
+$string['lessonempty'] = 'The draft has no usable scenes. Each scene needs a title and two or three responses, one of them marked as the better one.';
 $string['lessoninvalid'] = 'That doesn\'t look like a set of scenes. Paste the whole reply, including the {"scenes": …} part.';
 $string['lessonprompt'] = 'You are a senior workplace-learning designer and an expert in soft skills and behavioural coaching. Write demanding, realistic branching scenes for experienced adults.
 
@@ -377,15 +378,17 @@ Create {$a->scenes} scenes, shared out between the skills. Each scene is one dec
 - missing or conflicting information, so the learner has to read the situation, not just recall a rule;
 - emotions under the surface (fear, pride, frustration, embarrassment) that the better response notices and handles.
 
-The learner plays the {$a->level} and chooses between exactly two responses:
+The learner plays the {$a->level} and chooses between exactly three responses:
 - the better response (best: true): what a skilled {$a->level} would really say or do. It is specific and shows the skill through observable behaviour, for example naming what they see, asking a real question, agreeing a next step or owning a mistake. It is not perfect or preachy, and it may still carry a cost;
-- the poorer response (best: false): a tempting, common mistake that capable people make under this pressure, for example taking over, avoiding the conversation, over-promising or reacting to tone instead of the problem. It must sound reasonable at first reading. Never make it rude, silly or obviously wrong.
+- the poorer response (best: false): a tempting, common mistake that capable people make under this pressure, for example taking over, avoiding the conversation, over-promising or reacting to tone instead of the problem. It must sound reasonable at first reading. Never make it rude, silly or obviously wrong;
+- the very poor response (best: false, worst: true): a serious but believable mistake that makes things much worse, for example blaming someone in public, ignoring a safety risk, escalating the conflict or breaking a rule to make the problem go away. It does double the harm of the poorer response. It must still be something a stressed person might really do, never a cartoon.
 
 For each response give:
 - text: exactly what the person says or does, in one or two sentences and at most 45 words
 - best: true or false (exactly one true per scene)
+- worst: true for the very poor response only, false for the other two
 - kpi: the workplace indicator the choice moves most, one of: {$a->kpis}
-- kpidelta: how much it moves, a whole number from 5 to {$a->maxdelta} for the better response and from -{$a->maxdelta} to -5 for the poorer one; bigger numbers for bigger consequences
+- kpidelta: how much it moves, a whole number from 5 to {$a->maxdelta} for the better response, from -25 to -5 for the poorer one, and for the very poor one double the poorer one\'s drop (for example -15 and -30), never above -10; bigger numbers for bigger consequences
 - consequence: two short sentences, at most 45 words, on what realistically happens next, including a knock-on effect on another person, the team or the customer
 - reason: one sentence, at most 30 words, naming the specific behaviour that made it work or backfire, linked to the skill
 
@@ -397,10 +400,12 @@ For every scene give:
 - question: the decision the learner faces, in at most 20 words, for example "What do you say to Maria right now?"
 - imageprompt: an English description of one {$a->style} of this moment in a {$a->industry} workplace, showing the people involved, their body language and expressions, and the setting. No text, letters, captions, signs or speech bubbles. Do not describe real people.
 
+Put the three responses in a random order in each scene, so the better response is not always first.
+
 Vary the scenes: different people, places, times of day and kinds of pressure. Do not repeat the same dilemma.
 
 Reply with JSON only, in exactly this shape:
-{"scenes":[{"skill":"","title":"","context":"","speaker":"","question":"","imageprompt":"","options":[{"text":"","best":true,"kpi":"","kpidelta":20,"consequence":"","reason":""},{"text":"","best":false,"kpi":"","kpidelta":-20,"consequence":"","reason":""}]}]}';
+{"scenes":[{"skill":"","title":"","context":"","speaker":"","question":"","imageprompt":"","options":[{"text":"","best":true,"worst":false,"kpi":"","kpidelta":20,"consequence":"","reason":""},{"text":"","best":false,"worst":false,"kpi":"","kpidelta":-15,"consequence":"","reason":""},{"text":"","best":false,"worst":true,"kpi":"","kpidelta":-30,"consequence":"","reason":""}]}]}';
 $string['level'] = 'Career level';
 $string['level_help'] = 'Who the learner plays in the scenes. Each level has its own kind of situations: a worker deals with colleagues and customers, a leader with strategy, culture and big changes.';
 $string['level_leader'] = 'Leader';
@@ -448,10 +453,10 @@ $string['notactivated_admin'] = 'AI Soft Skills is not activated on this site ye
 $string['notactivated_learner'] = 'This activity is not available yet. Please try again later.';
 $string['notactivated_open'] = 'Open the AI Soft Skills settings';
 $string['notactivated_teacher'] = 'AI Soft Skills is not activated on this site yet, so lessons cannot be set up. Ask your site administrator to activate it in the AI Soft Skills settings.';
-$string['notready_manager'] = 'Add scenes that each have a picture and two responses, one of them marked as the better one.';
+$string['notready_manager'] = 'Add scenes that each have a picture and two or three responses, one of them marked as the better one.';
 $string['notready_student'] = 'Your teacher is still preparing this activity.';
 $string['notyourattempt'] = 'This attempt belongs to someone else.';
-$string['own_cost'] = 'Each click creates one scene for {$a} LMS Labs credits, charged only when the scene is delivered. Create as many scenes as you need, then press Next. Pictures come in the next step; the two responses learners choose between are added in step 7.';
+$string['own_cost'] = 'Each click creates one scene for {$a} LMS Labs credits, charged when LMS Labs creates the scene; a scene it could not create is not charged. Create as many scenes as you need, then press Next. Pictures come in the next step; the two responses learners choose between are added in step 7.';
 $string['own_guide_empty'] = 'No text? Leave the box empty and LMS Labs AI writes a scene from your choices above.';
 $string['own_guide_include'] = 'Say who is involved, what goes wrong, and the moment the learner has to decide what to say.';
 $string['own_guide_length'] = 'Length: 30 to 300 words (at most 2,000 characters). One situation per scene.';
@@ -461,14 +466,14 @@ $string['own_label'] = 'Your text';
 $string['own_placeholder'] = 'Example: A guest at the front desk complains loudly that their room is not ready. A new receptionist is about to blame housekeeping in front of the guest.';
 $string['path_assistant_desc'] = 'Copy our prompt into ChatGPT, Claude, Gemini or Copilot. More control over the content, and best for complex scenarios.';
 $string['path_assistant_noimport'] = 'Creating scenes needs this site\'s LMS Labs connection and the "Use LMS Labs AI" permission. Ask your site administrator.';
-$string['path_assistant_note'] = 'This plugin does not send the prompt anywhere. Scenes arrive complete with both responses. Each scene you create costs {$a} LMS Labs credits, the same as an LMS Labs AI scene, charged only when LMS Labs confirms. Pictures are created with LMS Labs AI in the next step.';
+$string['path_assistant_note'] = 'This plugin does not send the prompt anywhere. Scenes arrive complete with their three responses. Each scene you create costs {$a} LMS Labs credits, the same as an LMS Labs AI scene, charged only when LMS Labs confirms. Pictures are created with LMS Labs AI in the next step.';
 $string['path_assistant_only'] = 'LMS Labs AI scene writing is not available on this site, so create the scenes with your own AI assistant.';
 $string['path_assistant_title'] = 'Use an AI assistant';
 $string['path_own_desc'] = 'Paste or type a workplace situation. LMS Labs AI turns it into a scene. Quick and simple.';
 $string['path_own_title'] = 'Use your own text';
 $string['path_question'] = 'How do you want to create the scenes?';
 $string['pictures_alldone'] = 'Every scene has a picture.';
-$string['pictures_intro'] = 'Learners only see scenes that have a picture. LMS Labs AI creates each picture for {$a} credits, charged only when the picture is delivered. You can also upload your own picture.';
+$string['pictures_intro'] = 'Learners only see scenes that have a picture. LMS Labs AI creates each picture for {$a} credits, charged when LMS Labs creates the picture; a picture it could not create is not charged. You can also upload your own picture.';
 $string['pictures_notconnected'] = 'Scene pictures are created by LMS Labs AI. Connect LMS Labs (Site ID and API key in Central Config) and switch on "AI scene pictures" to create them here, or upload your own picture for each scene.';
 $string['pictures_title'] = 'Create a picture for every scene';
 $string['playsettings'] = 'Playing';
@@ -565,7 +570,7 @@ $string['sceneimage'] = 'Picture';
 $string['sceneimageprompt'] = 'Picture description (for AI)';
 $string['sceneimageprompt_help'] = 'An English description of the picture. LMS Labs AI uses it to create the scene picture. It is never shown to learners.';
 $string['sceneneedsimage'] = 'Needs a picture';
-$string['sceneneedsresponses'] = 'Needs two responses, one marked as the better one.';
+$string['sceneneedsresponses'] = 'Needs two or three responses, one marked as the better one.';
 $string['scenequestion'] = 'Question to the learner';
 $string['sceneresponsesok'] = 'Two responses ready';
 $string['scenesaved'] = 'Scene saved.';
@@ -583,11 +588,11 @@ $string['scenex'] = 'Scene {$a}';
 $string['score'] = 'Score';
 $string['seeresults'] = 'See my results';
 $string['settings_ai'] = 'AI pictures (LMS Labs)';
-$string['settings_ai_desc'] = 'AI Soft Skills uses LMS Labs for two things, each charged by LMS Labs only when it is delivered: scenes (5 credits each, whether LMS Labs AI or your own AI assistant writes them), scene pictures (5 credits each) and voiceover (5 credits per clip). Every request is stored in Moodle before it is sent and is never retried automatically; "Check again" asks about the same request and cannot be charged twice. Teachers can still draft scenes themselves with the copy-and-paste prompt. Only teacher-written text is sent to LMS Labs; no learner data is sent.';
+$string['settings_ai_desc'] = 'AI Soft Skills uses LMS Labs for these, each charged by LMS Labs when it is made: scenes (5 credits each, whether LMS Labs AI or your own AI assistant writes them), scene pictures (5 credits each) and voiceover (5 credits per clip). Every request is stored in Moodle before it is sent and is never retried automatically; "Check again" asks about the same request and cannot be charged twice. Teachers can still draft scenes themselves with the copy-and-paste prompt. Only teacher-written text is sent to LMS Labs; no learner data is sent.';
 $string['settings_defaults'] = 'Defaults for new activities';
 $string['setup_back'] = 'Back';
 $string['setup_needpictures'] = 'Scenes still without a picture: {$a}.';
-$string['setup_needresponses'] = 'Scenes still without their two responses: {$a}.';
+$string['setup_needresponses'] = 'Scenes still without their responses: {$a}.';
 $string['setup_needscene'] = 'Create at least one scene first.';
 $string['setup_next'] = 'Next: {$a}';
 $string['setup_progress'] = 'Step {$a->current} of {$a->total}';
@@ -600,7 +605,8 @@ $string['setupstep_level'] = 'Level';
 $string['setupstep_pictures'] = 'Pictures';
 $string['setupstep_skills'] = 'Skills';
 $string['setupstep_workplace'] = 'Workplace';
-$string['shuffleoptions'] = 'Shuffle the order of the two responses';
+$string['shuffleoptions'] = 'Shuffle the order of the responses';
+$string['shuffleoptions_help'] = 'Each attempt puts the responses in a new order. The better response is spread evenly over A, B and C across the scenes, and the very poor response moves too, so no letter is always right or always wrong.';
 $string['skill_accountability'] = 'Accountability';
 $string['skill_activelistening'] = 'Active listening';
 $string['skill_adaptability'] = 'Adaptability';
@@ -641,9 +647,9 @@ $string['step_workplace'] = 'Workplace';
 $string['takeaway_better'] = 'A stronger response:';
 $string['takeaways'] = 'What to take away';
 $string['teachertools'] = 'Teacher tools';
-$string['tryagain'] = 'Try the other response';
+$string['tryagain'] = 'Try another response';
 $string['tryagainactivity'] = 'Play again';
-$string['twooptionsrequired'] = 'A scene needs exactly two responses, with one marked as the better response.';
+$string['twooptionsrequired'] = 'A scene needs two or three responses: one marked as the better response and, with three, one marked as the very poor response.';
 $string['uploadimage'] = 'Upload a picture';
 $string['uploadimages_help'] = 'PNG, JPEG, GIF or WebP, or a ZIP of them (up to 100 pictures).';
 $string['uploadownimage'] = 'Upload my own picture';
@@ -658,17 +664,19 @@ $string['aireq_voice_completed'] = 'Voiceover clip created. {$a->charged} LMS La
 $string['aireq_voice_completedbalance'] = 'Voiceover clip created. {$a->charged} LMS Labs credits used; {$a->balance} left.';
 $string['aireq_voice_conflict'] = 'LMS Labs says this request was already used with different text, so no clip was saved. The earlier request may still have been charged: contact LMS Labs support with the reference before creating it again. (LMS Labs reference: {$a->requestid})';
 $string['aireq_voice_dismissed'] = 'Dismissed.';
-$string['aireq_voice_expired'] = 'LMS Labs no longer has this request. Dismiss it and create the clip again if you still need it. (LMS Labs reference: {$a->requestid})';
-$string['aireq_voice_lost'] = 'LMS Labs finished this clip, but no usable audio reached this site. {$a->credits} credits may have been charged. Contact LMS Labs support with the reference before creating it again; a new clip is a new, separately charged request. (LMS Labs reference: {$a->requestid})';
+$string['aireq_voice_expired'] = 'This request can no longer return audio. Keep this reference and contact LMS Labs support before creating the clip again: an earlier attempt may have been charged. (LMS Labs reference: {$a->requestid})';
+$string['aireq_voice_lost'] = 'This request can no longer return audio. Keep this reference and contact LMS Labs support before creating the clip again: they can check whether it was charged, and a new clip is a new, separately charged request. (LMS Labs reference: {$a->requestid})';
 $string['aireq_voice_pending'] = 'LMS Labs is still creating this clip. This page checks again every few seconds. (LMS Labs reference: {$a->requestid})';
 $string['aireq_voice_uncertain'] = 'LMS Labs did not confirm this clip. It may still have been created and charged. "Check again" asks about the same request and can never charge a second time. (LMS Labs reference: {$a->requestid})';
 $string['aivoice'] = 'AI voiceover';
-$string['aivoice_desc'] = 'Learners can listen to each scene: the narrator reads what is happening and the question, each person in the picture speaks their lines, and each response can be heard in the learner\'s voice. Teachers create the clips in the Voiceover step of the set-up; LMS Labs charges {$a} credits per clip, only when the clip is delivered. Playing clips costs nothing.';
+$string['aivoice_desc'] = 'Learners can listen to each scene: the narrator reads what is happening and the question, each person in the picture speaks their lines, and each response can be heard in the learner\'s voice. Teachers create the clips in the Voiceover step of the set-up; LMS Labs charges {$a} credits for each clip it makes; a clip LMS Labs could not make is not charged. Playing clips costs nothing.';
 $string['aivoiceerror_failed'] = 'LMS Labs could not create this clip. You have not been charged. (LMS Labs reference: {$a->requestid})';
 $string['aivoiceerror_insufficient_credits'] = 'Not enough LMS Labs credits: a clip needs {$a->credits} and {$a->balance} are left. Top up at lms-labs.com. (LMS Labs reference: {$a->requestid})';
 $string['aivoiceerror_invalid_credentials'] = 'LMS Labs did not accept this site\'s Site ID and API key. Check them in Central Config. (LMS Labs reference: {$a->requestid})';
 $string['aivoiceerror_no_entitlement'] = 'This site does not have AI Soft Skills enabled with LMS Labs. (LMS Labs reference: {$a->requestid})';
 $string['aivoiceerror_not_live'] = 'The LMS Labs voiceover service for AI Soft Skills is not available yet, so nothing was charged. (LMS Labs reference: {$a->requestid})';
+$string['aivoiceerror_provider_not_configured'] = 'LMS Labs has a service configuration problem, so this clip was not created and not charged. Contact LMS Labs support. (LMS Labs reference: {$a->requestid})';
+$string['aivoiceerror_voiceover_not_enabled'] = 'Voiceover is not switched on at LMS Labs yet, so this clip was not created and not charged. (LMS Labs reference: {$a->requestid})';
 $string['aivoiceerror_provider_failed'] = 'The voice service could not create this clip. You have not been charged. Try again later. (LMS Labs reference: {$a->requestid})';
 $string['aivoiceerror_rate_limited'] = 'Too many clips requested at once. Wait a moment and try again. You have not been charged. (LMS Labs reference: {$a->requestid})';
 $string['aivoiceerror_rejected'] = 'LMS Labs did not accept this clip. Check the text and try again. You have not been charged. (LMS Labs reference: {$a->requestid})';
@@ -700,6 +708,7 @@ $string['narratorvoice'] = 'Narrator voice';
 $string['narratorvoice_desc'] = 'The Google Chirp 3 HD voice that reads what is happening and the question in every scene. The people in the pictures get other voices: female or male as their name labels say, never the narrator\'s.';
 $string['recap_firstbest'] = 'Better first choice';
 $string['recap_firstpoor'] = 'Learn from this one';
+$string['recap_firstworst'] = 'This one made things much worse';
 $string['results_carousel'] = 'Results';
 $string['results_goto'] = 'Go to slide {$a}';
 $string['results_next'] = 'Use Next to go through every scene.';
@@ -708,10 +717,10 @@ $string['results_slidename'] = 'slide';
 $string['setupstep_voices'] = 'Voiceover';
 $string['voice_allmade'] = 'Every scene has its voiceover.';
 $string['voice_button'] = 'Create the missing voiceover ({$a->count} clips, {$a->credits} credits)';
-$string['voice_confirm'] = 'Create {$a->count} voiceover clips? LMS Labs charges {$a->credits} credits, only for clips that are delivered.';
-$string['voice_intro'] = 'Learners can listen to every scene. The narrator reads what is happening and the question; the people in the picture speak with the voices their name labels give them. Each clip costs {$a} credits when it is delivered, and is made only once: changing a sentence makes only that sentence again.';
+$string['voice_confirm'] = 'Create {$a->count} voiceover clips? LMS Labs charges {$a->each} credits for each clip it makes, {$a->credits} credits in all. A clip LMS Labs has made is charged even if this page is closed before it arrives.';
+$string['voice_intro'] = 'Learners can listen to every scene. The narrator reads what is happening and the question; the people in the picture speak with the voices their name labels give them. Each clip costs {$a} credits when LMS Labs makes it, and is made only once: changing a sentence makes only that sentence again.';
 $string['voice_narrator'] = 'Narrator: {$a}';
-$string['voice_nolocale'] = 'LMS Labs has no voices for this activity\'s language yet.';
+$string['voice_nolocale'] = 'LMS Labs voiceover is not available yet, or has no voices for this activity\'s language.';
 $string['voice_off'] = 'Voiceover is switched off on this site. An administrator can switch on "AI voiceover" in the AI Soft Skills settings. This step is optional: you can go on without it.';
 $string['voice_optional'] = 'Voiceover is optional: learners can still read every scene.';
 $string['voice_person'] = '{$a->name}: {$a->voice}';
@@ -730,7 +739,7 @@ $string['voicetype_zephyr'] = 'Zephyr (female)';
 $string['voices_people'] = 'Voices';
 $string['mustlisten'] = 'Listen before answering';
 $string['mustlisten_desc'] = 'Learners hear each scene\'s voiceover to the end before they can choose a response';
-$string['mustlisten_help'] = 'Stops learners from rushing through the scenes. The voiceover of a scene starts on its own, and the two responses can be chosen once it has played to the end. Scenes without voiceover are not held back, and a scene already listened to is not held back again in the same attempt. Voiceover must be switched on for the site and created in the Voiceover step of the set-up.';
+$string['mustlisten_help'] = 'Stops learners from rushing through the scenes. The voiceover of a scene starts on its own, and the responses can be chosen once it has played to the end. Scenes without voiceover are not held back, and a scene already listened to is not held back again in the same attempt. Voiceover must be switched on for the site and created in the Voiceover step of the set-up.';
 $string['mustlisten_wait'] = 'Listen to the scene first: the responses open when the voiceover ends.';
 $string['mustlisten_start'] = 'Press Listen to hear the scene: the responses open when it ends.';
 $string['maxattempts_help'] = 'How many times a learner may play the graded mode: the test when the activity has one, otherwise practice. Practice next to a test is never limited.';
@@ -741,8 +750,8 @@ $string['passmark'] = 'Pass mark (%)';
 $string['passmark_help'] = 'The test score learners need to pass. A learner who scores less is asked to take the test again. 0 means no pass mark.';
 $string['passmark_range'] = 'Use a number from 0 to 100.';
 $string['practicemode'] = 'Practice';
-$string['practicemode_desc'] = 'After a poorer choice, learners see why and choose the other response';
-$string['practicemode_help'] = 'Practice is for learning: after a poorer choice the learner sees what happened and why, then chooses the other response. When the activity also has a test, practice is not graded and can be played as often as the learner likes.';
+$string['practicemode_desc'] = 'After a poorer choice, learners see why and choose again';
+$string['practicemode_help'] = 'Practice is for learning: after a poorer choice the learner sees what happened and why, then chooses again. When the activity also has a test, practice is not graded and can be played as often as the learner likes.';
 $string['start_practice'] = 'Practise';
 $string['start_test'] = 'Take the test';
 $string['resume_practice'] = 'Continue practising';
@@ -750,7 +759,7 @@ $string['resume_test'] = 'Continue the test';
 $string['test_failed'] = 'Not passed yet: the pass mark is {$a}%. Take the test again to pass.';
 $string['test_passed'] = 'Passed: the pass mark is {$a}%.';
 $string['test_intro'] = 'Test: one choice per scene. Your score and the pass mark are shown at the end.';
-$string['practice_intro'] = 'Practice: after a poorer choice you can choose the other response.';
+$string['practice_intro'] = 'Practice: after a poorer choice you can choose again.';
 $string['testagain'] = 'Take the test again';
 $string['gototest'] = 'Take the test';
 $string['testmode'] = 'Test';
@@ -768,7 +777,7 @@ $string['voiceparts'] = 'Voiceover reads';
 $string['voiceparts_help'] = 'Choose what learners can hear. The narrator (chosen by the administrator) reads the scenario, the question and the feedback. Each person in the picture speaks their own lines in a voice that matches their name label, and the two responses are read in the voice of the person labelled as the learner (for example the shift supervisor). Voiceover must be switched on for the site; the clips are created in the Voiceover step of the set-up, and only the parts chosen here are created.';
 $string['voicepart_consequence'] = 'What happened after each response (the feedback box)';
 $string['voicepart_question'] = 'The question';
-$string['voicepart_responses'] = 'The two responses, in the learner\'s voice';
+$string['voicepart_responses'] = 'The responses, in the learner\'s voice';
 $string['voicepart_scenario'] = 'The scenario and the conversation';
 $string['voicepart_why'] = 'Why it works or falls short';
 $string['voice_parts'] = 'The voiceover reads: {$a}.';
@@ -780,3 +789,19 @@ $string['toolong_field'] = 'Too long to fit neatly on the page: {$a->length} cha
 $string['toolong_scene'] = 'Some text is too long to fit neatly on the page. Open the scene to shorten it.';
 $string['voice_learner'] = 'The learner (the responses): {$a->f} or {$a->m}, as the learner\'s name label in each picture says';
 $string['voice_alreadymade'] = 'This voiceover clip has already been made, so nothing was bought.';
+$string['responsex_optional'] = 'Response {$a} (optional)';
+$string['responsec_help'] = 'Add a third response to make the scene harder: a very poor response that makes things much worse. Its indicator drops at least twice as far as the poorer response. Leave it empty for two responses. When answers are shuffled, the very poor response can be A, B or C.';
+$string['worstresponse'] = 'Very poor response';
+$string['worstresponse_help'] = 'With three responses, choose the one that makes things much worse. It drops its indicator at least twice as far as the poorer response.';
+$string['worstresponse_none'] = 'None (two responses)';
+$string['worstrequired'] = 'With three responses, choose the very poor response. It can\'t be the better response.';
+$string['deltaworst'] = 'The very poor response does double the harm: use {$a} or lower.';
+$string['review_worst'] = 'Very poor';
+$string['kpibands'] = 'Indicator colours';
+$string['kpibands_help'] = 'The indicator bars are red, amber or green. Below the amber number a bar is red; from the amber number it is amber; from the green number it is green. Every indicator starts at 50.';
+$string['kpiamber'] = 'Amber from';
+$string['kpigreen'] = 'green from';
+$string['kpibands_range'] = 'Use two numbers from 1 to 100, the amber number lower than the green number.';
+$string['kpitone_red'] = 'red';
+$string['kpitone_amber'] = 'amber';
+$string['kpitone_green'] = 'green';

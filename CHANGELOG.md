@@ -2,6 +2,28 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.1] - 2026-10-11
+
+Follows the LMS Labs release response of 9 Oct 2026 (speech enabled for AI Soft Skills, 5 credits per scene and per clip in development), and Jamie's requests of 9 Oct. No tariff change.
+
+### Added
+
+- **A third, very poor response (C)** to make scenes harder. It makes things much worse: its indicator drop is at least double the poorer response's ("double minus points"), with its own red feedback ("That made things much worse.") and results slide. Scenes can have two or three responses; the editor has an optional Response C and a "Very poor response" choice.
+- The ChatGPT/AI-assistant prompt now asks for three responses per scene (better, poorer, very poor) in a random order.
+- With "Shuffle the order of the responses" on, the better response is spread evenly over A, B and C across the scenes, and the very poor one moves too.
+- **Traffic-light indicators**: the indicator bars are red, amber or green. The bands are activity settings (default: amber from 40, green from 70).
+
+### Changed
+
+- **The scene fits on one screen**: the indicators sit in the top bar; the picture and its context cards are on the left; the role line, question and responses are on the right. The picture shrinks on short screens so nothing falls below the fold. Phones keep one column, with the role line first.
+
+### Fixed
+
+- A voiceover answer of 503 `VOICEOVER_NOT_ENABLED` (or the older `TARIFF_NOT_APPROVED`) or `PROVIDER_NOT_CONFIGURED`, and 502 `UNUSABLE_AUDIO`, now end as "not created, not charged" with their own message, instead of "uncertain".
+- Charging wording: LMS Labs charges a clip when it makes it, not when it reaches the site. A clip it made is charged even if the page is closed before it arrives.
+- A request that can no longer return audio (410) no longer says it was charged or that it is safe to make again: keep the reference and contact LMS Labs support first.
+- The voice catalogue kept from earlier versions is forgotten on upgrade.
+
 ## [v1.4.0] - 2026-10-10
 
 Builds on 1.3.1. New tariffs approved by the owner on 8 Oct 2026: **5 credits per scene** (LMS Labs AI or the teacher's own AI assistant; was 3) and **5 credits per voiceover clip**. Unchanged: 50 to unlock, 5 per picture. LMS Labs charges these; Moodle shows them. Voiceover stays off until LMS Labs publishes the speech routes.

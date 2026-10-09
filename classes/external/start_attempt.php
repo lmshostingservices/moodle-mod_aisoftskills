@@ -108,13 +108,21 @@ class start_attempt extends base {
                 'resolved' => new external_value(PARAM_BOOL, 'Scene done'),
                 'answered' => new external_value(PARAM_BOOL, 'A choice has been made'),
                 'tried' => new external_value(PARAM_INT, 'Response already tried without success, 0 none'),
+                'triedlist' => new external_multiple_structure(
+                    new external_value(PARAM_INT, 'Response id'),
+                    'Every poorer response already tried in this scene'
+                ),
             ])),
             'kpis' => new external_multiple_structure(new external_single_structure([
                 'kpi' => new external_value(PARAM_ALPHA, 'Indicator key'),
                 'name' => new external_value(PARAM_TEXT, 'Indicator name'),
                 'value' => new external_value(PARAM_INT, 'Current value 0-100'),
                 'start' => new external_value(PARAM_INT, 'Starting value'),
+                'tone' => new external_value(PARAM_ALPHA, 'Traffic light: red, amber or green'),
+                'tonename' => new external_value(PARAM_TEXT, 'The traffic light in words'),
             ])),
+            'kpiamber' => new external_value(PARAM_INT, 'Indicators below this are red'),
+            'kpigreen' => new external_value(PARAM_INT, 'Indicators at or above this are green'),
         ]);
     }
 }

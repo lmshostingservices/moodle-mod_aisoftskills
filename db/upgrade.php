@@ -149,6 +149,33 @@ function xmldb_aisoftskills_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026101000, 'aisoftskills');
     }
 
+    if ($oldversion < 2026101001) {
+        // The voice catalogue now carries the LMS Labs tariff: forget any copy kept before.
+        unset_config('voicecatalog', 'mod_aisoftskills');
+        \cache_helper::purge_by_definition('mod_aisoftskills', 'voicecatalog');
+        $table = new xmldb_table('aisoftskills');
+        $fields = [
+            new xmldb_field('kpiamber', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '40', 'passmark'),
+            new xmldb_field('kpigreen', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '70', 'kpiamber'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        $table = new xmldb_table('aisoftskills_choice');
+        $field = new xmldb_field('tried', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'resolved');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('aisoftskills_option');
+        $field = new xmldb_field('worst', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'best');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2026101001, 'aisoftskills');
+    }
+
     return true;
 }
 

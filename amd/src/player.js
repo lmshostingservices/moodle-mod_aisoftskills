@@ -29,13 +29,28 @@ import Notification from 'core/notification';
 import * as Sound from 'mod_aisoftskills/sound';
 import {loadStrings, fmt, render, confetti, REDUCED} from 'mod_aisoftskills/ui';
 
-const KEYS = ['headline_best', 'headline_bestretry', 'headline_poor', 'scenecounter', 'rating_excellent', 'rating_strong',
+const KEYS = ['headline_best', 'headline_bestretry', 'headline_poor', 'headline_worst', 'recap_firstworst',
+    'kpitone_red', 'kpitone_amber', 'kpitone_green', 'scenecounter', 'rating_excellent', 'rating_strong',
     'rating_developing', 'rating_beginning', 'levelline_excellent', 'levelline_strong', 'levelline_developing',
     'levelline_beginning', 'bestfirstchoices', 'attemptsleft', 'announce_best', 'announce_poor', 'nextscene', 'seeresults',
     'listen_scene', 'listen_stop', 'results_slide', 'recap_firstbest', 'recap_firstpoor', 'mustlisten_wait',
     'mustlisten_start', 'test_passed', 'test_failed', 'ctx_situation', 'ctx_action', 'ctx_context'];
 
 let S = {};
+
+/**
+ * The traffic-light colour of an indicator value, from the activity's bands.
+ *
+ * @param {number} value
+ * @param {object} data player data with kpiamber and kpigreen
+ * @returns {string} red, amber or green
+ */
+const kpiTone = (value, data) => {
+    if (value >= Number(data.kpigreen ?? 70)) {
+        return 'green';
+    }
+    return value >= Number(data.kpiamber ?? 40) ? 'amber' : 'red';
+};
 
 /**
  * Splits feedback into sentences so each can be shown as its own short paragraph.
@@ -295,7 +310,7 @@ class Player {
             fmt(S.scenecounter, {number: scene.number, total: this.data.scenes.length});
         this.nextBtn.disabled = !scene.resolved;
         node.querySelectorAll('.ss-option').forEach((btn) => {
-            if (Number(btn.dataset.optionid) === scene.tried) {
+            if ((scene.triedlist || [scene.tried]).includes(Number(btn.dataset.optionid))) {
                 btn.classList.add('is-tried');
                 btn.disabled = true;
             }
@@ -435,10 +450,14 @@ class Player {
             return;
         }
         btn.classList.add(res.best ? 'is-best' : 'is-poor');
+        if (res.worst) {
+            btn.classList.add('is-worst');
+        }
         scene.resolved = res.resolved;
         scene.answered = 1;
         if (!res.best && res.canretry) {
             scene.tried = Number(btn.dataset.optionid);
+            scene.triedlist = (scene.triedlist || []).concat([scene.tried]);
         }
         this.updateKpi(res.kpi, res.kpiname, res.after);
         this.markDot(this.index);
@@ -476,6 +495,10 @@ class Player {
             strip.appendChild(chip);
         }
         chip.setAttribute('aria-valuenow', String(value));
+        const tone = kpiTone(value, this.data);
+        chip.classList.remove('is-red', 'is-amber', 'is-green');
+        chip.classList.add('is-' + tone);
+        chip.setAttribute('aria-valuetext', `${value}, ${S['kpitone_' + tone]}`);
         chip.querySelector('.ss-kpichip-bar span').style.width = `${value}%`;
         chip.querySelector('.ss-kpichip-value').textContent = String(value);
         if (!REDUCED) {
@@ -492,13 +515,13 @@ class Player {
      */
     async showConsequence(scene, btn, res) {
         const last = res.allresolved && res.resolved;
-        let headline = S.headline_poor;
+        let headline = res.worst ? S.headline_worst : S.headline_poor;
         if (res.best) {
             headline = res.first ? S.headline_best : S.headline_bestretry;
         }
         const delta = res.after - res.before;
         const popup = await render('consequence', {
-            best: !!res.best, headline, kpiname: res.kpiname, before: res.before, after: res.after,
+            best: !!res.best, worst: !!res.worst, headline, kpiname: res.kpiname, before: res.before, after: res.after,
             deltatext: delta >= 0 ? `+${delta}` : `−${Math.abs(delta)}`, up: delta >= 0,
             consequencelines: sentences(res.consequence), reasonlines: sentences(res.reason), better: res.better,
             betterreasonlines: sentences(res.betterreason),
@@ -570,7 +593,7 @@ class Player {
         if (retry) {
             retry.addEventListener('click', () => {
                 close();
-                btn.classList.remove('is-chosen', 'is-poor');
+                btn.classList.remove('is-chosen', 'is-poor', 'is-worst');
                 btn.classList.add('is-tried');
                 this.stage.querySelectorAll('.ss-option').forEach((b) => {
                     b.disabled = b.classList.contains('is-tried');

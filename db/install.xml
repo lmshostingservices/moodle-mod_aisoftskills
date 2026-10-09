@@ -21,6 +21,8 @@
         <FIELD NAME="practicemode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Practice: after a poorer choice the learner tries the other response"/>
         <FIELD NAME="testmode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Test: one choice per scene, a score and a pass mark at the end; graded"/>
         <FIELD NAME="passmark" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="70" SEQUENCE="false" COMMENT="Test score needed to pass, in percent; 0 none"/>
+        <FIELD NAME="kpiamber" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="40" SEQUENCE="false" COMMENT="Indicators below this are red, from it amber"/>
+        <FIELD NAME="kpigreen" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="70" SEQUENCE="false" COMMENT="Indicators from this are green"/>
         <FIELD NAME="shuffleoptions" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="sounds" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="voiceparts" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="scenario,question,responses,consequence,why" SEQUENCE="false" COMMENT="What the voiceover reads, comma-separated"/>
@@ -64,13 +66,14 @@
         <INDEX NAME="order" UNIQUE="false" FIELDS="aisoftskillsid, sortorder"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="aisoftskills_option" COMMENT="A response the learner can choose in a scene (two per scene)">
+    <TABLE NAME="aisoftskills_option" COMMENT="A response the learner can choose in a scene (two or three per scene)">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="sceneid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="text" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="What the person says or does"/>
         <FIELD NAME="best" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 for the better response"/>
+        <FIELD NAME="worst" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 for the very poor response (the third response, when there is one)"/>
         <FIELD NAME="kpi" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="morale" SEQUENCE="false" COMMENT="Workplace indicator the choice moves"/>
         <FIELD NAME="kpidelta" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Change to the indicator, -50 to 50"/>
         <FIELD NAME="consequence" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What happens next"/>
@@ -114,6 +117,7 @@
         <FIELD NAME="best" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the first choice was the better response"/>
         <FIELD NAME="tries" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="resolved" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 once the better response has been chosen"/>
+        <FIELD NAME="tried" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Comma-separated ids of the poorer responses already chosen (Practice)"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

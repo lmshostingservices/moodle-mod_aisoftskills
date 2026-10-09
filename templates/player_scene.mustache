@@ -41,20 +41,14 @@
         <h3 class="ss-scene-title" dir="auto" id="ss-scene-title-{{sceneid}}">{{title}}</h3>
     </div>
     <div class="ss-scene-body">
-        <figure class="ss-figure">
-            <img src="{{image}}" alt="{{title}}" draggable="false">
-            {{#labels}}
-            <span class="ss-namelabel {{#you}}is-you{{/you}}" style="left: {{x}}%; top: {{y}}%;" dir="auto">{{text}}</span>
-            {{/labels}}
-            {{#labels.0}}<figcaption class="sr-only">{{#str}} labels_inpicture, mod_aisoftskills {{/str}} {{#labels}}{{text}}. {{/labels}}</figcaption>{{/labels.0}}
-        </figure>
-        <div class="ss-scene-side">
-            {{#roleline}}
-            <p class="ss-roleline" dir="auto">
-                <span class="ss-roleline-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c.8-3.9 3.6-6 7-6s6.2 2.1 7 6"/><path d="M9.5 14.5l2.5 3 2.5-3"/></svg></span>
-                <span>{{roleline}}</span>
-            </p>
-            {{/roleline}}
+        <div class="ss-scene-main">
+            <figure class="ss-figure">
+                <img src="{{image}}" alt="{{title}}" draggable="false">
+                {{#labels}}
+                <span class="ss-namelabel {{#you}}is-you{{/you}}" style="left: {{x}}%; top: {{y}}%;" dir="auto">{{text}}</span>
+                {{/labels}}
+                {{#labels.0}}<figcaption class="sr-only">{{#str}} labels_inpicture, mod_aisoftskills {{/str}} {{#labels}}{{text}}. {{/labels}}</figcaption>{{/labels.0}}
+            </figure>
             {{#hasvoice}}
             <button type="button" class="ss-listen" data-action="listen" aria-pressed="false">
                 <svg class="ss-listen-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
@@ -77,6 +71,14 @@
                 {{#dialogue}}<p class="ss-dialogue-line" data-line="{{index}}" dir="auto">{{#speaker}}<strong class="ss-dialogue-speaker">{{speaker}}</strong> {{/speaker}}<span>{{line}}</span></p>{{/dialogue}}
             </div>
             {{/dialogue.0}}
+        </div>
+        <div class="ss-scene-side">
+            {{#roleline}}
+            <p class="ss-roleline" dir="auto">
+                <span class="ss-roleline-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c.8-3.9 3.6-6 7-6s6.2 2.1 7 6"/><path d="M9.5 14.5l2.5 3 2.5-3"/></svg></span>
+                <span>{{roleline}}</span>
+            </p>
+            {{/roleline}}
             <div class="ss-question" data-part="question">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg>
                 <p dir="auto">{{#question}}{{question}}{{/question}}{{^question}}{{#str}} whatdoyousay, mod_aisoftskills {{/str}}{{/question}}</p>

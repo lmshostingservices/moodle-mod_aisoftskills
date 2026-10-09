@@ -191,11 +191,11 @@ class learning {
                 throw new moodle_exception('noscenes', 'mod_aisoftskills');
             }
             $order = [];
-            $firsts = self::better_first(count($ready));
+            $positions = self::better_positions(array_map(fn($r) => count($r[1]), array_values($ready)));
             foreach (array_values($ready) as $i => [$scene, $options]) {
                 $ids = array_map(fn($o) => (int)$o->id, $options);
                 if ($instance->shuffleoptions) {
-                    $ids = self::place_better($options, $firsts[$i]);
+                    $ids = self::place_better($options, $positions[$i]);
                 }
                 $order[] = ['scene' => (int)$scene->id, 'options' => $ids];
             }
@@ -221,34 +221,47 @@ class learning {
     }
 
     /**
-     * Where the better response goes in each scene of a new attempt: first (A) in half of the scenes and second (B)
-     * in the other half, in a random order, so the answer is never "always B". With an odd number of scenes the
-     * extra one is random.
+     * Where the better response goes in each scene of a new attempt, spread evenly over the letters: with two
+     * responses it is A in half of the scenes and B in the other half; with three, A, B and C a third of the time
+     * each. The order of the scenes is random, and leftover scenes get a random letter.
      *
-     * A plain shuffle of two responses keeps their stored order half of the time, and drafted scenes often store
-     * the better response in the same place, so learners could see the same letter win many times in a row.
+     * A plain shuffle keeps the stored order too often, and drafted scenes often store the better response in the same
+     * place, so learners could see the same letter win many times in a row.
      *
-     * @param int $count number of scenes
-     * @return bool[] true where the better response is shown first
+     * @param int[] $sizes number of responses in each scene, in scene order
+     * @return int[] position (0 = A) of the better response in each scene
      */
-    public static function better_first(int $count): array {
-        $half = intdiv($count, 2);
-        $out = array_merge(array_fill(0, $half, true), array_fill(0, $half, false));
-        if ($count % 2) {
-            $out[] = (bool)random_int(0, 1);
+    public static function better_positions(array $sizes): array {
+        $out = array_fill(0, count($sizes), 0);
+        $groups = [];
+        foreach (array_values($sizes) as $i => $size) {
+            $groups[max(1, (int)$size)][] = $i;
         }
-        shuffle($out);
+        foreach ($groups as $size => $scenes) {
+            $pool = [];
+            for ($k = 0; $k < intdiv(count($scenes), $size); $k++) {
+                $pool = array_merge($pool, range(0, $size - 1));
+            }
+            $spare = range(0, $size - 1);
+            shuffle($spare);
+            $pool = array_merge($pool, array_slice($spare, 0, count($scenes) % $size));
+            shuffle($pool);
+            foreach ($scenes as $k => $i) {
+                $out[$i] = $pool[$k];
+            }
+        }
         return $out;
     }
 
     /**
-     * The response ids of a scene with the better response first or second.
+     * The response ids of a scene with the better response at a position; the others, the very poor one included,
+     * are shuffled into the remaining places.
      *
      * @param stdClass[] $options
-     * @param bool $first
+     * @param int $position 0 for A, 1 for B, 2 for C
      * @return int[]
      */
-    public static function place_better(array $options, bool $first): array {
+    public static function place_better(array $options, int $position): array {
         $best = [];
         $other = [];
         foreach ($options as $o) {
@@ -259,7 +272,9 @@ class learning {
             }
         }
         shuffle($other);
-        return $first ? array_merge($best, $other) : array_merge($other, $best);
+        $position = max(0, min(count($other), $position));
+        array_splice($other, $position, 0, $best);
+        return $other;
     }
 
     /**
@@ -291,7 +306,7 @@ class learning {
             'aisoftskills_choice',
             ['attemptid' => $attempt->id],
             '',
-            'sceneid, id, attemptid, optionid, best, tries, resolved, timecreated, timemodified'
+            'sceneid, id, attemptid, optionid, best, tries, resolved, tried, timecreated, timemodified'
         );
         $out = [];
         $number = 0;
@@ -341,6 +356,7 @@ class learning {
                 'answered' => $choice ? 1 : 0,
                 // A poor first choice waiting for a second try stays crossed out when the learner comes back.
                 'tried' => $choice && !$choice->resolved ? (int)$choice->optionid : 0,
+                'triedlist' => $choice && !$choice->resolved ? self::tried_ids($choice) : [],
             ];
         }
         $kpis = self::kpis($attempt);
@@ -349,7 +365,9 @@ class learning {
             'attempt' => (int)$attempt->attempt,
             'mode' => (string)$attempt->playmode,
             'scenes' => $out,
-            'kpis' => self::kpi_list($kpis),
+            'kpis' => self::kpi_list($kpis, $instance),
+            'kpiamber' => self::kpi_bands($instance)[0],
+            'kpigreen' => self::kpi_bands($instance)[1],
         ];
     }
 
@@ -427,17 +445,60 @@ class learning {
     }
 
     /**
+     * The poorer responses already chosen in a scene (earlier versions kept only the first choice).
+     *
+     * @param stdClass $choice
+     * @return int[]
+     */
+    public static function tried_ids(stdClass $choice): array {
+        $ids = array_map('intval', array_filter(explode(',', (string)($choice->tried ?? '')), 'is_numeric'));
+        if (!$choice->best && !in_array((int)$choice->optionid, $ids, true)) {
+            $ids[] = (int)$choice->optionid;
+        }
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * The traffic-light bands of an activity: below the first number an indicator is red, from it amber, and from the
+     * second number green.
+     *
+     * @param stdClass|null $instance
+     * @return int[] [amber from, green from]
+     */
+    public static function kpi_bands(?stdClass $instance): array {
+        $amber = (int)($instance->kpiamber ?? 40);
+        $green = (int)($instance->kpigreen ?? 70);
+        $amber = max(1, min(99, $amber));
+        $green = max($amber + 1, min(100, $green));
+        return [$amber, $green];
+    }
+
+    /**
+     * The traffic-light colour of an indicator value.
+     *
+     * @param int $value
+     * @param stdClass|null $instance
+     * @return string red, amber or green
+     */
+    public static function kpi_tone(int $value, ?stdClass $instance): string {
+        [$amber, $green] = self::kpi_bands($instance);
+        return $value >= $green ? 'green' : ($value >= $amber ? 'amber' : 'red');
+    }
+
+    /**
      * Indicators as a list for display.
      *
      * @param array $kpis kpi => value
+     * @param stdClass|null $instance the activity, for its traffic-light bands
      * @return array
      */
-    public static function kpi_list(array $kpis): array {
+    public static function kpi_list(array $kpis, ?stdClass $instance = null): array {
         $list = [];
         foreach ($kpis as $key => $value) {
             if (catalogue::is_kpi((string)$key)) {
                 $list[] = ['kpi' => (string)$key, 'name' => catalogue::kpi_name((string)$key), 'value' => (int)$value,
-                    'start' => catalogue::KPI_START];
+                    'start' => catalogue::KPI_START, 'tone' => self::kpi_tone((int)$value, $instance),
+                    'tonename' => get_string('kpitone_' . self::kpi_tone((int)$value, $instance), 'mod_aisoftskills')];
             }
         }
         return $list;
@@ -491,13 +552,19 @@ class learning {
                 'best' => $best ? 1 : 0,
                 'tries' => 1,
                 'resolved' => ($best || !$retry) ? 1 : 0,
+                'tried' => $best ? null : (string)$optionid,
                 'timecreated' => $now,
                 'timemodified' => $now,
             ];
             $choice->id = $DB->insert_record('aisoftskills_choice', $choice);
         } else {
-            if ((int)$choice->optionid === $optionid && !$best) {
+            $tried = self::tried_ids($choice);
+            if (!$best && in_array($optionid, $tried, true)) {
                 throw new moodle_exception('alreadytried', 'mod_aisoftskills');
+            }
+            if (!$best) {
+                // Every poorer response chosen stays crossed out, so none can be chosen twice (three responses).
+                $choice->tried = implode(',', array_merge($tried, [$optionid]));
             }
             $choice->tries++;
             $choice->resolved = $best ? 1 : 0;
@@ -517,6 +584,7 @@ class learning {
 
         $result = [
             'best' => $best ? 1 : 0,
+            'worst' => !$best && !empty($option->worst) ? 1 : 0,
             'first' => (int)$choice->tries === 1 ? 1 : 0,
             'consequence' => self::para($option->consequence, $context),
             'reason' => self::para($option->reason, $context),
@@ -642,7 +710,7 @@ class learning {
         $sceneids = array_column($order, 'scene');
         $scenes = $sceneids ? $DB->get_records_list('aisoftskills_scene', 'id', $sceneids) : [];
         $options = manager::get_options($sceneids);
-        $choices = $DB->get_records('aisoftskills_choice', ['attemptid' => $attempt->id], '', 'sceneid, best');
+        $choices = $DB->get_records('aisoftskills_choice', ['attemptid' => $attempt->id], '', 'sceneid, best, optionid');
         $recap = [];
         foreach ($sceneids as $sceneid) {
             $scene = $scenes[$sceneid] ?? null;
@@ -650,8 +718,11 @@ class learning {
                 continue;
             }
             $better = null;
+            $firstworst = false;
             foreach ($options[$sceneid] as $o) {
                 $better = (int)$o->best === 1 ? $o : $better;
+                $firstworst = $firstworst || (!empty($o->worst) && isset($choices[$sceneid])
+                    && (int)$choices[$sceneid]->optionid === (int)$o->id);
             }
             [$image] = manager::get_scene_image($context, (int)$sceneid);
             $recap[] = [
@@ -660,6 +731,7 @@ class learning {
                 'skill' => self::line(catalogue::skill_name((string)$scene->skill), $context),
                 'image' => (string)$image,
                 'firstbest' => !empty($choices[$sceneid]->best),
+                'firstworst' => $firstworst,
                 'better' => $better ? self::para($better->text, $context) : '',
                 'reason' => $better ? self::para($better->reason, $context) : '',
             ];
@@ -671,7 +743,7 @@ class learning {
             'best' => $best,
             'total' => $total,
             'rating' => $rating,
-            'kpis' => self::kpi_list(self::kpis($attempt)),
+            'kpis' => self::kpi_list(self::kpis($attempt), $instance),
             'level' => (string)$instance->level,
             'canretake' => in_array($mode, self::modes($instance), true)
                 && (!$limited || $finished < (int)$instance->maxattempts) ? 1 : 0,
@@ -717,6 +789,7 @@ class learning {
                 'title' => self::line($scene->title, $context),
                 'choice' => $option ? self::para($option->text, $context) : '',
                 'best' => $choice && $choice->best ? 1 : 0,
+                'worst' => $option && !empty($option->worst) ? 1 : 0,
                 'answered' => $choice ? 1 : 0,
                 'tries' => $choice ? (int)$choice->tries : 0,
             ];

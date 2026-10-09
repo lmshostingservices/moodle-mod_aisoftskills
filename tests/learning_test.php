@@ -137,7 +137,11 @@ final class learning_test extends \advanced_testcase {
         $this->assertSame(1, $summary['best']);
         $this->assertSame(2, $summary['total']);
         $this->assertSame('developing', $summary['rating']);
-        $this->assertSame([['kpi' => 'motivation', 'name' => 'Motivation', 'value' => 70, 'start' => 50]], $summary['kpis']);
+        $this->assertSame(
+            [['kpi' => 'motivation', 'name' => 'Motivation', 'value' => 70, 'start' => 50, 'tone' => 'green',
+                'tonename' => 'green']],
+            $summary['kpis']
+        );
         $grades = grade_get_grades($course->id, 'mod', 'aisoftskills', $instance->id, $student->id);
         $this->assertEquals(50, (float)$grades->items[0]->grades[$student->id]->grade);
     }
@@ -214,17 +218,36 @@ final class learning_test extends \advanced_testcase {
     }
 
     /**
-     * The better response is first in half of the scenes and second in the other half.
+     * The better response is spread evenly over A and B, or over A, B and C; the very poor one is never fixed to C.
      */
-    public function test_better_first_is_balanced(): void {
+    public function test_better_positions_are_balanced(): void {
         for ($n = 1; $n <= 9; $n++) {
-            $firsts = learning::better_first($n);
-            $this->assertCount($n, $firsts);
-            $this->assertLessThanOrEqual(1, abs(count(array_filter($firsts)) * 2 - $n));
+            foreach ([2, 3] as $size) {
+                $positions = learning::better_positions(array_fill(0, $n, $size));
+                $this->assertCount($n, $positions);
+                $counts = array_count_values($positions);
+                for ($p = 0; $p < $size; $p++) {
+                    $this->assertGreaterThanOrEqual(intdiv($n, $size), $counts[$p] ?? 0);
+                    $this->assertLessThanOrEqual(intdiv($n, $size) + 1, $counts[$p] ?? 0);
+                }
+                $this->assertEmpty(array_filter($positions, fn($p) => $p < 0 || $p >= $size));
+            }
         }
+        // Mixed scenes: each group is balanced on its own.
+        $positions = learning::better_positions([2, 3, 2, 3, 3, 2]);
+        $this->assertCount(6, $positions);
         $options = [(object)['id' => 5, 'best' => 0], (object)['id' => 7, 'best' => 1]];
-        $this->assertSame([7, 5], learning::place_better($options, true));
-        $this->assertSame([5, 7], learning::place_better($options, false));
+        $this->assertSame([7, 5], learning::place_better($options, 0));
+        $this->assertSame([5, 7], learning::place_better($options, 1));
+        $three = [(object)['id' => 1, 'best' => 1], (object)['id' => 2, 'best' => 0], (object)['id' => 3, 'best' => 0]];
+        $seen = [];
+        for ($k = 0; $k < 60; $k++) {
+            $ids = learning::place_better($three, 2);
+            $this->assertSame(1, $ids[2]);
+            $seen[$ids[0]] = true;
+        }
+        // The very poor response (3) is shuffled with the poorer one, so it is not always in the same place.
+        $this->assertCount(2, $seen);
     }
 
     /**

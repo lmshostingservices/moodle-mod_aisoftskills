@@ -22,7 +22,7 @@
 
     Example context (json):
     {
-        "best": true, "headline": "Great choice!", "kpiname": "Motivation", "before": 50, "after": 70,
+        "best": true, "worst": false, "headline": "Great choice!", "kpiname": "Motivation", "before": 50, "after": 70,
         "deltatext": "+20", "up": true,
         "consequencelines": ["The team relaxes.", "They ask for the two things they need."],
         "reasonlines": ["Offering help shows trust and removes blockers."], "better": "", "betterreasonlines": [],
@@ -30,7 +30,7 @@
     }
 }}
 <div class="ss-dialog-backdrop" data-region="consequence">
-    <div class="ss-dialog ss-consequence {{#best}}is-best{{/best}}{{^best}}is-poor{{/best}}" role="dialog" aria-modal="true" aria-labelledby="ss-consequence-title">
+    <div class="ss-dialog ss-consequence {{#best}}is-best{{/best}}{{^best}}is-poor{{/best}}{{#worst}} is-worst{{/worst}}" role="dialog" aria-modal="true" aria-labelledby="ss-consequence-title">
         <div class="ss-consequence-head">
             <span class="ss-consequence-icon" aria-hidden="true">
                 {{#best}}<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{{/best}}

@@ -69,6 +69,8 @@ class finish_attempt extends base {
                 'name' => new external_value(PARAM_TEXT, 'Indicator name'),
                 'value' => new external_value(PARAM_INT, 'Current value 0-100'),
                 'start' => new external_value(PARAM_INT, 'Starting value'),
+                'tone' => new external_value(PARAM_ALPHA, 'Traffic light: red, amber or green'),
+                'tonename' => new external_value(PARAM_TEXT, 'The traffic light in words'),
             ])),
             'level' => new external_value(PARAM_ALPHA, 'Career level'),
             'takeaways' => new external_multiple_structure(new external_single_structure([
@@ -83,6 +85,7 @@ class finish_attempt extends base {
                 'skill' => new external_value(PARAM_TEXT, 'Soft skill'),
                 'image' => new external_value(PARAM_URL, 'Picture URL'),
                 'firstbest' => new external_value(PARAM_BOOL, 'The first choice was the better response'),
+                'firstworst' => new external_value(PARAM_BOOL, 'The first choice was the very poor response'),
                 'better' => new external_value(PARAM_TEXT, 'The better response'),
                 'reason' => new external_value(PARAM_TEXT, 'Why it works'),
             ]), 'Every scene of the attempt, in the order played'),

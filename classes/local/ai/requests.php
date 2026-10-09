@@ -79,7 +79,8 @@ class requests {
 
     /** @var string[] Documented 5xx codes LMS Labs uses when the provider failed before anything was charged. */
     protected const PROVIDER_REFUSED = ['provider_unavailable', 'provider_failed', 'provider_rate_limited',
-        'invalid_provider_result', 'image_failed', 'unusable_image'];
+        'invalid_provider_result', 'image_failed', 'unusable_image', 'unusable_audio', 'voiceover_not_enabled',
+        'tariff_not_approved', 'provider_not_configured'];
 
     /** @var string[] Voiceover error codes that leave the outcome unknown: the key is kept for "Check again". */
     protected const VOICE_UNCERTAIN = ['settlement_unconfirmed', 'deadline_exceeded', 'tts_unavailable'];
@@ -916,10 +917,15 @@ class requests {
             'provider_unavailable' => 'provider_failed', 'invalid_input' => 'rejected', 'invalid_json' => 'rejected',
             'unexpected_fields' => 'rejected', 'body_too_large' => 'rejected', 'invalid_idempotency_key' => 'rejected',
             'http_404' => 'not_live', 'tts_failed' => 'provider_failed', 'unsupported_voice' => 'rejected',
+            'tariff_not_approved' => 'voiceover_not_enabled', 'unusable_audio' => 'provider_failed',
             'unsupported_locale' => 'rejected', 'text_too_long' => 'rejected',
         ];
         $prefixes = [self::IMPORT => 'aiimporterror_', self::VOICE => 'aivoiceerror_'];
         $prefix = $prefixes[$row->operation] ?? 'aidrafterror_';
-        return get_string($prefix . ($map[$code] ?? 'failed'), 'mod_aisoftskills', $a);
+        $name = $map[$code] ?? $code;
+        if ($name === '' || !$sm->string_exists($prefix . $name, 'mod_aisoftskills')) {
+            $name = 'failed';
+        }
+        return get_string($prefix . $name, 'mod_aisoftskills', $a);
     }
 }

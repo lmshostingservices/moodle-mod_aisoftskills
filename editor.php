@@ -60,10 +60,14 @@ if ($form->is_cancelled()) {
     redirect($backurl);
 } else if ($data = $form->get_data()) {
     $options = [];
-    for ($i = 0; $i < manager::OPTIONS; $i++) {
+    for ($i = 0; $i < manager::MAX_OPTIONS; $i++) {
+        if ($i >= manager::OPTIONS && trim((string)$data->{"text{$i}"}) === '') {
+            continue;
+        }
         $options[] = [
             'text' => $data->{"text{$i}"},
             'best' => (int)$data->best === $i,
+            'worst' => (int)($data->worst ?? -1) === $i,
             'kpi' => $data->{"kpi{$i}"},
             'kpidelta' => $data->{"kpidelta{$i}"},
             'consequence' => $data->{"consequence{$i}"},
@@ -86,10 +90,10 @@ if ($form->is_cancelled()) {
 $defaults = ['id' => $cm->id, 'sceneid' => $scene->id, 'title' => $scene->title, 'skill' => $scene->skill,
     'context' => $scene->context, 'speaker' => $scene->speaker, 'question' => $scene->question,
     'imageprompt' => $scene->imageprompt, 'scripttext' => manager::script_to_text($scene->script),
-    'teachingnote' => $scene->teachingnote, 'best' => 0];
+    'teachingnote' => $scene->teachingnote, 'best' => 0, 'worst' => -1];
 $existing = manager::get_options([$scene->id])[$scene->id];
 foreach (array_values($existing) as $i => $option) {
-    if ($i >= manager::OPTIONS) {
+    if ($i >= manager::MAX_OPTIONS) {
         break;
     }
     $defaults += ["text{$i}" => $option->text, "kpi{$i}" => $option->kpi, "kpidelta{$i}" => (int)$option->kpidelta,
@@ -97,9 +101,16 @@ foreach (array_values($existing) as $i => $option) {
     if ((int)$option->best === 1) {
         $defaults['best'] = $i;
     }
+    if (!empty($option->worst)) {
+        $defaults['worst'] = $i;
+    }
 }
-for ($i = count($existing); $i < manager::OPTIONS; $i++) {
-    $defaults += ["kpidelta{$i}" => $i === 0 ? 20 : -20];
+for ($i = count($existing); $i < manager::MAX_OPTIONS; $i++) {
+    $defaults += ["kpidelta{$i}" => [20, -15, -30][$i]];
+}
+if ($defaults['worst'] < 0 && count($existing) < manager::MAX_OPTIONS) {
+    // A new third response (C) is the very poor one unless the teacher chooses otherwise.
+    $defaults['worst'] = manager::MAX_OPTIONS - 1;
 }
 $form->set_data($defaults);
 

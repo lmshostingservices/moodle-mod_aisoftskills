@@ -71,14 +71,20 @@ class scene_form extends \moodleform {
         $mform->addHelpButton('teachingnote', 'sceneteachingnote', $c);
 
         $kpis = catalogue::kpi_options();
-        for ($i = 0; $i < manager::OPTIONS; $i++) {
+        for ($i = 0; $i < manager::MAX_OPTIONS; $i++) {
             $letter = chr(65 + $i);
-            $mform->addElement('header', "optionhdr{$i}", get_string('responsex', $c, $letter));
+            $optional = $i >= manager::OPTIONS;
+            $mform->addElement('header', "optionhdr{$i}", get_string($optional ? 'responsex_optional' : 'responsex', $c, $letter));
             $mform->setExpanded("optionhdr{$i}");
+            if ($optional) {
+                $mform->addElement('static', "optionhelp{$i}", '', get_string('responsec_help', $c));
+            }
             $mform->addElement('textarea', "text{$i}", get_string('responsetext', $c), ['rows' => 2, 'cols' => 60,
                 'data-ss-limit' => manager::LIMITS['text']] + $dir);
             $mform->setType("text{$i}", PARAM_TEXT);
-            $mform->addRule("text{$i}", null, 'required', null, 'client');
+            if (!$optional) {
+                $mform->addRule("text{$i}", null, 'required', null, 'client');
+            }
             $mform->addElement('select', "kpi{$i}", get_string('responsekpi', $c), $kpis);
             $mform->addHelpButton("kpi{$i}", 'responsekpi', $c);
             $mform->addElement('text', "kpidelta{$i}", get_string('responsedelta', $c), ['size' => 4]);
@@ -99,12 +105,19 @@ class scene_form extends \moodleform {
         $mform->addElement('header', 'besthdr', get_string('bestresponse', $c));
         $mform->setExpanded('besthdr');
         $group = [];
-        for ($i = 0; $i < manager::OPTIONS; $i++) {
+        for ($i = 0; $i < manager::MAX_OPTIONS; $i++) {
             $group[] = $mform->createElement('radio', 'best', '', get_string('responsex', $c, chr(65 + $i)), $i);
         }
         $mform->addGroup($group, 'bestgroup', get_string('bestresponse', $c), ' ', false);
         $mform->addHelpButton('bestgroup', 'bestresponse', $c);
         $mform->setDefault('best', 0);
+        $group = [$mform->createElement('radio', 'worst', '', get_string('worstresponse_none', $c), -1)];
+        for ($i = 0; $i < manager::MAX_OPTIONS; $i++) {
+            $group[] = $mform->createElement('radio', 'worst', '', get_string('responsex', $c, chr(65 + $i)), $i);
+        }
+        $mform->addGroup($group, 'worstgroup', get_string('worstresponse', $c), ' ', false);
+        $mform->addHelpButton('worstgroup', 'worstresponse', $c);
+        $mform->setDefault('worst', -1);
         $this->add_action_buttons(true, get_string('savechanges'));
     }
 
@@ -117,9 +130,14 @@ class scene_form extends \moodleform {
      */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
+        $count = trim((string)($data['text' . manager::OPTIONS] ?? '')) !== '' ? manager::MAX_OPTIONS : manager::OPTIONS;
         $best = (int)($data['best'] ?? -1);
-        if ($best < 0 || $best >= manager::OPTIONS) {
+        if ($best < 0 || $best >= $count) {
             $errors['bestgroup'] = get_string('required');
+        }
+        $worst = $count === manager::MAX_OPTIONS ? (int)($data['worst'] ?? -1) : -1;
+        if ($count === manager::MAX_OPTIONS && ($worst < 0 || $worst >= $count || $worst === $best)) {
+            $errors['worstgroup'] = get_string('worstrequired', 'mod_aisoftskills');
         }
         // Short enough to sit neatly on the page.
         $limit = function (string $name, string $field) use ($data, &$errors) {
@@ -135,7 +153,7 @@ class scene_form extends \moodleform {
         foreach (['context', 'question', 'speaker'] as $field) {
             $limit($field, $field);
         }
-        for ($i = 0; $i < manager::OPTIONS; $i++) {
+        for ($i = 0; $i < $count; $i++) {
             foreach (['text', 'consequence', 'reason'] as $field) {
                 $limit($field . $i, $field);
             }
@@ -149,6 +167,19 @@ class scene_form extends \moodleform {
                 $errors["kpidelta{$i}"] = get_string('deltabest', 'mod_aisoftskills');
             } else if ($i !== $best && $delta > 0) {
                 $errors["kpidelta{$i}"] = get_string('deltaother', 'mod_aisoftskills');
+            }
+        }
+        // The very poor response does double the harm of the poorer one.
+        if ($worst >= 0 && $worst !== $best && empty($errors["kpidelta{$worst}"])) {
+            foreach (range(0, $count - 1) as $i) {
+                $floor = max(-catalogue::MAX_DELTA, 2 * min(-5, (int)($data["kpidelta{$i}"] ?? 0)));
+                if ($i !== $best && $i !== $worst && (int)($data["kpidelta{$worst}"] ?? 0) > $floor) {
+                    $errors["kpidelta{$worst}"] = get_string(
+                        'deltaworst',
+                        'mod_aisoftskills',
+                        $floor
+                    );
+                }
             }
         }
         return $errors;

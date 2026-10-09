@@ -84,19 +84,26 @@ class mod_aisoftskills_generator extends testing_module_generator {
         }
         $kpi = $extra['kpi'] ?? 'motivation';
         $scene = $DB->get_record('aisoftskills_scene', ['id' => $sceneid], '*', MUST_EXIST);
-        \mod_aisoftskills\local\manager::save_scene($scene, [], [
+        $options = [
             ['text' => $better, 'best' => 1, 'kpi' => $kpi, 'kpidelta' => $extra['betterdelta'] ?? 20,
                 'consequence' => 'The team relaxes and asks for what it needs.', 'reason' => 'Offering help removes blockers.'],
             ['text' => $poorer, 'best' => 0, 'kpi' => $kpi, 'kpidelta' => $extra['poorerdelta'] ?? -20,
                 'consequence' => 'People rush and make mistakes.', 'reason' => 'Pressure without support lowers motivation.'],
-        ]);
+        ];
+        if (!empty($extra['worst'])) {
+            // A third, very poor response (C).
+            $options[] = ['text' => $extra['worst'], 'best' => 0, 'worst' => 1, 'kpi' => $kpi,
+                'kpidelta' => $extra['worstdelta'] ?? -40, 'consequence' => 'The team stops talking to you.',
+                'reason' => 'Blaming people in public destroys trust.'];
+        }
+        \mod_aisoftskills\local\manager::save_scene($scene, [], $options);
         return $DB->get_record('aisoftskills_scene', ['id' => $sceneid], '*', MUST_EXIST);
     }
 
     /**
      * Creates a scene from Behat table data.
      *
-     * @param array $data activityid (instance id), title, better, poorer, kpi, picture ("none" for no picture)
+     * @param array $data activityid (instance id), title, better, poorer, worst (optional), kpi, picture ("none" for no picture)
      * @return stdClass scene
      */
     public function create_behat_scene(array $data): stdClass {
@@ -107,7 +114,7 @@ class mod_aisoftskills_generator extends testing_module_generator {
             $data['title'],
             $data['better'] ?? 'Is there anything I can get you to help you reach your goals faster?',
             $data['poorer'] ?? 'Hurry up!',
-            array_filter(['kpi' => $data['kpi'] ?? null, 'skill' => $data['skill'] ?? null]),
+            array_filter(['kpi' => $data['kpi'] ?? null, 'skill' => $data['skill'] ?? null, 'worst' => $data['worst'] ?? null]),
             // Column "picture": "none" creates the scene without a picture.
             ($data['picture'] ?? '') === 'none' ? '' : null
         );

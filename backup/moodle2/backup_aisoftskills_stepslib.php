@@ -36,8 +36,8 @@ class backup_aisoftskills_activity_structure_step extends backup_activity_struct
 
         $root = new backup_nested_element('aisoftskills', ['id'], [
             'name', 'intro', 'introformat', 'industry', 'customindustry', 'level', 'contentlang', 'skills', 'imagestyle',
-            'allowretry', 'practicemode', 'testmode', 'passmark', 'shuffleoptions', 'sounds', 'voiceparts', 'mustlisten',
-            'voicemap', 'grade',
+            'allowretry', 'practicemode', 'testmode', 'passmark', 'kpiamber', 'kpigreen', 'shuffleoptions', 'sounds',
+            'voiceparts', 'mustlisten', 'voicemap', 'grade',
             'grademethod', 'maxattempts', 'completionallscenes', 'completionpasstest',
             'timecreated', 'timemodified',
         ]);
@@ -45,14 +45,14 @@ class backup_aisoftskills_activity_structure_step extends backup_activity_struct
         $scene = new backup_nested_element('scene', ['id'], ['sortorder', 'skill', 'title', 'context', 'speaker',
             'question', 'imageprompt', 'script', 'teachingnote', 'labels', 'timecreated', 'timemodified']);
         $options = new backup_nested_element('options');
-        $option = new backup_nested_element('option', ['id'], ['sortorder', 'text', 'best', 'kpi', 'kpidelta',
+        $option = new backup_nested_element('option', ['id'], ['sortorder', 'text', 'best', 'worst', 'kpi', 'kpidelta',
             'consequence', 'reason']);
         $attempts = new backup_nested_element('attempts');
         $attempt = new backup_nested_element('attempt', ['id'], ['userid', 'attempt', 'state', 'playmode', 'sceneorder', 'score',
             'kpis', 'timestart', 'timefinish', 'timemodified']);
         $choices = new backup_nested_element('choices');
         $choice = new backup_nested_element('choice', ['id'], ['sceneid', 'optionid', 'best', 'tries', 'resolved',
-            'timecreated', 'timemodified']);
+            'tried', 'timecreated', 'timemodified']);
 
         $root->add_child($scenes);
         $scenes->add_child($scene);

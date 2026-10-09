@@ -28,8 +28,11 @@ use stdClass;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class manager {
-    /** @var int Responses per scene: one picture shows one moment with two possible responses. */
+    /** @var int Fewest responses per scene: the better response and a poorer one. */
     public const OPTIONS = 2;
+
+    /** @var int Most responses per scene: the better one, a poorer one and a very poor one (C). */
+    public const MAX_OPTIONS = 3;
 
     /** @var string[] Accepted picture types. */
     public const IMAGE_TYPES = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
@@ -219,9 +222,66 @@ class manager {
      * @return bool
      */
     public static function scene_ready(\context $context, stdClass $scene, array $options): bool {
-        $options = array_values(array_filter($options, fn($o) => trim((string)$o->text) !== ''));
-        return count($options) === self::OPTIONS && count(array_filter($options, fn($o) => (int)$o->best === 1)) === 1
-            && self::get_scene_file($context, (int)$scene->id) !== null;
+        return self::options_ok($options) && self::get_scene_file($context, (int)$scene->id) !== null;
+    }
+
+    /**
+     * Whether a scene's responses are complete: two or three with text, exactly one the better response, and with
+     * three, exactly one the very poor response.
+     *
+     * @param array $options response records or arrays (text, best, worst)
+     * @return bool
+     */
+    public static function options_ok(array $options): bool {
+        $list = array_values(array_filter(
+            array_map(fn($o) => (array)$o, $options),
+            fn($o) => trim((string)($o['text'] ?? '')) !== ''
+        ));
+        $count = count($list);
+        if ($count !== count($options) || $count < self::OPTIONS || $count > self::MAX_OPTIONS) {
+            return false;
+        }
+        $best = array_filter($list, fn($o) => !empty($o['best']));
+        $worst = array_filter($list, fn($o) => !empty($o['worst']));
+        if (count($best) !== 1 || array_intersect_key($best, $worst)) {
+            return false;
+        }
+        return count($worst) === ($count === self::MAX_OPTIONS ? 1 : 0);
+    }
+
+    /**
+     * Marks the very poor response among three and makes its indicator drop at least double the poorer one's.
+     *
+     * With three responses and none marked, the poorer response with the larger drop is taken as the very poor one.
+     *
+     * @param stdClass[] $clean responses from {@see self::clean_option()}
+     * @return stdClass[]
+     */
+    public static function mark_worst(array $clean): array {
+        $clean = array_values($clean);
+        if (count($clean) !== self::MAX_OPTIONS) {
+            foreach ($clean as $option) {
+                $option->worst = 0;
+            }
+            return $clean;
+        }
+        $poor = array_keys(array_filter($clean, fn($o) => !$o->best));
+        $marked = array_values(array_filter($poor, fn($i) => $clean[$i]->worst));
+        if (count($marked) !== 1) {
+            usort($poor, fn($a, $b) => $clean[$a]->kpidelta <=> $clean[$b]->kpidelta);
+            $marked = [$poor[0] ?? -1];
+        }
+        foreach ($clean as $i => $option) {
+            $option->worst = $i === $marked[0] ? 1 : 0;
+        }
+        foreach ($poor as $i) {
+            if (!$clean[$i]->worst) {
+                $w = $clean[$marked[0]];
+                // A very poor response does double the harm: double minus points on its indicator.
+                $w->kpidelta = max(-catalogue::MAX_DELTA, min($w->kpidelta, 2 * min(-5, $clean[$i]->kpidelta)));
+            }
+        }
+        return $clean;
     }
 
     /**
@@ -306,6 +366,7 @@ class manager {
      */
     public static function clean_option(array $item): stdClass {
         $best = !empty($item['best']) ? 1 : 0;
+        $worst = !$best && !empty($item['worst']) ? 1 : 0;
         $kpi = (string)($item['kpi'] ?? '');
         if (!catalogue::is_kpi($kpi)) {
             $kpi = 'morale';
@@ -321,6 +382,7 @@ class manager {
         return (object)[
             'text' => self::clean_text($item['text'] ?? '', 1000),
             'best' => $best,
+            'worst' => $worst,
             'kpi' => $kpi,
             'kpidelta' => $delta,
             'consequence' => self::clean_text($item['consequence'] ?? '', 2000),
@@ -329,19 +391,16 @@ class manager {
     }
 
     /**
-     * Saves a scene and its two responses.
+     * Saves a scene and its two or three responses.
      *
      * @param stdClass $scene
      * @param array $data title, skill, context, speaker, question, imageprompt, script (JSON), teachingnote
-     * @param array $options exactly two response arrays; exactly one marked best
+     * @param array $options two or three response arrays; exactly one marked best, and with three one marked worst
      */
     public static function save_scene(stdClass $scene, array $data, array $options): void {
         global $DB;
-        $clean = array_map(fn($o) => self::clean_option((array)$o), array_values($options));
-        if (
-            count($clean) !== self::OPTIONS || count(array_filter($clean, fn($o) => $o->best)) !== 1
-                || count(array_filter($clean, fn($o) => $o->text === '')) > 0
-        ) {
+        $clean = self::mark_worst(array_map(fn($o) => self::clean_option((array)$o), array_values($options)));
+        if (!self::options_ok($clean)) {
             throw new moodle_exception('twooptionsrequired', 'mod_aisoftskills');
         }
         $transaction = $DB->start_delegated_transaction();

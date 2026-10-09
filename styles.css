@@ -1071,6 +1071,22 @@
     background: linear-gradient(90deg, #f59e0b, #10b981);
     transition: width .9s var(--ss-ease);
 }
+.path-mod-aisoftskills .is-red > .ss-kpichip-bar span,
+.path-mod-aisoftskills .is-red > .ss-finalkpi-bar span {
+    background: #d92d20;
+}
+.path-mod-aisoftskills .is-amber > .ss-kpichip-bar span,
+.path-mod-aisoftskills .is-amber > .ss-finalkpi-bar span {
+    background: #f5a00b;
+}
+.path-mod-aisoftskills .is-green > .ss-kpichip-bar span,
+.path-mod-aisoftskills .is-green > .ss-finalkpi-bar span {
+    background: #12a150;
+}
+.path-mod-aisoftskills .ss-kpichip.is-red .ss-kpichip-value,
+.path-mod-aisoftskills .ss-finalkpi.is-red .ss-finalkpi-value {
+    color: #b42318;
+}
 .path-mod-aisoftskills [dir="rtl"] .ss-kpichip-bar span,
 .path-mod-aisoftskills [dir="rtl"] .ss-finalkpi-bar span {
     inset: 0 0 0 auto;
@@ -1256,6 +1272,17 @@
 }
 .path-mod-aisoftskills .ss-consequence.is-poor .ss-consequence-head {
     background: linear-gradient(135deg, #b42318, #e0472d);
+}
+.path-mod-aisoftskills .ss-consequence.is-worst .ss-consequence-head {
+    background: linear-gradient(135deg, #7a1209, #b42318);
+}
+.path-mod-aisoftskills .ss-consequence.is-worst .ss-delta.is-down {
+    background: #7a1209;
+    color: #fff;
+}
+.path-mod-aisoftskills .ss-option.is-worst {
+    border-color: #b42318;
+    background: #fde8e6;
 }
 .path-mod-aisoftskills .ss-consequence-icon {
     display: grid;
@@ -2226,4 +2253,133 @@
     stroke: currentColor;
     stroke-width: 2.4;
     stroke-linecap: round;
+}
+
+/* 1.4.1: the whole scene above the fold on a laptop. Picture with its context cards on the left; who you are,
+   the question and the responses on the right; the indicators in the top bar. */
+.path-mod-aisoftskills .ss-bar .ss-dots {
+    flex: 0 1 auto;
+    justify-content: flex-start;
+}
+.path-mod-aisoftskills .ss-bar .ss-kpistrip {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    gap: 6px;
+}
+.path-mod-aisoftskills .ss-bar .ss-kpichip {
+    flex: 0 1 auto;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 10px;
+    font-size: .76rem;
+}
+.path-mod-aisoftskills .ss-bar .ss-kpichip-bar {
+    flex: 0 0 64px;
+    min-width: 0;
+    height: 7px;
+}
+.path-mod-aisoftskills .ss-scene {
+    gap: 10px;
+}
+.path-mod-aisoftskills .ss-scene-title {
+    font-size: 1.2rem;
+}
+.path-mod-aisoftskills .ss-scene-body {
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 1fr);
+    gap: 14px;
+}
+.path-mod-aisoftskills .ss-scene-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+.path-mod-aisoftskills .ss-scene-main .ss-figure {
+    /* Same 16:10 picture as the label editor (so labels stay on the right person), never taller than the screen
+       leaves room for: the context cards stay in view. */
+    --ss-figw: min(100%, max(360px, calc((100vh - 420px) * 1.6)));
+    width: var(--ss-figw);
+    margin-inline: auto;
+}
+.path-mod-aisoftskills .ss-scene-main .ss-ctxcards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+.path-mod-aisoftskills .ss-scene-main .ss-ctxcard {
+    padding: 8px 12px;
+    border-radius: 12px;
+}
+.path-mod-aisoftskills .ss-scene-main .ss-ctxcard p {
+    font-size: .86rem;
+    line-height: 1.45;
+}
+.path-mod-aisoftskills .ss-scene-main .ss-ctxcard p + p {
+    margin-top: 4px;
+}
+.path-mod-aisoftskills .ss-scene-side {
+    gap: 10px;
+}
+.path-mod-aisoftskills .ss-scene-side .ss-roleline {
+    padding: 8px 12px;
+    font-size: .95rem;
+}
+.path-mod-aisoftskills .ss-scene-side .ss-roleline-icon {
+    width: 28px;
+    height: 28px;
+}
+.path-mod-aisoftskills .ss-scene-side .ss-question {
+    font-size: 1rem;
+}
+.path-mod-aisoftskills .ss-scene-side .ss-options {
+    gap: 8px;
+}
+.path-mod-aisoftskills .ss-scene-side .ss-option {
+    min-height: 0;
+    padding: 10px 12px;
+    gap: 10px;
+    border-radius: 14px;
+    font-size: .95rem;
+}
+
+@media (max-width: 1100px) {
+    .path-mod-aisoftskills .ss-bar {
+        flex-wrap: wrap;
+    }
+    .path-mod-aisoftskills .ss-bar .ss-dots {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+    .path-mod-aisoftskills .ss-bar .ss-kpistrip {
+        order: 5;
+        flex-basis: 100%;
+        justify-content: flex-start;
+    }
+    .path-mod-aisoftskills .ss-bar .ss-kpichip {
+        flex: 1 1 150px;
+    }
+    .path-mod-aisoftskills .ss-bar .ss-kpichip-bar {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 860px) {
+    .path-mod-aisoftskills .ss-scene-body {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+    /* Phones: who you are first, then the picture and its cards, then the question and the responses. */
+    .path-mod-aisoftskills .ss-scene-side {
+        display: contents;
+    }
+    .path-mod-aisoftskills .ss-scene-side > * {
+        order: 1;
+    }
+    .path-mod-aisoftskills .ss-scene-side > .ss-roleline {
+        order: -1;
+    }
+}
+.path-mod-aisoftskills .ss-recap-result.is-poor.is-worst {
+    background: #fde8e6;
+    color: #8f1b10;
 }

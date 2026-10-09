@@ -85,8 +85,9 @@ export const init = async(selector) => {
     if (voice) {
         voice.addEventListener('click', async() => {
             const clips = voice.dataset.clips.split(',').filter((v) => v !== '').map((v) => v.split(':').map(Number));
-            const credits = clips.length * parseInt(voice.dataset.credits, 10);
-            if (!clips.length || !await confirm(fmt(S.voice_confirm, {count: clips.length, credits}))) {
+            const each = parseInt(voice.dataset.credits, 10);
+            const credits = clips.length * each;
+            if (!clips.length || !await confirm(fmt(S.voice_confirm, {count: clips.length, credits, each}))) {
                 return;
             }
             const label = voice.querySelector('span');

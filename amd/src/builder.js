@@ -145,8 +145,42 @@ const cleanOption = (o) => {
     } else if (!best && delta > 0) {
         delta = -delta;
     }
-    return {text: String(o.text || '').trim(), best, kpi, kpidelta: delta,
+    return {text: String(o.text || '').trim(), best, worst: !best && !!o.worst, kpi, kpidelta: delta,
         consequence: String(o.consequence || ''), reason: String(o.reason || '')};
+};
+
+/**
+ * Number of poorer responses.
+ *
+ * @param {object[]} options
+ * @returns {number}
+ */
+const poorCount = (options) => options.filter((o) => !o.best).length;
+
+/**
+ * With three responses, marks the very poor one (the poorer response with the larger drop when none is marked) and
+ * makes its drop at least double the poorer one's, the same way the server does.
+ *
+ * @param {object[]} options cleaned responses
+ * @returns {object[]}
+ */
+const markWorst = (options) => {
+    if (options.length !== 3) {
+        return options.map((o) => ({...o, worst: false}));
+    }
+    const poor = options.filter((o) => !o.best);
+    let worst = poor.filter((o) => o.worst);
+    if (worst.length !== 1) {
+        worst = [poor.reduce((a, b) => (b.kpidelta < a.kpidelta ? b : a), poor[0])];
+    }
+    const other = poor.find((o) => o !== worst[0]);
+    return options.map((o) => {
+        if (o === worst[0]) {
+            const floor = other ? 2 * Math.min(-5, other.kpidelta) : o.kpidelta;
+            return {...o, worst: true, kpidelta: Math.max(-MAX_DELTA, Math.min(o.kpidelta, floor))};
+        }
+        return {...o, worst: false};
+    });
 };
 
 /**
@@ -174,8 +208,10 @@ const parse = (raw) => {
             speaker: String(s.speaker || ''),
             question: String(s.question || ''),
             imageprompt: String(s.imageprompt || ''),
-            options: s.options.slice(0, 2).filter((o) => o && o.text).map(cleanOption),
-        })).filter((s) => s.options.length === 2 && s.options.filter((o) => o.best).length === 1);
+            options: markWorst(s.options.slice(0, 3).filter((o) => o && o.text).map(cleanOption)),
+        })).filter((s) => s.options.length >= 2 && s.options.filter((o) => o.best).length === 1
+            && s.options.filter((o) => o.best && o.worst).length === 0
+            && (s.options.length === 2 || poorCount(s.options) === 2));
         return scenes.length ? {scenes} : null;
     } catch (e) {
         return null;
