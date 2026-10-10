@@ -202,8 +202,9 @@ class labels {
         $people = [];
         foreach ($names as $name) {
             $role = self::role($text, $name);
-            $people[] = ['text' => $role !== '' ? $name . ' - ' . $role : $name, 'gender' => self::gender($text, $name),
-                'you' => false];
+            $gender = self::gender($text, $name);
+            $people[] = ['text' => $role !== '' ? $name . ' - ' . $role : $name,
+                'gender' => $gender !== '' ? $gender : self::picture_gender($scene, $name), 'you' => false];
         }
         // The learner: the person who answers, such as "You, the shift supervisor".
         $speaker = trim((string)($scene->speaker ?? ''));
@@ -211,7 +212,7 @@ class labels {
         $you = $role !== '' ? get_string('label_you', 'mod_aisoftskills') . ' - '
             . \core_text::strtoupper(\core_text::substr($role, 0, 1)) . \core_text::substr($role, 1) : $speaker;
         array_unshift($people, ['text' => $you !== '' ? $you : get_string('label_you', 'mod_aisoftskills'),
-            'gender' => '', 'you' => true]);
+            'gender' => $role !== '' ? self::picture_gender($scene, $role) : '', 'you' => true]);
         $people = array_slice($people, 0, self::MAX);
         $out = [];
         foreach ($people as $i => $person) {
@@ -432,6 +433,61 @@ class labels {
             }
         }
         return in_array(\core_text::strtolower(end($words)), self::ROLES, true);
+    }
+
+    /**
+     * Whether the scene's picture description shows a person as a man or a woman, such as "Narin, a Thai manager in
+     * her forties" or "the shift supervisor, a man in his fifties". The words right after the name or role are read,
+     * up to the next person (a semicolon or full stop).
+     *
+     * @param stdClass $scene
+     * @param string $who a name ("Dr Reeves") or a role ("shift supervisor")
+     * @return string f, m or ''
+     */
+    public static function picture_gender(stdClass $scene, string $who): string {
+        $text = (string)($scene->imageprompt ?? '');
+        $who = trim($who);
+        if ($text === '' || $who === '') {
+            return '';
+        }
+        $he = 0;
+        $she = 0;
+        // The words just before ("a male nurse called Leo", same clause) and after ("Leo, a man in his forties").
+        if (preg_match_all('/([^.;,]{0,30})\b' . preg_quote($who, '/') . '\b([^.;]{0,90})/iu', $text, $m, PREG_SET_ORDER)) {
+            foreach ($m as $match) {
+                $after = \core_text::strtolower($match[1] . ' ' . $match[2]);
+                $he += preg_match_all('/\b(man|men|male|gentleman|boy|he|his|him|father|husband|son|brother)\b/u', $after);
+                $she += preg_match_all('/\b(woman|women|female|lady|girl|she|her|hers|mother|wife|daughter|sister)\b/u', $after);
+            }
+        }
+        return $he > $she ? 'm' : ($she > $he ? 'f' : '');
+    }
+
+    /**
+     * The voice kind of a label: the one the teacher chose, else what the scene text says ("he", "she"), else what
+     * the picture description says ("a man in his forties"). The learner's label is read by their role.
+     *
+     * @param stdClass $scene
+     * @param array $label as {@see self::clean()} returns
+     * @return string f, m or ''
+     */
+    public static function kind(stdClass $scene, array $label): string {
+        if ($label['gender'] !== '') {
+            return $label['gender'];
+        }
+        if ($label['you']) {
+            $role = learning::role_name(trim((string)($scene->speaker ?? '')), 'en');
+            [, $labelrole] = self::split($label['text']);
+            foreach (array_filter([$labelrole, $role]) as $r) {
+                if (($g = self::picture_gender($scene, $r)) !== '') {
+                    return $g;
+                }
+            }
+            return '';
+        }
+        $name = self::split($label['text'])[0];
+        $g = self::gender((string)($scene->context ?? ''), $name);
+        return $g !== '' ? $g : self::picture_gender($scene, $name);
     }
 
     /**

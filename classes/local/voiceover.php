@@ -410,7 +410,8 @@ class voiceover {
             foreach (labels::get($scene) as $label) {
                 $person = labels::person($label['text']);
                 if (!$label['you'] && $person !== '' && (!isset($out[$person]) || $out[$person] === '')) {
-                    $out[$person] = $label['gender'];
+                    // A label without a voice kind takes it from the scene text or the picture description.
+                    $out[$person] = labels::kind($scene, $label);
                 }
             }
             foreach (manager::dialogue($scene->script) as $line) {
@@ -437,7 +438,8 @@ class voiceover {
                 if ($chosen !== '' && $chosen !== $config['narrator']) {
                     return $chosen;
                 }
-                return $config['learner'][$label['gender']];
+                // No voice chosen: the learner's kind from the label, the scene text or the picture description.
+                return $config['learner'][labels::kind($scene, $label)];
             }
         }
         return $config['learner'][''];

@@ -405,7 +405,7 @@ For every scene give:
 - context: two or three short sentences, at most 70 words: who is involved, what has just happened, and what is at stake
 - speaker: who the learner is in this moment, for example "You, the shift supervisor"
 - question: the decision the learner faces, in at most 20 words, for example "What do you say to Maria right now?"
-- imageprompt: an English description of one {$a->style} of this moment in a {$a->industry} workplace, showing the people involved, their body language and expressions, and the setting. Name each person and give their role, gender, approximate age and an appearance that fits their name (for example "Priya, a South Asian nurse in her thirties"), and say where each one stands (left, centre or right). No text, letters, captions, signs or speech bubbles. Do not describe real people.
+- imageprompt: an English description of one {$a->style} of this moment in a {$a->industry} workplace, showing the people involved, their body language and expressions, and the setting. Name each person and give their role, gender, approximate age and an appearance that fits their name (for example "Priya, a South Asian nurse in her thirties"), and say where each one stands (left, centre or right). Describe the learner\'s character the same way, by their role (for example "the shift supervisor, a man in his forties"), so their voice can match the picture. No text, letters, captions, signs or speech bubbles. Do not describe real people.
 
 Put the three responses in a random order in each scene, so the better response is not always first.
 

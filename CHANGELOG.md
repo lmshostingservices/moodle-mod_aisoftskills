@@ -2,6 +2,12 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.11] - 2026-10-12
+
+### Fixed
+
+- **The responses are read in a voice that matches the learner's character.** The learner's label ("You - Shift supervisor") rarely says he or she, so its automatic voice was the first voice in the list (a woman's), even in an all-male scene. A label with no voice kind now takes it from the scene text and, failing that, from the picture description ("the shift supervisor, a man in his forties"), the learner by their role. This also applies to other people, such as "Dr Reeves". The AI-assistant prompt now asks for the learner's character in the picture description too. Where a voice changes, those clips are listed to make again in the Voiceover step.
+
 ## [v1.4.10] - 2026-10-11
 
 ### Changed

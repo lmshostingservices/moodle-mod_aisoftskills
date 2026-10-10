@@ -89,6 +89,27 @@ final class labels_test extends \advanced_testcase {
     }
 
     /**
+     * A label with no he or she in the scene takes its voice kind from the picture description; the learner's label
+     * is read by their role, so an all-male scene never reads the responses in a woman's voice.
+     */
+    public function test_kind_from_picture(): void {
+        $scene = (object)['context' => 'Krit refuses to sign. You must decide.', 'speaker' => 'You, the shift supervisor',
+            'imageprompt' => 'On the left, Krit, a Thai warehouse lead in his thirties; in the centre the shift supervisor, '
+                . 'a man in his forties, holds a clipboard; on the right a female accountant called Mali.'];
+        $label = fn($text, $you = false) => ['text' => $text, 'gender' => '', 'voice' => '', 'you' => $you];
+        $this->assertSame('m', labels::kind($scene, $label('You - Shift supervisor', true)));
+        $this->assertSame('m', labels::kind($scene, $label('Krit - Warehouse lead')));
+        $this->assertSame('f', labels::kind($scene, $label('Mali - Accountant')));
+        $this->assertSame('', labels::kind($scene, $label('Dr Reeves')));
+        // A voice kind set on the label always wins.
+        $this->assertSame('f', labels::kind($scene, ['text' => 'Krit', 'gender' => 'f', 'voice' => '', 'you' => false]));
+        // Suggestions carry it too.
+        $scene->script = '';
+        $scene->labels = '';
+        $this->assertSame(['m', 'm'], array_column(labels::suggest($scene), 'gender'));
+    }
+
+    /**
      * Roles, genders and people.
      */
     public function test_helpers(): void {
