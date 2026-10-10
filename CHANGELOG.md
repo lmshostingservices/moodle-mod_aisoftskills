@@ -2,6 +2,12 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.12] - 2026-10-12
+
+### Changed
+
+- **The AI-assistant prompt gives character limits, not word counts.** AI assistants count words loosely, so scenes came back just over Moodle's limits ("456 / 450 characters"). The prompt now asks for at most 400 characters for what is happening, 140 for the question, 260 for each response and consequence, 190 for each reason and 50 for who the learner is (each a little under Moodle's limit), and to count and shorten before replying. It also says never to name a real person, brand or business.
+
 ## [v1.4.11] - 2026-10-12
 
 ### Fixed

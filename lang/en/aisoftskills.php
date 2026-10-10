@@ -391,23 +391,27 @@ The learner plays the {$a->level} and chooses between exactly three responses:
 - the very poor response (best: false, worst: true): a serious but believable mistake that makes things much worse, for example blaming someone in public, ignoring a safety risk, escalating the conflict or breaking a rule to make the problem go away. It does double the harm of the poorer response. It must still be something a stressed person might really do, never a cartoon.
 
 For each response give:
-- text: the exact words the learner says out loud, spoken directly to the person in the scene, in the first person and addressing them by name, in one or two sentences and at most 45 words. For example "Fatima, I\'ll take over your handover now. Please watch how Dr Reeves and I talk it through, and we\'ll go over it together once the department is quieter." Never write a description or an instruction such as "Take over Fatima\'s handover and tell her to observe". An action the learner takes is said as they would say it ("I\'m calling the nurse manager now")
+- text: the exact words the learner says out loud, spoken directly to the person in the scene, in the first person and addressing them by name, in one or two sentences and at most 260 characters including spaces (about 40 words). For example "Fatima, I\'ll take over your handover now. Please watch how Dr Reeves and I talk it through, and we\'ll go over it together once the department is quieter." Never write a description or an instruction such as "Take over Fatima\'s handover and tell her to observe". An action the learner takes is said as they would say it ("I\'m calling the nurse manager now")
 - best: true or false (exactly one true per scene)
 - worst: true for the very poor response only, false for the other two
 - kpi: the workplace indicator the choice moves most, one of: {$a->kpis}
 - kpidelta: how much it moves, a whole number from 5 to {$a->maxdelta} for the better response, from -25 to -5 for the poorer one, and for the very poor one double the poorer one\'s drop (for example -15 and -30), never above -10; bigger numbers for bigger consequences
-- consequence: two short sentences, at most 45 words, on what realistically happens next, including a knock-on effect on another person, the team or the customer
-- reason: one sentence, at most 30 words, naming the specific behaviour that made it work or backfire, linked to the skill
+- consequence: two short sentences, at most 260 characters including spaces (about 40 words), on what realistically happens next, including a knock-on effect on another person, the team or the customer
+- reason: one sentence, at most 190 characters including spaces (about 28 words), naming the specific behaviour that made it work or backfire, linked to the skill
 
 For every scene give:
 - skill: the soft skill practised
 - title: a short title for the moment
-- context: two or three short sentences, at most 70 words: who is involved, what has just happened, and what is at stake
-- speaker: who the learner is in this moment, for example "You, the shift supervisor"
-- question: the decision the learner faces, in at most 20 words, for example "What do you say to Maria right now?"
+- context: two or three short sentences, at most 400 characters including spaces (about 60 words): who is involved, what has just happened, and what is at stake
+- speaker: who the learner is in this moment, at most 50 characters, for example "You, the shift supervisor"
+- question: the decision the learner faces, at most 140 characters including spaces (about 20 words), for example "What do you say to Maria right now?"
 - imageprompt: an English description of one {$a->style} of this moment in a {$a->industry} workplace, showing the people involved, their body language and expressions, and the setting. Name each person and give their role, gender, approximate age and an appearance that fits their name (for example "Priya, a South Asian nurse in her thirties"), and say where each one stands (left, centre or right). Describe the learner\'s character the same way, by their role (for example "the shift supervisor, a man in his forties"), so their voice can match the picture. No text, letters, captions, signs or speech bubbles. Do not describe real people.
 
 Put the three responses in a random order in each scene, so the better response is not always first.
+
+Keep to every character limit above: the scenes are shown on one screen and read aloud, and longer text has to be cut by the teacher. Before you reply, count the characters of each context, question, response, consequence and reason, and shorten any that is over its limit.
+
+Never name a real person, brand, business or celebrity anywhere in the scenes (for example a famous chef or a real restaurant); invent names instead.
 
 Vary the scenes: different people, places, times of day and kinds of pressure. Do not repeat the same dilemma.
 
