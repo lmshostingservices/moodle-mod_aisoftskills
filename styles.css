@@ -2660,3 +2660,91 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* 1.4.13: full screen. The player's frame fills the screen (or, where the browser has no full screen for part of a
+   page, such as iPhone Safari, the whole window). The scene keeps its layout: the picture grows with the screen
+   height, the cards and responses keep their places, nothing scrolls sideways, and a long scene scrolls inside. */
+.path-mod-aisoftskills .ss-fullbtn .ss-full-exit,
+.path-mod-aisoftskills .ss-fullbtn[aria-pressed="true"] .ss-full-enter {
+    display: none;
+}
+.path-mod-aisoftskills .ss-fullbtn[aria-pressed="true"] .ss-full-exit {
+    display: block;
+}
+.path-mod-aisoftskills .ss-fullbtn svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.path-mod-aisoftskills [data-region="player"].is-full {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 16px 24px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--ss-bg);
+}
+.path-mod-aisoftskills [data-region="player"].is-pseudofull {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+.path-mod-aisoftskills [data-region="player"]:fullscreen {
+    background: var(--ss-bg);
+}
+.path-mod-aisoftskills [data-region="player"]::backdrop {
+    background: #f3f5f9;
+}
+.path-mod-aisoftskills [data-region="player"].is-full > .ss-shell {
+    box-sizing: border-box;
+    min-height: 100%;
+    max-width: 1720px;
+    margin: 0 auto;
+    animation: none;
+}
+.path-mod-aisoftskills [data-region="player"].is-full .ss-stage {
+    flex: 1 0 auto;
+}
+.path-mod-aisoftskills [data-region="player"].is-full .ss-scene-main .ss-figure {
+    /* Without Moodle's header and footer more height is free: the picture grows, the cards stay in view. */
+    --ss-figw: min(100%, max(360px, calc((100vh - 340px) * 1.6)));
+}
+.path-mod-aisoftskills.ss-noscroll {
+    overflow: hidden;
+}
+
+/* The picture's width is known to the whole column, so the scene's speaker button always sits on the picture's own
+   top-right corner, also when a short screen makes the picture narrower than the column. */
+.path-mod-aisoftskills .ss-scene-main {
+    --ss-figw: min(100%, max(360px, calc((100vh - 420px) * 1.6)));
+}
+.path-mod-aisoftskills [data-region="player"].is-full .ss-scene-main {
+    --ss-figw: min(100%, max(360px, calc((100vh - 340px) * 1.6)));
+}
+.path-mod-aisoftskills .ss-scene-main .ss-figure,
+.path-mod-aisoftskills [data-region="player"].is-full .ss-scene-main .ss-figure {
+    --ss-figw: inherit;
+}
+.path-mod-aisoftskills .ss-scene-main > .ss-listen {
+    right: calc((100% - var(--ss-figw)) / 2 + 10px);
+}
+.path-mod-aisoftskills [dir="rtl"] .ss-scene-main > .ss-listen {
+    right: auto;
+    left: calc((100% - var(--ss-figw)) / 2 + 10px);
+}
+
+/* The sound and full screen buttons stay on the right of the bar, also on the results when the indicators are hidden. */
+.path-mod-aisoftskills .ss-bar > [data-action="sound"],
+.path-mod-aisoftskills .ss-bar > [data-action="sound"][hidden] + .ss-fullbtn {
+    margin-inline-start: auto;
+}

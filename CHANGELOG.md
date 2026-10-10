@@ -2,6 +2,17 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.13] - 2026-10-12
+
+### Added
+
+- **Full screen.** A full screen button in the player's top bar fills the screen with the scenes, the feedback and the results (Esc or the button leaves). The picture grows with the screen height while the cards and responses stay in view; nothing scrolls sideways, and a long scene scrolls inside. Browsers without full screen for part of a page (such as iPhone Safari) get a full-window view instead. An error message leaves full screen first, so it is never hidden.
+
+### Fixed
+
+- On short screens the scene's speaker button sat beside a narrowed picture; it now always sits on the picture's top-right corner.
+- On the results, the sound button (and now the full screen button) stay on the right of the bar.
+
 ## [v1.4.12] - 2026-10-12
 
 ### Changed

@@ -35,7 +35,7 @@ const KEYS = ['headline_best', 'headline_bestretry', 'headline_poor', 'headline_
     'levelline_beginning', 'bestfirstchoices', 'attemptsleft', 'announce_best', 'announce_poor', 'nextscene', 'seeresults',
     'listen_scene', 'listen_stop', 'results_slide', 'recap_firstbest', 'recap_firstpoor', 'mustlisten_wait',
     'mustlisten_start', 'mustlistenfeedback_wait', 'mustlistenfeedback_start',
-    'test_passed', 'test_failed', 'ctx_situation', 'ctx_action', 'ctx_context'];
+    'test_passed', 'test_failed', 'ctx_situation', 'ctx_action', 'ctx_context', 'fullscreen', 'fullscreen_exit'];
 
 let S = {};
 
@@ -217,6 +217,85 @@ class Player {
         this.busy = false;
         this.voice = new Voice();
         Sound.setAllowed(!!this.config.sounds);
+        // Full screen: the player's frame (kept while scenes, the feedback and the results change inside it).
+        this.onFullChange = () => this.syncFull();
+        document.addEventListener('fullscreenchange', this.onFullChange);
+        document.addEventListener('webkitfullscreenchange', this.onFullChange);
+    }
+
+    /**
+     * Whether the player fills the screen (the browser's full screen, or the full-window fallback).
+     *
+     * @returns {boolean}
+     */
+    isFull() {
+        const fs = document.fullscreenElement || document.webkitFullscreenElement;
+        return fs === this.host || this.host.classList.contains('is-pseudofull');
+    }
+
+    /**
+     * Switches full screen on or off. Browsers without full screen for page parts (such as iPhone Safari) get a
+     * full-window view instead.
+     *
+     * @param {boolean} on
+     */
+    async setFull(on) {
+        const fs = document.fullscreenElement || document.webkitFullscreenElement;
+        if (on) {
+            const request = this.host.requestFullscreen || this.host.webkitRequestFullscreen;
+            let done = false;
+            if (request) {
+                try {
+                    await request.call(this.host);
+                    done = true;
+                } catch (e) {
+                    done = false;
+                }
+            }
+            if (!done) {
+                this.host.classList.add('is-pseudofull');
+                document.body.classList.add('ss-noscroll');
+            }
+        } else {
+            if (fs === this.host) {
+                const exit = document.exitFullscreen || document.webkitExitFullscreen;
+                try {
+                    await exit.call(document);
+                } catch (e) {
+                    // Already left (for example with the Esc key).
+                }
+            }
+            this.host.classList.remove('is-pseudofull');
+            document.body.classList.remove('ss-noscroll');
+        }
+        this.syncFull();
+    }
+
+    /**
+     * Shows the full screen state on the button and the frame.
+     */
+    syncFull() {
+        const full = this.isFull();
+        this.host.classList.toggle('is-full', full);
+        const btn = this.shell ? this.shell.querySelector('[data-action="fullscreen"]') : null;
+        if (btn) {
+            btn.setAttribute('aria-pressed', full ? 'true' : 'false');
+            const label = full ? S.fullscreen_exit : S.fullscreen;
+            btn.setAttribute('aria-label', label);
+            btn.setAttribute('title', label);
+        }
+    }
+
+    /**
+     * Shows an error. Moodle shows it outside the player, so full screen is left first or it would be hidden.
+     *
+     * @param {Error} err
+     */
+    async error(err) {
+        if (this.isFull()) {
+            await this.setFull(false);
+        }
+        Notification.exception(err);
     }
 
     /**
@@ -242,7 +321,7 @@ class Player {
             this.data = await Ajax.call([{methodname: 'mod_aisoftskills_start_attempt',
                 args: {cmid: this.config.cmid, mode: this.mode}}])[0];
         } catch (err) {
-            Notification.exception(err);
+            this.error(err);
             return;
         }
         const total = this.data.scenes.length;
@@ -256,6 +335,8 @@ class Player {
         this.nextBtn = shell.querySelector('[data-action="next"]');
         this.nextBtn.addEventListener('click', () => this.advance());
         shell.querySelector('[data-action="home"]').addEventListener('click', () => window.location.reload());
+        shell.querySelector('[data-action="fullscreen"]').addEventListener('click', () => this.setFull(!this.isFull()));
+        this.syncFull();
         const soundBtn = shell.querySelector('[data-action="sound"]');
         soundBtn.hidden = !this.config.sounds;
         soundBtn.setAttribute('aria-pressed', Sound.isMuted() ? 'false' : 'true');
@@ -453,7 +534,7 @@ class Player {
                 b.disabled = b.classList.contains('is-tried');
             });
             btn.classList.remove('is-chosen');
-            Notification.exception(err);
+            this.error(err);
             return;
         }
         btn.classList.add(res.best ? 'is-best' : 'is-poor');
@@ -688,7 +769,7 @@ class Player {
             res = await Ajax.call([{methodname: 'mod_aisoftskills_finish_attempt',
                 args: {attemptid: this.data.attemptid}}])[0];
         } catch (err) {
-            Notification.exception(err);
+            this.error(err);
             return;
         }
         const tone = {excellent: 'great', strong: 'good', developing: 'ok', beginning: 'bad'}[res.rating] || 'ok';
