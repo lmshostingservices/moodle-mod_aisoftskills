@@ -71,7 +71,7 @@ final class image_positions {
      * Improves unsaved suggestions, never moves any saved teacher labels.
      *
      * @param \stdClass $scene scene
-     * @return array labels for the teacher to review and save
+     * @return array effective labels for the editor and learner, with saved teacher edits taking priority
      */
     public static function suggestions(\stdClass $scene): array {
         global $DB;

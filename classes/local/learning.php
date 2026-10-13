@@ -335,7 +335,7 @@ class learning {
                 }
             }
             $labels = array_map(fn($l) => ['text' => self::line($l['text'], $context), 'x' => $l['x'], 'y' => $l['y'],
-                'you' => $l['you']], labels::get($scene));
+                'you' => $l['you']], image_positions::suggestions($scene));
             [$image] = manager::get_scene_image($context, (int)$scene->id);
             $choice = $choices[$scene->id] ?? null;
             $out[] = [

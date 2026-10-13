@@ -91,6 +91,27 @@ final class learning_test extends \advanced_testcase {
     }
 
     /**
+     * Automatic labels appear in the learner payload without a teacher save.
+     */
+    public function test_automatic_labels_need_no_teacher_save(): void {
+        global $DB;
+        $this->resetAfterTest();
+        [, , $context, $instance, $student, $scenes] = $this->setup_activity([], 1);
+        $scene = reset($scenes);
+        $DB->set_field('aisoftskills_scene', 'speaker', 'You, the functions shift supervisor', ['id' => $scene->id]);
+        $DB->set_field('aisoftskills_scene', 'context', 'You ask bartender Leo to help guests.', ['id' => $scene->id]);
+        $before = $DB->get_field('aisoftskills_scene', 'labels', ['id' => $scene->id]);
+        $data = learning::start_attempt($instance, $context, (int)$student->id);
+        $this->assertNotEmpty($data['scenes'][0]['labels']);
+        $this->assertSame($before, $DB->get_field('aisoftskills_scene', 'labels', ['id' => $scene->id]));
+        $saved = json_encode([['text' => 'Alex', 'x' => 23, 'y' => 42]]);
+        $DB->set_field('aisoftskills_scene', 'labels', $saved, ['id' => $scene->id]);
+        $again = learning::start_attempt($instance, $context, (int)$student->id);
+        $this->assertSame('Alex', $again['scenes'][0]['labels'][0]['text']);
+        $this->assertEquals(23, $again['scenes'][0]['labels'][0]['x']);
+    }
+
+    /**
      * Only the first choice counts; a retry after a poorer choice resolves the scene but not the mark.
      */
     public function test_first_choice_marked_with_retry(): void {

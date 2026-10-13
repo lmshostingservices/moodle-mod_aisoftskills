@@ -2,6 +2,10 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.15] - 2026-10-13
+
+- Learner preview and learning use automatically placed labels immediately, without requiring the teacher to move or save them. Saved teacher edits still take priority, and detected positions remain bound to their original image.
+
 ## [v1.4.14] - 2026-10-13
 
 ### Added
