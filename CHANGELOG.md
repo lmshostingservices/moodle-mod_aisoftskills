@@ -2,6 +2,14 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.14] - 2026-10-13
+
+### Added
+
+- New AI pictures can include detected label positions when LMS Labs advertises support. Positions are included in the unchanged 5-credit picture price.
+- Unsaved labels use these positions in the teacher's existing review editor. Learners see them only after the teacher saves. Saved teacher labels are never moved.
+- Missing, invalid or unavailable positions keep the existing suggestions. Image-specific positions are ignored after the picture is replaced. Pending requests retain their original body and key.
+
 ## [v1.4.13] - 2026-10-12
 
 ### Added

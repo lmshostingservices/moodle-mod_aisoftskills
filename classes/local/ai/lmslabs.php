@@ -89,6 +89,47 @@ class lmslabs implements provider {
     public static $posttransport = null;
 
     /**
+     * Free capability check for optional image positions. Failure preserves the legacy request.
+     *
+     * @return bool whether the server supports positions
+     */
+    public static function image_anchors(): bool {
+        global $CFG;
+        $time = (int)get_config('mod_aisoftskills', 'imageanchorstime');
+        if ($time > time() - 3600) {
+            return (bool)get_config('mod_aisoftskills', 'imageanchors');
+        }
+        $enabled = false;
+        try {
+            $credentials = \mod_aisoftskills\local\credentials::find();
+            if ($credentials === null) {
+                return false;
+            }
+            $url = self::BASE_URL . self::IMAGE_ROUTE . '/capabilities';
+            $headers = ['X-Site-ID: ' . $credentials['siteid'], 'X-API-Key: ' . $credentials['apikey'],
+                'Accept: application/json'];
+            if (self::$transport) {
+                [$status, $body] = (self::$transport)($url, $headers);
+            } else {
+                require_once($CFG->libdir . '/filelib.php');
+                $curl = new \curl();
+                $curl->setHeader($headers);
+                $body = $curl->get($url, [], ['CURLOPT_CONNECTTIMEOUT' => 3, 'CURLOPT_TIMEOUT' => 8,
+                    'CURLOPT_FOLLOWLOCATION' => false]);
+                $status = $curl->get_errno() ? 0 : (int)($curl->get_info()['http_code'] ?? 0);
+            }
+            $data = json_decode((string)$body, true);
+            $enabled = (int)$status === 200 && ($data['anchorPositions'] ?? false) === true
+                && ($data['tariff']['image'] ?? null) === self::IMAGE_CREDITS;
+        } catch (\Throwable $e) {
+            $enabled = false;
+        }
+        set_config('imageanchors', $enabled ? 1 : 0, 'mod_aisoftskills');
+        set_config('imageanchorstime', time(), 'mod_aisoftskills');
+        return $enabled;
+    }
+
+    /**
      * Whether a complete LMS Labs credential pair is available (Central Config first, then this plugin's settings).
      *
      * @return bool

@@ -173,7 +173,14 @@ class requests {
         }
         $style = in_array((string)$instance->imagestyle, lmslabs::STYLES, true) ? (string)$instance->imagestyle
             : 'illustration';
-        return self::start($instance, $userid, self::IMAGE, (int)$scene->id, ['prompt' => $prompt, 'style' => $style]);
+        $body = ['prompt' => $prompt, 'style' => $style];
+        if (lmslabs::image_anchors()) {
+            $anchors = \mod_aisoftskills\local\image_positions::anchors($scene);
+            if ($anchors) {
+                $body['anchors'] = $anchors;
+            }
+        }
+        return self::start($instance, $userid, self::IMAGE, (int)$scene->id, $body);
     }
 
     /**
@@ -684,6 +691,12 @@ class requests {
             }
             $cm = get_coursemodule_from_instance('aisoftskills', $instance->id, $instance->course, false, MUST_EXIST);
             manager::save_scene_image_bytes(\context_module::instance($cm->id), $scene, $bytes);
+            $sent = json_decode((string)$row->body, true);
+            $anchors = $sent['anchors'] ?? [];
+            $header = (string)($headers['x-anchor-positions'] ?? '');
+            if (\mod_aisoftskills\local\image_positions::decode($header, count($anchors)) !== null) {
+                $row->result = json_encode(['anchors' => $anchors, 'positions' => $header, 'imagehash' => sha1($bytes)]);
+            }
             $row->status = 'completed';
             $row->errorcode = null;
             return;

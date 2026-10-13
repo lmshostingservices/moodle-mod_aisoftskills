@@ -180,7 +180,8 @@ foreach ($scenes as $s) {
             'sesskey' => $sesskey]))->out(false) : null,
         'replaceurl' => (new moodle_url($baseurl, ['action' => 'replace', 'sceneid' => $s->id]))->out(false),
         'deleteurl' => (new moodle_url($baseurl, ['action' => 'delete', 'sceneid' => $s->id]))->out(false),
-        'labelsjson' => json_encode($saved ?: labels::suggest($s), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        'labelsjson' => json_encode($saved ?: \mod_aisoftskills\local\image_positions::suggestions($s),
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'labelssuggested' => $saved ? 0 : 1,
         // The scenario, so the teacher can read who is who while placing the labels.
         'scenariojson' => json_encode([
