@@ -2,6 +2,13 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.18] - 2026-11-10
+
+### Added
+- AI Course Builder adapter. AI Course Builder can now build Soft Skills activities, using the existing priced scene-draft request, same-key recovery and native scene storage. (The adapter work from 1.4.16 and 1.4.17, which was never released, is included.)
+- Course Builder outcomes come from the lesson's outcomes, then the course outcomes, then the source text. Before this, every Course Builder job failed because the outcomes arrived as text, not a list.
+- When AI scene drafts are off or the site is not connected, AI Course Builder shows "Needs setup" instead of offering a tool that would fail during the build.
+
 ## [v1.4.15] - 2026-10-13
 
 - Learner preview and learning use automatically placed labels immediately, without requiring the teacher to move or save them. Saved teacher edits still take priority, and detected positions remain bound to their original image.

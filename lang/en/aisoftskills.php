@@ -862,3 +862,4 @@ $string['aireq_image_done'] = 'Picture created.';
 $string['aireq_import_done'] = 'Scenes created.';
 $string['aireq_scene_done'] = 'Scene created.';
 $string['aireq_voice_done'] = 'Voiceover clip created.';
+$string['aicb_needssetup'] = 'Switch on "AI scene drafts" in the AI Soft Skills settings, and connect this site to LMS Labs, to use it in AI Course Builder.';
