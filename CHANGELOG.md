@@ -2,6 +2,13 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.4.19] - 2026-11-11
+
+### Fixed
+- AI Course Builder now makes each scene's picture after drafting its text, as the editor does. Before this, a built scene had no picture, so learners saw "Your teacher is still preparing this activity". The Course Builder price is 10 credits (5 for the text and 5 for the picture).
+- Course Builder scenes use the course's workplace and the learners' level (for example retail and worker) instead of the form's defaults (office and supervisor).
+- A draft the service cannot make valid, or a brief outage, can be retried automatically. Nothing is charged for a failed draft.
+
 ## [v1.4.18] - 2026-11-10
 
 ### Added
