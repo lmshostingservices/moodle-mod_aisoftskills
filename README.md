@@ -26,13 +26,13 @@ A Moodle activity for practising workplace soft skills. Each scene is one pictur
    3. Skills.
    4. Language.
    5. **Create the scenes**, in one of two ways:
-      - "Use your own text": paste or type a workplace situation (30 to 300 words), and LMS Labs AI turns it into a scene: title, setting, lead-in conversation and a teaching note. 5 credits, confirmed first.
+      - "Use your own text": paste or type a workplace situation (30 to 300 words), and LMS Labs AI turns it into a complete scene: title, setting, lead-in conversation, teaching note, the question and three responses (better, poorer, very poor). 5 credits, confirmed first.
       - "Use an AI assistant": for more control and complex scenarios, copy the prompt into ChatGPT or another assistant, paste the reply back in, preview it and create complete scenes. 5 credits per scene, the same as LMS Labs AI, confirmed first.
    6. **Pictures:**
       - "Create missing pictures" asks LMS Labs AI for a picture of every scene that has none (5 credits per delivered picture, confirmed first).
       - Each scene can also get its own AI picture or an uploaded one.
       - **Name labels** ("Leo - Bartender"): the editor suggests labels from the scene text; the teacher drags each one onto the right person, says whether the person has a female or male voice, and marks the learner. Labels sit on top of the picture (free, nothing is sent to LMS Labs).
-   7. **Voiceover** (optional, needs "AI voiceover" switched on): "Create the missing voiceover" makes every clip, one after another, at 5 credits for each clip LMS Labs makes (charged when it is made, even if the answer never reaches the site). The narrator voice is set by the administrator; everyone else gets a different Google Chirp 3 HD voice that matches their label, and the responses are read in the learner's voice.
+   7. **Voiceover** (optional, needs "AI voiceover" switched on): "Create the missing voiceover" makes every clip, one after another, at 2 credits for each clip LMS Labs makes (charged when it is made, even if the answer never reaches the site). The narrator voice is set by the administrator; everyone else gets a different Google Chirp 3 HD voice that matches their label, and the responses are read in the learner's voice.
    8. **Check the scenes:** every scene needs two or three responses, exactly one marked as the better one (and with three, one marked as the very poor one). "Add the responses" opens the scene editor.
    9. **Finish:** see what is ready, preview as a learner, and go back to the course.
 
@@ -75,7 +75,7 @@ Scene content is written in the language chosen for the activity and shown with 
   - The settings page shows which pair is in use.
 - The API key stays on the server. It is never sent to the browser, put in URLs or logged.
 - **Scene drafting without LMS Labs:** the copy-and-paste prompt for any AI assistant is still available.
-- **AI voiceover** (off by default): `GET /api/moodle/ai-softskills/speech/capabilities` (free, cached for an hour) and `POST /api/moodle/ai-softskills/speech/tts` with `{text, locale, speed, voice}`, one MP3 clip of at most 200 characters per request, stored and never resent automatically like pictures. Playing clips costs nothing and learner pages never call LMS Labs. Each delivered clip costs 5 credits. It stays off until LMS Labs publishes these routes.
+- **AI voiceover** (off by default): `GET /api/moodle/ai-softskills/speech/capabilities` (free, cached for an hour) and `POST /api/moodle/ai-softskills/speech/tts` with `{text, locale, speed, voice}`, one MP3 clip of at most 200 characters per request, stored and never resent automatically like pictures. Playing clips costs nothing and learner pages never call LMS Labs. Each delivered clip costs 2 credits. The routes are live at LMS Labs; a site administrator switches voiceover on in the plugin settings.
 
 ## Bring your own AI
 

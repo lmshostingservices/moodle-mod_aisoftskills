@@ -61,7 +61,7 @@ if ($ADMIN->fulltree) {
         get_string('aiimages_desc', $component),
         1
     ));
-    // Off by default: LMS Labs has not published the AI Soft Skills speech routes yet (tariff: 2 credits per clip).
+    // Off by default: an administrator switches voiceover on (LMS Labs charges 2 credits per clip).
     $settings->add(new admin_setting_configcheckbox(
         "$component/aivoice",
         get_string('aivoice', $component),
