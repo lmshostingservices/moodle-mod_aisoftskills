@@ -229,10 +229,12 @@ export const initBuild = async(selector) => {
         return;
     }
     const S = await loadStrings(['lessoninvalid', 'creating', 'lessonempty', 'aidraft_drafting', 'aidraft_confirm',
-        'confirm_title', 'confirm_create', 'import_confirm',
+        'confirm_title', 'confirm_create', 'import_confirm', 'byok_aidraft_confirm', 'byok_import_confirm',
         ...KPIS.map((k) => 'kpi_' + k)]);
     initCopy('.ss-copy');
     const cmid = parseInt(root.dataset.cmid, 10);
+    // Bring your own AI: scenes written on the site's own AI cost no LMS Labs credits.
+    const ownai = root.dataset.ownai === '1';
     const review = root.querySelector('[data-region="review"]');
 
     const showDraft = async(draft) => {
@@ -253,8 +255,9 @@ export const initBuild = async(selector) => {
             }
             // Charged like LMS Labs scene drafts: confirmed first, with the credits named.
             const credits = keep.length * parseInt(root.dataset.importcredits, 10);
+            const question = ownai ? fmt(S.byok_import_confirm, keep.length) : fmt(S.import_confirm, {count: keep.length, credits});
             const go = await new Promise((resolve) => Notification.saveCancel(S.confirm_title,
-                fmt(S.import_confirm, {count: keep.length, credits}), S.confirm_create, () => resolve(true), () => resolve(false)));
+                question, S.confirm_create, () => resolve(true), () => resolve(false)));
             if (!go) {
                 return;
             }
@@ -320,8 +323,8 @@ export const initBuild = async(selector) => {
             // No text of their own: LMS Labs AI writes a scene from the choices made earlier.
             const brief = value('brief').trim() || panel.querySelector('[data-field="brief"]').dataset.default;
             // A paid request: confirmed first, with the credits named.
-            const go = await new Promise((resolve) => Notification.saveCancel(S.confirm_title, S.aidraft_confirm,
-                S.confirm_create, () => resolve(true), () => resolve(false)));
+            const go = await new Promise((resolve) => Notification.saveCancel(S.confirm_title,
+                ownai ? S.byok_aidraft_confirm : S.aidraft_confirm, S.confirm_create, () => resolve(true), () => resolve(false)));
             if (!go) {
                 return;
             }

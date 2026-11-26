@@ -2,6 +2,11 @@
 
 All notable changes to mod_aisoftskills are recorded here.
 
+## [v1.5.0] - 2026-11-26
+
+### Added
+- Bring your own AI. With a Bring your own AI licence in AI Grader Central Config, scene drafts, scenes from the teacher's own AI assistant, scene pictures and voiceover can run on the site's own AI, each chosen separately, with no LMS Labs credits or connection. The LMS Labs service's instructions, schema, answer checks and one scene repair run inside Moodle, so drafts are checked exactly as LMS Labs checks them. Prices are hidden for that work, and AI Course Builder counts it as free.
+
 ## [v1.4.19] - 2026-11-11
 
 ### Fixed

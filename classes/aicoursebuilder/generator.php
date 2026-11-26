@@ -88,7 +88,9 @@ final class generator {
      */
     public static function native_estimate(array $brief): int {
         // The scene's text and its picture: a scene without a picture cannot be played.
-        return \mod_aisoftskills\local\ai\lmslabs::TEXT_CREDITS + \mod_aisoftskills\local\ai\lmslabs::IMAGE_CREDITS;
+        // Bring your own AI: work on the site's own AI uses no LMS Labs credits.
+        return (\mod_aisoftskills\byok::uses('text') ? 0 : \mod_aisoftskills\local\ai\lmslabs::TEXT_CREDITS)
+            + (\mod_aisoftskills\byok::uses('image') ? 0 : \mod_aisoftskills\local\ai\lmslabs::IMAGE_CREDITS);
     }
 
     /**

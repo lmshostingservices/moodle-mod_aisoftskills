@@ -204,6 +204,10 @@ final class unlock {
      * @return bool
      */
     public static function active(): bool {
+        if (\mod_aisoftskills\byok::any()) {
+            // A Bring your own AI licence includes the plugin.
+            return true;
+        }
         $state = self::state();
         return $state['status'] === 'unlocked' || ($state['status'] === 'unknown' && !empty($state['wasunlocked']));
     }

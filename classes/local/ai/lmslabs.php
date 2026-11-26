@@ -95,6 +95,10 @@ class lmslabs implements provider {
      */
     public static function image_anchors(): bool {
         global $CFG;
+        if (\mod_aisoftskills\byok::uses('image')) {
+            // The site's own AI places the targets (with vision), or Moodle keeps its own guesses (the service's fallback).
+            return true;
+        }
         $time = (int)get_config('mod_aisoftskills', 'imageanchorstime');
         if ($time > time() - 3600) {
             return (bool)get_config('mod_aisoftskills', 'imageanchors');
@@ -144,7 +148,8 @@ class lmslabs implements provider {
      * @return bool
      */
     public function can_generate(): bool {
-        return (bool)get_config('mod_aisoftskills', 'aiimages') && $this->is_connected();
+        return (bool)get_config('mod_aisoftskills', 'aiimages') && ($this->is_connected()
+            || \mod_aisoftskills\byok::uses('image'));
     }
 
     /**
@@ -153,7 +158,8 @@ class lmslabs implements provider {
      * @return bool
      */
     public function can_draft(): bool {
-        return (bool)get_config('mod_aisoftskills', 'aidrafts') && $this->is_connected();
+        return (bool)get_config('mod_aisoftskills', 'aidrafts') && ($this->is_connected()
+            || \mod_aisoftskills\byok::uses('text'));
     }
 
     /**
@@ -171,6 +177,11 @@ class lmslabs implements provider {
      */
     public static function post(string $route, string $body, string $key, string $accept, int $timeout = 100): array {
         global $CFG;
+        $routes = [self::TEXT_ROUTE, self::IMPORT_ROUTE, self::IMAGE_ROUTE, self::VOICE_ROUTE, self::VOICE_QUOTE_ROUTE];
+        if (in_array($route, $routes, true) && ($answer = \mod_aisoftskills\byok::answer($route, $body)) !== null) {
+            // Bring your own AI: the service's answer, made on the site's own AI at no charge.
+            return $answer;
+        }
         $credentials = \mod_aisoftskills\local\credentials::find();
         if ($credentials === null) {
             throw new moodle_exception('ainotavailable', 'mod_aisoftskills');
@@ -218,6 +229,11 @@ class lmslabs implements provider {
      */
     public static function voice_catalog(): ?array {
         global $CFG;
+        if (($answer = \mod_aisoftskills\byok::answer(self::VOICE_CATALOG_ROUTE, null)) !== null) {
+            $data = json_decode($answer[2], true);
+            self::$lasttariff = $data['tariff'];
+            return $data['locales'];
+        }
         $credentials = \mod_aisoftskills\local\credentials::find();
         if ($credentials === null) {
             return null;

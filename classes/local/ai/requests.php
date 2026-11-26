@@ -270,7 +270,7 @@ class requests {
      * @return stdClass the stored request
      */
     public static function start_import(stdClass $instance, int $userid, array $draft): stdClass {
-        if (\mod_aisoftskills\local\credentials::find() === null) {
+        if (\mod_aisoftskills\local\credentials::find() === null && !\mod_aisoftskills\byok::uses('text')) {
             // Checked before anything is stored, so no request is left waiting for a connection that does not exist.
             throw new moodle_exception('ainotavailable', 'mod_aisoftskills');
         }
@@ -516,7 +516,13 @@ class requests {
                 $accept[$row->operation] ?? 'application/json'
             );
             $row->retryafter = max(1, min(60, (int)($headers['retry-after'] ?? self::RETRY_AFTER)));
-            if ($image) {
+            if (\mod_aisoftskills\byok::$answered && $status !== 200) {
+                // The site's own AI could not do it: nothing was charged, so the teacher simply asks again.
+                $row->status = 'failed';
+                $row->errorcode = 'byok_failed';
+                $row->result = \core_text::substr(\mod_aisoftskills\byok::$lasterror
+                    ?? strtoupper(self::read_error($headers, $body)[0]), 0, 1000);
+            } else if ($image) {
                 self::image_outcome($row, $instance, $status, $headers, $body);
             } else if ($import) {
                 self::import_outcome($row, $instance, $status, $headers, $body);
@@ -1032,6 +1038,11 @@ class requests {
     protected static function failure_message(stdClass $row, stdClass $a): string {
         $code = (string)$row->errorcode;
         $sm = get_string_manager();
+        if ($code === 'byok_failed') {
+            $detail = (string)$row->result;
+            $key = $detail === 'INVALID_PROVIDER_RESULT' ? 'byok_unusable' : 'byok_failed';
+            return get_string($key, 'mod_aisoftskills', $detail);
+        }
         if ($row->operation === self::IMAGE) {
             $key = $sm->string_exists('aierror_' . $code, 'mod_aisoftskills') ? 'aierror_' . $code
                 : ($code === 'http_404' ? 'aierror_not_live' : 'aierror_failed');

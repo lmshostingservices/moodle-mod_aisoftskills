@@ -137,7 +137,9 @@ if ($step === 'finish') {
 
 if ($step === 'build') {
     $provider = factory::get();
-    $balance = $provider->balance();
+    // Bring your own AI: scenes are written on the site's own AI, with no LMS Labs credits.
+    $ownai = \mod_aisoftskills\byok::uses('text');
+    $balance = $ownai ? null : $provider->balance();
     $names = array_merge(array_map(fn($k) => catalogue::skill_name($k), $choices['keys']), $choices['custom']);
     $templatedata = [
         'cmid' => (int)$cm->id,
@@ -164,6 +166,7 @@ if ($step === 'build') {
         $industry = lesson::industry_english($instance);
         $templatedata += [
             'canai' => true,
+            'ownai' => $ownai,
             'draftcredits' => \mod_aisoftskills\local\ai\lmslabs::TEXT_CREDITS,
             'brief' => $sm->get_string('aidraft_briefdefault', 'mod_aisoftskills', (object)[
                 'level' => $level,
@@ -180,10 +183,11 @@ if ($step === 'build') {
         ];
     }
     // Scenes from the teacher's own AI assistant are charged like LMS Labs drafts, so they need LMS Labs too.
-    $canimport = $provider instanceof \mod_aisoftskills\local\ai\lmslabs && $provider->is_connected()
+    $canimport = $provider instanceof \mod_aisoftskills\local\ai\lmslabs && ($provider->is_connected() || $ownai)
         && has_capability('mod/aisoftskills:useai', $context);
     $templatedata += [
         'canimport' => $canimport,
+        'ownai' => $ownai,
         'importcredits' => \mod_aisoftskills\local\ai\lmslabs::TEXT_CREDITS,
         'importblock' => [
             'cmid' => (int)$cm->id,
