@@ -77,6 +77,16 @@ Scene content is written in the language chosen for the activity and shown with 
 - **Scene drafting without LMS Labs:** the copy-and-paste prompt for any AI assistant is still available.
 - **AI voiceover** (off by default): `GET /api/moodle/ai-softskills/speech/capabilities` (free, cached for an hour) and `POST /api/moodle/ai-softskills/speech/tts` with `{text, locale, speed, voice}`, one MP3 clip of at most 200 characters per request, stored and never resent automatically like pictures. Playing clips costs nothing and learner pages never call LMS Labs. Each delivered clip costs 5 credits. It stays off until LMS Labs publishes these routes.
 
+## Bring your own AI
+
+Sites with a Bring your own AI licence (a yearly LMS Labs subscription, set up in AI Grader Central Config) can run AI Soft Skills on their own AI instead of LMS Labs credits. Central Config chooses, for each kind of work, LMS Labs credits, the Moodle AI subsystem or the site's own key:
+
+- **Text:** scene drafts and scenes from the teacher's own AI assistant.
+- **Images:** scene pictures. When the site's own AI can read pictures (**Vision**), it also finds where each person's name label belongs; otherwise Moodle keeps its own guesses for the teacher to check, as with LMS Labs.
+- **Voice:** voiceover clips. Each Google Chirp 3 HD voice plays as itself on Google Text-to-Speech, or as the closest OpenAI voice on an OpenAI key.
+
+Work on the site's own AI runs the LMS Labs service's own logic inside Moodle: the same instructions, response schema and checks of the AI's answer, including the one repair of a scene that breaks the response and KPI rules. It is sent from Moodle straight to the AI provider, never through LMS Labs, uses no LMS Labs credits and needs no LMS Labs Site ID or API key. Prices are not shown for that work, and a failure shows what the site's own AI said.
+
 ## Activation
 
 Administrators open *Site administration > Plugins > Activity modules > AI Soft Skills activation*. The page shows:

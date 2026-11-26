@@ -32,10 +32,21 @@ if ($ADMIN->fulltree) {
     // Activation is part of this page: status, "Check access" and "Unlock" (confirmed on the next step).
     $settings->add(new \mod_aisoftskills\admin\setting_activation("$component/activation"));
 
+    // Bring your own AI: say which parts run on the site's own AI.
+    $ownai = '';
+    foreach (['text', 'image', 'voice'] as $service) {
+        if (\mod_aisoftskills\byok::uses($service)) {
+            $ownai .= html_writer::div(
+                html_writer::tag('i', '', ['class' => 'fa fa-microchip me-2', 'aria-hidden' => 'true']) .
+                    s(get_string('byok_settings_' . $service, $component)),
+                'alert alert-success d-flex align-items-center py-2'
+            );
+        }
+    }
     $settings->add(new admin_setting_heading(
         "$component/aiheading",
         get_string('settings_ai', $component),
-        get_string('settings_ai_desc', $component) . '<p><strong>' .
+        get_string('settings_ai_desc', $component) . $ownai . '<p><strong>' .
             get_string(\mod_aisoftskills\local\credentials::status(), $component) . '</strong></p>'
     ));
     $settings->add(new admin_setting_configcheckbox(

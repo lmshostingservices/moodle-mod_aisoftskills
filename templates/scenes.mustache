@@ -35,7 +35,7 @@
         "nav": {"backurl": "#", "backlabel": "Back", "nexturl": "#", "nextlabel": "Next: Check the scenes", "blocked": "1 scene still needs a picture."}
     }
 }}
-<div id="ss-scenes" class="ss-wizard ss-slides">
+<div id="ss-scenes" class="ss-wizard ss-slides" data-ownpictures="{{#ownpictures}}1{{/ownpictures}}" data-ownvoices="{{#ownvoices}}1{{/ownvoices}}">
     <div class="ss-setup-head">
         <h2 class="h3">{{#str}} setup_title, mod_aisoftskills {{/str}}</h2>
         {{#bar}}{{> mod_aisoftskills/setup_steps}}{{/bar}}
@@ -44,11 +44,11 @@
     {{#pictures}}
     <div class="ss-wstep">
         <h3 class="ss-wstep-title">{{#str}} pictures_title, mod_aisoftskills {{/str}}</h3>
-        <p class="ss-mini">{{#str}} pictures_intro, mod_aisoftskills, {{imagecredits}} {{/str}}</p>
+        <p class="ss-mini">{{#ownpictures}}{{#str}} byok_pictures_intro, mod_aisoftskills {{/str}}{{/ownpictures}}{{^ownpictures}}{{#str}} pictures_intro, mod_aisoftskills, {{imagecredits}} {{/str}}{{/ownpictures}}</p>
         {{#canai}}{{#missingcount}}
         <button type="button" class="ss-btn ss-btn-primary" data-action="genall" data-scenes="{{missingids}}" data-credits="{{imagecredits}}">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
-            <span>{{#str}} genall_button, mod_aisoftskills, { "count": {{missingcount}}, "credits": {{missingcredits}} } {{/str}}</span>
+            <span>{{#ownpictures}}{{#str}} byok_genall_button, mod_aisoftskills, {{missingcount}} {{/str}}{{/ownpictures}}{{^ownpictures}}{{#str}} genall_button, mod_aisoftskills, { "count": {{missingcount}}, "credits": {{missingcredits}} } {{/str}}{{/ownpictures}}</span>
         </button>
         {{/missingcount}}
         {{^missingcount}}<p class="ss-ok mb-0">{{#str}} pictures_alldone, mod_aisoftskills {{/str}}</p>{{/missingcount}}
@@ -61,7 +61,7 @@
     {{#voicestep}}
     <div class="ss-wstep">
         <h3 class="ss-wstep-title">{{#str}} voice_title, mod_aisoftskills {{/str}}</h3>
-        <p class="ss-mini">{{#str}} voice_intro, mod_aisoftskills, {{voicecredits}} {{/str}}{{#remakesline}} {{.}}{{/remakesline}}</p>
+        <p class="ss-mini">{{#ownvoices}}{{#str}} byok_voice_intro, mod_aisoftskills {{/str}}{{/ownvoices}}{{^ownvoices}}{{#str}} voice_intro, mod_aisoftskills, {{voicecredits}} {{/str}}{{#remakesline}} {{.}}{{/remakesline}}{{/ownvoices}}</p>
         {{#voiceon}}
         <p class="ss-mini">{{voicepartsline}} <a href="{{settingsurl}}">{{#str}} voice_changeparts, mod_aisoftskills {{/str}}</a></p>
         {{#voices.0}}
@@ -74,7 +74,7 @@
         {{#clipcount}}
         <button type="button" class="ss-btn ss-btn-primary" data-action="genvoice" {{#pricehold}}disabled {{/pricehold}}data-clips="{{clipids}}" data-credits="{{voicecredits}}" data-remakes="{{remakes}}">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7"/></svg>
-            <span>{{#remakes}}{{#str}} voice_button_remakes, mod_aisoftskills, {{clipcount}} {{/str}}{{/remakes}}{{^remakes}}{{#str}} voice_button, mod_aisoftskills, { "count": {{clipcount}}, "credits": {{clipcredits}} } {{/str}}{{/remakes}}</span>
+            <span>{{#remakes}}{{#str}} voice_button_remakes, mod_aisoftskills, {{clipcount}} {{/str}}{{/remakes}}{{^remakes}}{{#ownvoices}}{{#str}} byok_voice_button, mod_aisoftskills, {{clipcount}} {{/str}}{{/ownvoices}}{{^ownvoices}}{{#str}} voice_button, mod_aisoftskills, { "count": {{clipcount}}, "credits": {{clipcredits}} } {{/str}}{{/ownvoices}}{{/remakes}}</span>
         </button>
         {{/clipcount}}
         {{^clipcount}}{{#hasscenes}}<p class="ss-ok mb-0">{{#str}} voice_allmade, mod_aisoftskills {{/str}}</p>{{/hasscenes}}{{/clipcount}}
@@ -113,7 +113,7 @@
                 {{#canai}}
                 <button type="button" class="ss-btn {{#noimage}}ss-btn-primary{{/noimage}}{{^noimage}}ss-btn-ghost{{/noimage}} ss-btn-sm w-100" data-action="genimage" data-scene="{{id}}" data-replace="{{^noimage}}1{{/noimage}}">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
-                    <span>{{#noimage}}{{#str}} generateimage, mod_aisoftskills, {{imagecredits}} {{/str}}{{/noimage}}{{^noimage}}{{#str}} regenerateimage, mod_aisoftskills, {{imagecredits}} {{/str}}{{/noimage}}</span>
+                    <span>{{#ownpictures}}{{#noimage}}{{#str}} byok_generateimage, mod_aisoftskills {{/str}}{{/noimage}}{{^noimage}}{{#str}} byok_regenerateimage, mod_aisoftskills {{/str}}{{/noimage}}{{/ownpictures}}{{^ownpictures}}{{#noimage}}{{#str}} generateimage, mod_aisoftskills, {{imagecredits}} {{/str}}{{/noimage}}{{^noimage}}{{#str}} regenerateimage, mod_aisoftskills, {{imagecredits}} {{/str}}{{/noimage}}{{/ownpictures}}</span>
                 </button>
                 {{/canai}}
                 <a class="ss-btn ss-btn-ghost ss-btn-sm w-100 mt-2" href="{{replaceurl}}">{{#str}} uploadownimage, mod_aisoftskills {{/str}}</a>

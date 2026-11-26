@@ -72,7 +72,11 @@ export const init = async(selector) => {
         'genall_progress', 'confirm_title', 'confirm_create', 'voice_confirm', 'voice_progress',
         'voice_busy', 'genall_busy', 'voice_stop', 'voice_stopping', 'voice_quoting', 'voice_confirm_head',
         'voice_confirm_headone', 'voice_confirm_new', 'voice_confirm_newone', 'voice_confirm_free', 'voice_confirm_freeone',
-        'voice_confirm_note']);
+        'voice_confirm_note', 'byok_genone_confirm', 'byok_genone_confirm_replace', 'byok_genall_confirm',
+        'byok_voice_confirm']);
+    // Bring your own AI: pictures or voiceover made on the site's own AI cost no LMS Labs credits.
+    const ownpictures = root.dataset.ownpictures === '1';
+    const ownvoices = root.dataset.ownvoices === '1';
     const region = root.querySelector('[data-region="aireqs"]');
     // A delivered picture is already saved: show it by reloading the page.
     const done = (request) => {
@@ -91,7 +95,11 @@ export const init = async(selector) => {
 
     root.querySelectorAll('[data-action="genimage"]').forEach((btn) => {
         btn.addEventListener('click', async() => {
-            if (!await confirm(btn.dataset.replace === '1' ? S.genone_confirm_replace : S.genone_confirm)) {
+            let question = btn.dataset.replace === '1' ? S.genone_confirm_replace : S.genone_confirm;
+            if (ownpictures) {
+                question = btn.dataset.replace === '1' ? S.byok_genone_confirm_replace : S.byok_genone_confirm;
+            }
+            if (!await confirm(question)) {
                 return;
             }
             const label = btn.querySelector('span');
@@ -151,6 +159,8 @@ export const init = async(selector) => {
                 }
                 question = fmt(clips.length === 1 ? S.voice_confirm_headone : S.voice_confirm_head, clips.length) + ' '
                     + parts.join(' ') + ' ' + S.voice_confirm_note;
+            } else if (ownvoices) {
+                question = fmt(S.byok_voice_confirm, clips.length);
             } else {
                 question = fmt(S.voice_confirm, {count: clips.length, credits: clips.length * each, each});
             }
@@ -219,7 +229,9 @@ export const init = async(selector) => {
         all.addEventListener('click', async() => {
             const ids = all.dataset.scenes.split(',').map((v) => parseInt(v, 10)).filter((v) => v > 0);
             const credits = ids.length * parseInt(all.dataset.credits, 10);
-            if (!ids.length || !await confirm(fmt(S.genall_confirm, {count: ids.length, credits}))) {
+            const question = ownpictures ? fmt(S.byok_genall_confirm, ids.length)
+                : fmt(S.genall_confirm, {count: ids.length, credits});
+            if (!ids.length || !await confirm(question)) {
                 return;
             }
             const label = all.querySelector('span');

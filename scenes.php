@@ -130,6 +130,7 @@ if ($action === 'replace' && $scene) {
 $scenes = manager::get_scenes($instance->id);
 $options = manager::get_options(array_keys($scenes));
 $provider = factory::get();
+$ownpictures = \mod_aisoftskills\byok::uses('image');
 $canai = $provider->can_generate() && has_capability('mod/aisoftskills:useai', $context);
 $cards = [];
 $i = 0;
@@ -172,6 +173,7 @@ foreach ($scenes as $s) {
         'noimage' => !$url,
         'responsesok' => $responsesok,
         'canai' => $canai,
+        'ownpictures' => $ownpictures,
         'imagecredits' => \mod_aisoftskills\local\ai\lmslabs::IMAGE_CREDITS,
         'editurl' => (new moodle_url('/mod/aisoftskills/editor.php', ['id' => $cm->id, 'sceneid' => $s->id]))->out(false),
         'upurl' => $i > 1 ? (new moodle_url($baseurl, ['action' => 'up', 'sceneid' => $s->id, 'sesskey' => $sesskey]))
@@ -271,6 +273,9 @@ echo $OUTPUT->render_from_template('mod_aisoftskills/scenes', [
     ))),
     'settingsurl' => (new moodle_url('/course/modedit.php', ['update' => $cm->id]))->out(false) . '#id_playhdr',
     'clipcount' => count($clips),
+    // Bring your own AI: pictures and voiceover made on the site's own AI, with no LMS Labs credits.
+    'ownpictures' => $ownpictures,
+    'ownvoices' => \mod_aisoftskills\byok::uses('voice'),
     'clipids' => implode(',', $clips),
     'clipcredits' => count($clips) * \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS,
     'voicecredits' => \mod_aisoftskills\local\ai\lmslabs::VOICE_CREDITS,

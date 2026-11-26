@@ -78,7 +78,8 @@ class voiceover {
      * @return bool
      */
     public static function enabled(): bool {
-        return (bool)get_config('mod_aisoftskills', 'aivoice') && credentials::find() !== null;
+        return (bool)get_config('mod_aisoftskills', 'aivoice') && (credentials::find() !== null
+            || \mod_aisoftskills\byok::uses('voice'));
     }
 
     /**
@@ -98,6 +99,10 @@ class voiceover {
      * @return int|null
      */
     public static function price_hold(): ?int {
+        if (\mod_aisoftskills\byok::uses('voice')) {
+            // The site's own voice: no LMS Labs price applies.
+            return null;
+        }
         $price = (string)get_config('mod_aisoftskills', 'voiceprice');
         if ($price === '' || !ctype_digit($price)) {
             return 0;
@@ -119,7 +124,9 @@ class voiceover {
         $cache = \cache::make('mod_aisoftskills', 'voicecatalog');
         // The key names the catalogue format, so a new format is read again, never a stale copy (1.4.4: the tariff;
         // 1.4.9: its price per clip).
-        $key = sha1('tariff2|' . (string)(credentials::find()['siteid'] ?? ''));
+        // The site's own voice has its own catalogue (and LMS Labs' is read again when the site goes back to credits).
+        $own = \mod_aisoftskills\byok::uses('voice');
+        $key = sha1('tariff2|' . (string)(credentials::find()['siteid'] ?? '') . ($own ? '|ownai' : ''));
         $cached = $cache->get($key);
         $kept = json_decode((string)get_config('mod_aisoftskills', 'voicecatalog'), true);
         $kept = is_array($kept) ? $kept : [];
@@ -135,7 +142,7 @@ class voiceover {
         if ($locales && $locales !== $kept) {
             set_config('voicecatalog', json_encode($locales, JSON_UNESCAPED_SLASHES), 'mod_aisoftskills');
         }
-        if ($locales && lmslabs::$lasttariff !== null) {
+        if ($locales && lmslabs::$lasttariff !== null && !$own) {
             // The price LMS Labs publishes per clip: voiceover waits while it differs from the approved price.
             $price = lmslabs::$lasttariff['tts'] ?? null;
             set_config('voiceprice', is_int($price) ? (string)$price : '', 'mod_aisoftskills');
@@ -156,6 +163,10 @@ class voiceover {
      * @return array|null {limit, days}, or null when LMS Labs has not said it supports remakes
      */
     public static function remakes(): ?array {
+        if (\mod_aisoftskills\byok::uses('voice')) {
+            // The site's own voice: every clip is free, so there are no remakes to count.
+            return null;
+        }
         $rule = json_decode((string)get_config('mod_aisoftskills', 'voiceremakes'), true);
         return is_array($rule) && !empty($rule['on'])
             ? ['limit' => (int)($rule['limit'] ?? 0), 'days' => (int)($rule['days'] ?? 0)] : null;
